@@ -12,6 +12,27 @@ spring:
       hibernate:
         format_sql: true
 
+#spring:
+#  datasource:
+#    # 1. 修改為 PostgreSQL 的 JDBC URL (預設通訊埠為 5432)
+#    url: jdbc:postgresql://127.0.0.1:5432/report_prod
+#    username: postgres
+#    # 請確保 PostgreSQL 中有對應的密碼
+#    password: fslIMX535! 
+#    # 2. 修改為 PostgreSQL 的驅動類別名稱
+#    driver-class-name: org.postgresql.Driver
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#    # 3. 顯示 SQL 並格式化（對應原本的需求）
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        # 4. 指定 PostgreSQL 的 SQL 方言 (推薦版本 10 以上使用)
+#        dialect: org.hibernate.dialect.PostgreSQLDialect 
+
 jwt:
   secret: "dGhpcy1pcy1teS1zZWNyZXQta2V5LXNob3VsZC1iZS12ZXJ5LXN0cm9uZw=="
   expiration: 86400000 # 24 hours in milliseconds
