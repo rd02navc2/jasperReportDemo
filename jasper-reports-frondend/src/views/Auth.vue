@@ -15,9 +15,9 @@
         <!-- Username (signup only) -->
         <input
           v-if="!isLogin"
-          v-model="form.username"
+          v-model="form.name"
           type="text"
-          placeholder="Username"
+          placeholder="name"
           class="mb-3"
         />
 
@@ -76,7 +76,7 @@ const loading = ref(false)
 const errorMessage = ref('')
 
 const form = ref({
-  username: '',
+  name: '',
   email: '',
   password: ''
 })
@@ -101,7 +101,7 @@ const handleSubmit = async () => {
           password: form.value.password
         }
       : {
-          username: form.value.username,
+          name: form.value.name,
           email: form.value.email,
           password: form.value.password
         }

@@ -5,9 +5,9 @@
 
       <form @submit.prevent="handleSignup">
         <input
-          v-model="username"
+          v-model="name"
           type="text"
-          placeholder="Username"
+          placeholder="name"
           class="mb-3"
         />
 
@@ -53,8 +53,8 @@ const password = ref('')
 
 const handleSignup = async () => {
   try {
-    await axios.post('/api/auth/signup', {
-      username: username.value,
+      await axios.post('/api/auth/signup', {
+      name: name.value,
       email: email.value,
       password: password.value
     })
