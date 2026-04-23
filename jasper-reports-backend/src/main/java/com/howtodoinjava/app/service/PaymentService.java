@@ -1,11 +1,11 @@
 package com.howtodoinjava.app.service;
 
-import com.hotelbooking.dto.PaymentRequest;
-import com.hotelbooking.dto.PaymentVerificationRequest;
-import com.hotelbooking.model.Booking;
-import com.hotelbooking.model.Payment;
-import com.hotelbooking.repository.BookingRepository;
-import com.hotelbooking.repository.PaymentRepository;
+import com.howtodoinjava.app.dto.PaymentRequest;
+import com.howtodoinjava.app.dto.PaymentVerificationRequest;
+import com.howtodoinjava.app.model.Booking;
+import com.howtodoinjava.app.model.Payment;
+import com.howtodoinjava.app.repository.BookingRepository;
+import com.howtodoinjava.app.repository.PaymentRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;

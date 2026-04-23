@@ -15,3 +15,16 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  secret: "dGhpcy1pcy1teS1zZWNyZXQta2V5LXNob3VsZC1iZS12ZXJ5LXN0cm9uZw=="
+  expiration: 86400000 # 24 hours in milliseconds
+
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID:your-razorpay-key-id}
+    secret: ${JWT_SECRET:9a8b7c6d5e4f3g2h1i0j9k8l7m6n5o4p3q2r1s0t9u8v7w6x5y4z3a2b1c0d9e8f}
+
+app:
+  frontend:
+    url: http://localhost:3000

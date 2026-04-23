@@ -1,7 +1,7 @@
 package com.howtodoinjava.app.repository;
 
-import com.hotelbooking.model.Booking;
-import com.hotelbooking.model.User;
+import com.howtodoinjava.app.model.Booking;
+import com.howtodoinjava.app.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

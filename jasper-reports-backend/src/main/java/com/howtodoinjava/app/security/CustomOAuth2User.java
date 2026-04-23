@@ -1,6 +1,6 @@
 package com.howtodoinjava.app.security;
 
-import com.hotelbooking.model.User;
+import com.howtodoinjava.app.model.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -1,6 +1,6 @@
 package com.howtodoinjava.app.repository;
 
-import com.hotelbooking.model.Payment;
+import com.howtodoinjava.app.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

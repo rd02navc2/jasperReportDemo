@@ -1,4 +1,4 @@
-package com.hotelbooking.model;
+package com.howtodoinjava.app.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

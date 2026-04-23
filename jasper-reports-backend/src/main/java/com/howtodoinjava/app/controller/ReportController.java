@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,9 +26,10 @@ public class ReportController {
   @Autowired
   JasperReportService jasperReportService;
 
-  @GetMapping("item-report/{format}")
-  public ResponseEntity<Resource> getItemReport(@PathVariable String format)
-      throws Exception { 
+  @GetMapping("/item-report")
+  public ResponseEntity<Resource> getItemReport(
+		  @RequestParam String format
+      )throws Exception { 
 
     byte[] reportContent =
         jasperReportService.generateReport(itemRepository.findAll(), format);

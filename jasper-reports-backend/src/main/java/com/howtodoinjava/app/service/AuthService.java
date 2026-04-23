@@ -1,11 +1,11 @@
 package com.howtodoinjava.app.service;
 
-import com.hotelbooking.dto.AuthResponse;
-import com.hotelbooking.dto.LoginRequest;
-import com.hotelbooking.dto.SignupRequest;
-import com.hotelbooking.model.User;
-import com.hotelbooking.repository.UserRepository;
-import com.hotelbooking.security.JwtTokenProvider;
+import com.howtodoinjava.app.dto.AuthResponse;
+import com.howtodoinjava.app.dto.LoginRequest;
+import com.howtodoinjava.app.dto.SignupRequest;
+import com.howtodoinjava.app.model.User;
+import com.howtodoinjava.app.repository.UserRepository;
+import com.howtodoinjava.app.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

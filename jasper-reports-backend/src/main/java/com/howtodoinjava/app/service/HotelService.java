@@ -1,7 +1,7 @@
 package com.howtodoinjava.app.service;
 
-import com.hotelbooking.model.Hotel;
-import com.hotelbooking.repository.HotelRepository;
+import com.howtodoinjava.app.model.Hotel;
+import com.howtodoinjava.app.repository.HotelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

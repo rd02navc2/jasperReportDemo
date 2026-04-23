@@ -10,7 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/reports")
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173") // 允許前端存取
 @RequiredArgsConstructor
 public class AuthController {
 

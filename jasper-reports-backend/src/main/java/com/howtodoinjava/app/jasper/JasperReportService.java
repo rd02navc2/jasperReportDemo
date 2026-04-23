@@ -36,10 +36,15 @@ public class JasperReportService {
                 new JRBeanCollectionDataSource(data);
 
         InputStream template =
-                this.getClass().getResourceAsStream("/reports/item-report.jrxml");
+                this.getClass().getResourceAsStream("/item-report.jrxml");
+        
+        if (template == null) {
+            throw new FileNotFoundException("找不到指定的 JRXML 檔案，請檢查路徑！");
+        }
 
         JasperReport report =
                 JasperCompileManager.compileReport(template);
+        
 
         JasperPrint print =
                 JasperFillManager.fillReport(report, new HashMap<>(), ds);

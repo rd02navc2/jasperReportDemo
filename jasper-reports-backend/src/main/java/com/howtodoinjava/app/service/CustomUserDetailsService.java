@@ -1,7 +1,7 @@
-package com.howtodoinjava.app.security;
+package com.howtodoinjava.app.service;
 
-import com.hotelbooking.model.User;
-import com.hotelbooking.repository.UserRepository;
+import com.howtodoinjava.app.model.User;
+import com.howtodoinjava.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,12 +23,14 @@ public class ReportStrategyManager {
 
     public byte[] export(String format, JasperPrint jasperPrint) throws Exception {
 
-        ReportStrategy strategy = strategyMap.get(format.toLowerCase());
+    	String key = Optional.ofNullable(format)
+    	        .map(String::trim)
+    	        .map(String::toLowerCase)
+    	        .orElseThrow(() -> new IllegalArgumentException("Format is required"));
 
-        if (strategy == null) {
-            throw new IllegalArgumentException("Unsupported format: " + format);
-        }
-
+    	ReportStrategy strategy = Optional.ofNullable(strategyMap.get(key))
+    	        .orElseThrow(() -> new IllegalArgumentException("Unsupported format: " + format));
+    	
         return strategy.export(jasperPrint);
     }
 }

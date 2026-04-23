@@ -1,13 +1,13 @@
 package com.howtodoinjava.app.service;
 
-import com.hotelbooking.dto.BookingRequest;
-import com.hotelbooking.dto.BookingResponse;
-import com.hotelbooking.model.Booking;
-import com.hotelbooking.model.Hotel;
-import com.hotelbooking.model.User;
-import com.hotelbooking.repository.BookingRepository;
-import com.hotelbooking.repository.HotelRepository;
-import com.hotelbooking.repository.UserRepository;
+import com.howtodoinjava.app.dto.BookingRequest;
+import com.howtodoinjava.app.dto.BookingResponse;
+import com.howtodoinjava.app.model.Booking;
+import com.howtodoinjava.app.model.Hotel;
+import com.howtodoinjava.app.model.User;
+import com.howtodoinjava.app.repository.BookingRepository;
+import com.howtodoinjava.app.repository.HotelRepository;
+import com.howtodoinjava.app.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
