@@ -9,7 +9,7 @@
       <div class="info">
         <div class="tag">即時資料</div>
         <h3>庫存品項明細報表</h3>
-        <p class="desc">包含品項、庫存量、儲位與更新時間</p>
+        <p class="desc">包含品項、庫存量、儲位&emsp;&emsp;</p>
         <small>ItemRepository</small>
       </div>
 
@@ -188,4 +188,9 @@ small {
   color: #dc2626;
   font-size: 14px;
 }
+
+.desc {
+    white-space: pre-wrap; /* 保留空格與 Tab，且支援自動換行 */
+}
+
 </style>

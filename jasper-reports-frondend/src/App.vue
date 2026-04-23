@@ -2,7 +2,7 @@
   <div id="app" class="app-wrapper">
     <nav v-if="isLoggedIn" class="nav-bar">
       <div class="nav-container">
-        <span class="brand">系統管理</span>
+        <span class="brand" @click="router.push('/')" style="cursor: pointer;">系統管理</span>
         <div class="nav-links">
           <button @click="goToReport" class="nav-btn">進入報表下載</button>
           <button @click="handleLogout" class="logout-btn">登出</button>
