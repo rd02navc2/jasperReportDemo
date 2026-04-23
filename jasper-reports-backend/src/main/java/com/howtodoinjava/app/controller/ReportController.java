@@ -1,7 +1,7 @@
 package com.howtodoinjava.app.controller;
 
-import com.howtodoinjava.app.dao.ItemRepository;
-import com.howtodoinjava.app.jasper.JasperReportService;
+import com.howtodoinjava.app.repository.ItemRepository;
+import com.howtodoinjava.app.service.JasperReportService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;

@@ -1,13 +1,18 @@
 package com.howtodoinjava.app;
 
-import com.howtodoinjava.app.dao.ItemRepository;
 import com.howtodoinjava.app.model.Item;
+import com.howtodoinjava.app.repository.ItemRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
+@EnableJpaRepositories(basePackages = "com.howtodoinjava.app.repository")
+@EntityScan(basePackages = "com.howtodoinjava.app.model")
 public class App implements CommandLineRunner {
 
   @Autowired

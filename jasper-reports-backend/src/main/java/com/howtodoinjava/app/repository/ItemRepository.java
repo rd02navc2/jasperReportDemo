@@ -1,4 +1,4 @@
-package com.howtodoinjava.app.dao;
+package com.howtodoinjava.app.repository;
 
 import com.howtodoinjava.app.model.Item;
 import org.springframework.data.repository.ListCrudRepository;

@@ -1,4 +1,4 @@
-package com.howtodoinjava.app.jasper;
+package com.howtodoinjava.app.service;
 
 import com.howtodoinjava.app.model.Item;
 import com.howtodoinjava.app.strategy.ReportStrategyManager;

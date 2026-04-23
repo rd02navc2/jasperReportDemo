@@ -1,7 +1,85 @@
 package com.howtodoinjava.app.config;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.howtodoinjava.app.security.JwtAuthFilter;
+
+import lombok.RequiredArgsConstructor;
+
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthFilter jwtAuthFilter;
+
+    // ✅ PasswordEncoder
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // ✅ AuthenticationManager（你剛剛錯的地方）
+    @Bean
+    AuthenticationManager authenticationManager(
+            AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    // ✅ AuthenticationProvider
+    @Bean
+    public AuthenticationProvider authenticationProvider(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
+
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return provider;
+    }
+
+
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+            http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
+                .sessionManagement(sm ->
+                        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // 🔥 報表需要登入
+                        .requestMatchers("/api/reports/**").authenticated()
+
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+            return http.build();
+        }
+    }
+
+
+
+/*
 // import com.howtodoinjava.app.service.CustomOAuth2UserService;
-import com.howtodoinjava.app.security.JwtAuthenticationFilter;
+import com.howtodoinjava.app.security.JwtAuthFilter;
 // import com.howtodoinjava.app.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -65,7 +143,7 @@ public class SecurityConfig {
         return http.build();
             
         	
-        	/* http
+        	http
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .authorizeHttpRequests(auth -> auth
@@ -96,7 +174,7 @@ public class SecurityConfig {
                                 
 
                 return http.build();
-                */
+                
         }
 
         @Bean
@@ -132,3 +210,5 @@ public class SecurityConfig {
                 return new BCryptPasswordEncoder();
         }
 }
+
+*/
