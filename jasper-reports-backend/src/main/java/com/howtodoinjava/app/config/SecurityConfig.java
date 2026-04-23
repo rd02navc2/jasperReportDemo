@@ -2,7 +2,7 @@ package com.howtodoinjava.app.config;
 
 // import com.howtodoinjava.app.service.CustomOAuth2UserService;
 import com.howtodoinjava.app.security.JwtAuthenticationFilter;
-import com.howtodoinjava.app.security.OAuth2AuthenticationSuccessHandler;
+// import com.howtodoinjava.app.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

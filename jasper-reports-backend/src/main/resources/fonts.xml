@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fontFamilies>
+    <fontFamily name="MSung-Light"> <normal>fonts/msjh.ttf</normal>
+        <bold>fonts/msjh.ttf</bold>
+        <italic>fonts/msjh.ttf</italic>
+        <boldItalic>fonts/msjh.ttf</boldItalic>
+        <pdfEncoding>Identity-H</pdfEncoding>
+        <pdfEmbedded>true</pdfEmbedded>
+    </fontFamily>
+</fontFamilies>

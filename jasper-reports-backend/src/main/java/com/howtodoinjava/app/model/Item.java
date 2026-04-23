@@ -10,6 +10,57 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
+/**
+ * 庫存品項明細 Model
+ */
+@Entity
+public class Item {
+	
+	@Id // ✨ 關鍵：必須定義主鍵
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+	
+    private String itemName;      // 品項名稱
+    private Integer stockQuantity; // 庫存量
+    private String location;      // 儲位
+
+    public Item() {}
+
+    public Item(String itemName, Integer stockQuantity, String location) {
+        this.itemName = itemName;
+        this.stockQuantity = stockQuantity;
+        this.location = location;
+    }
+
+    // Getter 與 Setter (必須存在，JasperReports 依賴 Getter 讀取資料)
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
+
+    public Integer getStockQuantity() {
+        return stockQuantity;
+    }
+
+    public void setStockQuantity(Integer stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+}
+
+
+/*
 @Entity
 @Table(name = "item")
 @Data
@@ -31,3 +82,5 @@ public class Item {
         this.achievement = achievement;
     }
 }
+
+*/
