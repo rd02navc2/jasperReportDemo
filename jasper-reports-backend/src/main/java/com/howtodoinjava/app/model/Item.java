@@ -1,38 +1,64 @@
 package com.howtodoinjava.app.model;
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 
 /**
  * 庫存品項明細 Model
  */
 @Entity
+@Table(name = "item")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Item {
 	
-	@Id // ✨ 關鍵：必須定義主鍵
+	@Id // 關鍵：必須定義主鍵
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 	
+	@Column(nullable = false)
     private String itemName;      // 品項名稱
+	
+	@Column(nullable = false)
+	@Min(0)
     private Integer stockQuantity; // 庫存量
+	
+	@Column(nullable = false)
     private String location;      // 儲位
 
-    public Item() {}
 
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    
     public Item(String itemName, Integer stockQuantity, String location) {
         this.itemName = itemName;
         this.stockQuantity = stockQuantity;
         this.location = location;
     }
 
+    /*
     // Getter 與 Setter (必須存在，JasperReports 依賴 Getter 讀取資料)
     public String getItemName() {
         return itemName;
@@ -57,6 +83,7 @@ public class Item {
     public void setLocation(String location) {
         this.location = location;
     }
+    */
 }
 
 
