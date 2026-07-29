@@ -1385,7 +1385,11 @@ ON DUPLICATE KEY UPDATE
    - 說明: 取得預算申請與審核相關的電子郵件收件人與副本參數設定[cite: 2]
 http://localhost:8095/Report/rest/Budget/getBGParam
 
-
+{
+    "BudgetApply": "user1@beyond.com\nuser2@beyond.com\nuser3@beyond.com",
+    "BudgetApprove": "admin1@beyond.com\nadmin2@beyond.com",
+    "Success": "Y"
+}
    
 
 -- 1. 預算申請相關測試資料 (BudgetApply)
