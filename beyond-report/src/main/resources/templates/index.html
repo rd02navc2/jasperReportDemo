@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>報表管理系統</title>
+
+    <!-- 使用 th:href 引入 static 目錄下的 CSS -->
+    <link rel="stylesheet" type="text/css" th:href="@{/css/easyui/themes/default/easyui.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/easyui/themes/icon.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/zTreeStyle/zTreeStyle.css}">
+
+    <!-- 使用 th:src 引入 static 目錄下的 JS -->
+    <script type="text/javascript" th:src="@{/jquery/jquery-1.9.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery/jquery.easyui.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery/jquery.ztree.core-3.5.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery/jquery.ztree.excheck-3.5.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery/jquery.cookie.js}"></script>
+
+    <script type="text/javascript">
+        function addTab(title, myHTML, canRead, canInsert, canSave, canDelete, canPrint, funcid){
+            if ($('#content').tabs('exists', title)){
+                $('#content').tabs('select', title);
+            } else {
+                var content;
+                if (title.match('首頁') != null){
+                    content = "<iframe frameborder='NO' scrolling='yes' width='100%' height='100%' src='" + myHTML + "'></iframe>";
+                } else {
+                    content = "<iframe frameborder='NO' scrolling='yes' width='100%' height='100%' src='" + myHTML + "?funcid=" + funcid + "&canRead=" + canRead + "&canInsert=" + canInsert + "&canSave=" + canSave + "&canDelete=" + canDelete + "&canPrint=" + canPrint + "'></iframe>";
+                }
+                
+                $('#content').tabs('add',{
+                    title: title,
+                    content: content,
+                    closable: true
+                });
+            }
+        }
+
+        $(document).ready(function(){
+            var setting = {
+                data: {
+                    key: {
+                        title: "title"
+                    },
+                    simpleData: {
+                        enable: true
+                    }
+                },
+                callback: {
+                    beforeClick: beforeClick,
+                    onClick: onClick
+                }
+            };
+
+            // 改呼叫 Spring Boot 控制器 API
+            $.ajax({
+                url: "api/getUserFunction", // 對應 Spring Boot @PostMapping("/api/getUserFunction")
+                type: 'POST',
+                dataType: 'json',
+                success: function(data) {
+                    var zNodes = data.UserFunction;
+                    $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+                },
+                error: function(xhr, textStatus, thrownError) {
+                    $.messager.alert('錯誤視窗', "error:" + xhr.responseText, "error");
+                }
+            });
+
+            function beforeClick(treeId, treeNode, clickFlag) {}
+
+            function onClick(event, treeId, treeNode, clickFlag) {
+                if (treeNode.program_name && treeNode.program_name.substring(0, 4) == 'http') {
+                    window.open(treeNode.program_name, '_blank');
+                } else if (treeNode.pId != null) {
+                    addTab(treeNode.name, treeNode.program_name, treeNode.canRead, treeNode.canInsert, treeNode.canSave, treeNode.canDelete, treeNode.canPrint, treeNode.id);
+                }
+            }
+            
+            // 設定登入者名稱
+            $("#login_id").text($.cookie("COOKIE_LOGIN_USERNAME") || "使用者");
+        });
+
+        function doLogout(){
+            $.ajax({
+                url: "api/logout", // 對應 Spring Boot Logout API
+                type: 'POST',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.Success == 'Y'){
+                        $.messager.alert('訊息視窗', '系統已登出', "info", function(){
+                            window.location.href = "login"; // 導向 Spring Boot 登入頁路由
+                        });
+                    } else {
+                        $.messager.alert('警告視窗', '登出失敗', "warning");
+                    }
+                },
+                error: function(xhr, textStatus, thrownError) {
+                    $.messager.alert('錯誤視窗', "error:" + xhr.responseText, "error");
+                }
+            });
+        }
+
+        function ShowTime(){
+            var NowDate = new Date();
+            var d = NowDate.getDay();
+            var dayNames = new Array("星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六");
+            document.getElementById('showbox').innerHTML = '目前時間：' + NowDate.toLocaleString() + '（' + dayNames[d] + '）';
+            setTimeout(ShowTime, 1000);
+        }
+    </script>
+</head>
+
+<body onload="ShowTime()">
+    <div id="cc" class="easyui-layout" data-options="fit:true" style="margin:0px;">
+        <div data-options="region:'north',title:''" style="height:70px;">        
+            <div style="padding:10px 0px 0px 0px">
+                <!-- 靜態圖片使用 th:src -->
+                <img th:src="@{/image/logo2.jpg}" alt="Logo">
+            </div>
+            <div style="font-size:16px; position:absolute; right:50px; bottom:5px;">    
+                <label id="login_id"></label> 您好，    
+                <label id="showbox"></label>
+                <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-logout'" onclick="doLogout();">登出</a>                            
+            </div>
+        </div>
+        
+        <div data-options="region:'west', split:true, hideCollapsedContent:false, collapsed:false, title:'功能選項'" style="width:240px;">
+            <div id="treeDemo" class="ztree"></div>    
+        </div>
+        
+        <div data-options="region:'center',title:''">
+            <div id="content" class="easyui-tabs" data-options="fit:true,border:false"></div>          
+        </div>
+    </div>
+</body>
+</html>
