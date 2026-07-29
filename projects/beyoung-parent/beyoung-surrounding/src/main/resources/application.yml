@@ -1,0 +1,114 @@
+server:
+  port: 8095
+  address: 127.0.0.1 
+
+app:
+  server:
+    url: ${APP_SERVER_URL:http://localhost:8099/PrivilegeWebService}
+
+subscript:
+  target: "https://api.example.com/v1"
+  content-type: "application/json"
+  key: "your_hmac_secret_key_here"
+  app-id: "你的AppId"
+
+chiefpay:
+  api:
+    url: http://localhost:8098/Surrounding/rest
+  parking:
+    url: http://unknown-external-parking-api.com
+
+onepay:
+  payment-target: https://unknown
+
+pxpay:
+  payment-target: https://api.pxpay.example.com.tw  # 實際的 PX Pay 閘道網址
+  config:
+    content-type: application/json
+    mer-code: ${PXPAY_MER_CODE:unknown}
+    mer-en-name: ${PXPAY_MER_EN_NAME:unknown}
+    key: ${PXPAY_SECRET_KEY:unknown}
+
+taiwanpay:
+  payment-target: https://api.taiwanpay.com.tw  # 或串接收單銀行的測試網址
+  merchant-id: ${TAIWANPAY_MERCHANT_ID:unknown}
+  terminal-id: ${TAIWANPAY_TERMINAL_ID:unknown}
+  key: ${TAIWANPAY_SECRET_KEY:unknown} 
+  content-type: application/json
+
+linepay:
+  channel-id: ${LINEPAY_CHANNEL_ID:unknown}
+  authorization-key: ${LINEPAY_CHANNEL_SECRET:unknown}
+  payment-target: https://sandbox-api-pay.line.me  # 測試環境沙箱 URL
+
+pacepay:
+  timeout: 30000
+  expiring-at: 60000
+  currency: TWD
+  refund-justification: POS_SYSTEM_REFUND
+  payment-target-base: https://playground.api.pacepay.com
+  refunds-target: https://playground.api.pacepay.com/v1/refunds
+  playground-client-id: "your_actual_client_id_here"
+  playground-client-secret: "your_actual_client_secret_here"
+
+GIFT_WS_URL: ${GIFT_SERVICE_URL:http://localhost:8095/GiftWebService}
+
+parking:
+  url: http://api.parking-system.com 
+
+APPServer: ${app.server.url}	
+      
+spring:
+  application:
+    name: beyoung-surrounding
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/surrounding_sf?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: root
+    password: abcd@1234
+    driver-class-name: com.mysql.cj.jdbc.Driver	
+# spring:
+#   datasource:
+#     primary:
+#       url: jdbc:mysql://localhost:3306/surrounding_sf?useSSL=false&serverTimezone=UTC
+#       username: root
+#       password: abcd@1234
+#       driver-class-name: com.mysql.cj.jdbc.Driver
+#     secondary:
+#       url: jdbc:mysql://localhost:3306/other_db_name?useSSL=false&serverTimezone=UTC
+#       username: root
+#       password: abcd@1234
+#       driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update #none #update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+        jdbc:
+          time_zone: UTC
+
+feign:
+  client:
+    config:
+      default: # 全域預設超時設定（自由選用）
+        connectTimeout: 5000
+        readTimeout: 5000
+      giftServiceClient: # 精準對齊你在 Java 宣告的 FeignClient(name = "giftServiceClient")
+        connectTimeout: 30000  # 30 秒連線超時 (對齊原本的 30*1000)
+        readTimeout: 120000    # 120 秒讀取超時 (對齊原本的 120*1000)
+        loggerLevel: full      # 方便除錯，可以看到完整 Feign 呼叫的 Request/Response 內容
+
+logging:
+  level:
+    com.beyoung.member: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

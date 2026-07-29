@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gateway Admin Console</title>
+<link href="/admin/css/fonts.css" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181b22;
+    --border: #232631;
+    --border-bright: #2e3340;
+    --text: #e8eaf0;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+    --accent: #00e5ff;
+    --accent-dim: rgba(0,229,255,0.12);
+    --accent-glow: rgba(0,229,255,0.25);
+    --green: #00d97e;
+    --green-dim: rgba(0,217,126,0.12);
+    --red: #ff4560;
+    --red-dim: rgba(255,69,96,0.15);
+    --yellow: #ffb100;
+    --yellow-dim: rgba(255,177,0,0.15);
+    --font-main: 'JetBrains Mono', monospace;
+    --font-heading: 'Syne', sans-serif;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-main);
+    display: block;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* --- Layout & Header --- */
+  header {
+    background: linear-gradient(135deg, var(--surface) 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .logo-cube {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(45deg, var(--accent), #00a2ff);
+    box-shadow: 0 0 15px var(--accent-glow);
+    transform: rotate(45deg);
+    border-radius: 4px;
+  }
+
+  h1 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--text) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sys-clock {
+    font-size: 13px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.2);
+  }
+
+  /* --- Main Container --- */
+  .container {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    min-height: calc(100vh - 73px);
+  }
+
+  .sidebar-cell {
+    display: table-cell;
+    width: 260px;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+    vertical-align: top;
+    padding: 30px 15px;
+  }
+
+  .content-cell {
+    display: table-cell;
+    vertical-align: top;
+    padding: 40px;
+  }
+
+  /* --- Navigation Sidebar --- */
+  nav ul { list-style: none; }
+  nav li { margin-bottom: 8px; }
+  
+  .nav-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    padding: 12px 18px;
+    text-align: left;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: block;
+  }
+
+  .nav-btn:hover {
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    padding-left: 22px;
+  }
+
+  .nav-btn.active {
+    background: var(--accent-dim);
+    border-color: rgba(0,229,255,0.25);
+    color: var(--accent);
+    box-shadow: inset 0 0 8px rgba(0,229,255,0.05);
+  }
+
+  .user-badge {
+    margin-top: 40px;
+    padding: 15px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+  }
+  .user-badge p { color: var(--text-muted); margin-bottom: 5px; }
+  .user-badge span { color: var(--accent); font-weight: 600; }
+  
+  .logout-lnk {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--red);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .logout-lnk:hover { text-decoration: underline; }
+
+  /* --- Dashboard & Generic Cards --- */
+  .page-header-block {
+    margin-bottom: 30px;
+    border-bottom: 2px dashed var(--border);
+    padding-bottom: 20px;
+  }
+  .page-title-text {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 24px;
+    color: var(--text);
+  }
+
+  .card-grid {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 20px 0;
+    margin-left: -20px;
+    margin-right: -20px;
+  }
+  .card-col { display: table-cell; width: 33.33%; }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 25px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-bright);
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent);
+  }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.yellow::before { background: var(--yellow); }
+
+  .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-val { font-family: var(--font-heading); font-size: 32px; font-weight: 800; color: var(--text); margin: 10px 0 5px 0; }
+  .stat-card:hover .stat-val { color: var(--accent); }
+  .stat-desc { font-size: 11px; color: var(--text-dim); }
+
+  /* --- Data Table Section --- */
+  .table-toolbar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding: 15px 20px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .search-wrapper { position: relative; flex-grow: 1; max-width: 400px; }
+  .search-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: var(--font-main);
+    font-size: 13px;
+  }
+  .search-input:focus { border-color: var(--accent); outline: none; }
+
+  .btn-group { display: flex; gap: 10px; }
+  .btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--border-bright); background: rgba(255,255,255,0.02); }
+  .btn-accent { background: var(--accent); color: #000; border: none; }
+  .btn-accent:hover { background: #00b4cc; }
+
+  .table-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    overflow: hidden;
+  }
+
+  .route-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+  .route-table th {
+    background: rgba(255,255,255,0.01);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    color: var(--text-dim);
+    font-family: var(--font-heading);
+    font-weight: 600;
+  }
+  .route-table td { padding: 14px 20px; border-bottom: 1px solid rgba(35,38,49,0.5); vertical-align: middle; }
+  .route-table tr:last-child td { border-bottom: none; }
+  .route-table tr:hover td { background: rgba(255,255,255,0.01); }
+
+  .id-mono { color: var(--accent); font-weight: 600; }
+  .uri-tag { color: var(--text-dim); font-size: 12px; background: var(--surface2); padding: 3px 6px; border-radius: 4px; border: 1px solid var(--border); }
+  
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,217,126,0.2); }
+  .badge-yellow { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(255,177,0,0.2); }
+  .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,69,96,0.2); }
+
+  /* Login count pill */
+  .login-count-pill {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--surface2);
+    border: 1px solid var(--border-bright);
+    transition: .3s; border-radius: 22px;
+  }
+  .slider::before {
+    position: absolute; content: "";
+    height: 14px; width: 14px; left: 3px; bottom: 3px;
+    background-color: var(--text-muted);
+    transition: .3s; border-radius: 50%;
+  }
+  input:checked + .slider { background-color: var(--green-dim); border-color: var(--green); }
+  input:checked + .slider::before { transform: translateX(22px); background-color: var(--green); }
+  input:disabled + .slider { opacity: 0.4; cursor: not-allowed; }
+
+  /* --- Forms & Previews --- */
+  .form-layout { display: table; width: 100%; table-layout: fixed; }
+  .form-main-cell { display: table-cell; width: 55%; vertical-align: top; padding-right: 30px; }
+  .form-preview-cell { display: table-cell; width: 45%; vertical-align: top; }
+
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-family: var(--font-heading); font-weight: 600; }
+  
+  .form-control {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px;
+    color: var(--text); font-family: var(--font-main); font-size: 13px;
+  }
+  .form-control:focus { border-color: var(--accent); outline: none; }
+  
+  .preview-panel {
+    background: #07080c; border: 1px dashed var(--border-bright); border-radius: 8px; padding: 20px;
+    max-height: 500px; overflow-y: auto;
+  }
+  .preview-title { font-size: 12px; color: var(--accent); margin-bottom: 10px; font-family: var(--font-heading); font-weight: 700; text-transform: uppercase; }
+  pre { font-family: var(--font-main); font-size: 12px; color: #a5b4fc; white-space: pre-wrap; word-break: break-all; }
+
+  /* --- Custom Modals & Toasts --- */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000;
+  }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border-bright); border-radius: 12px;
+    width: 100%; max-width: 450px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .modal-title { font-family: var(--font-heading); font-weight: 800; font-size: 18px; margin-bottom: 12px; }
+  .modal-msg { color: var(--text-dim); font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+  
+  .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 1100; display: block; }
+  .toast {
+    background: var(--surface2); border-left: 4px solid var(--accent); color: var(--text);
+    padding: 12px 24px; border-radius: 4px; font-size: 13px; margin-top: 10px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+  }
+  .toast.success { border-left-color: var(--green); }
+  .toast.error { border-left-color: var(--red); }
+
+  /* --- Login Screen Overlay --- */
+  .login-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg);
+    display: flex; justify-content: center; align-items: center; z-index: 2000;
+  }
+  .login-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    width: 100%; max-width: 400px; padding: 40px; text-align: center;
+  }
+  .login-logo { margin-bottom: 25px; display: inline-block; }
+  .login-error { color: var(--red); font-size: 12px; margin-bottom: 15px; text-align: left; }
+
+  /* Whitelist stats mini bar */
+  .wl-stats-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .wl-stat-mini {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .wl-stat-mini::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--accent);
+  }
+  .wl-stat-mini.green::before { background: var(--green); }
+  .wl-stat-mini.red::before { background: var(--red); }
+  .wl-stat-mini .mini-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .wl-stat-mini .mini-val { font-family: var(--font-heading); font-size: 22px; font-weight: 800; color: var(--text); margin-top: 4px; }
+
+  /* --- Refer IP 足跡頁面 --- */
+  .refer-ip-tag {
+    font-family: var(--font-main);
+    font-size: 13px;
+    font-weight: 700;
+    color: #a5f3fc;
+    letter-spacing: 0.5px;
+  }
+
+  .heat-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 160px;
+  }
+  .heat-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .heat-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .heat-bar-fill.hot  { background: linear-gradient(90deg, var(--red), #ff8c00); }
+  .heat-bar-fill.warm { background: linear-gradient(90deg, var(--yellow), #ffe066); }
+  .heat-bar-fill.cool { background: linear-gradient(90deg, var(--accent), #00d97e); }
+
+  .heat-count {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 13px;
+    min-width: 36px;
+    text-align: right;
+  }
+  .heat-count.hot  { color: var(--red); }
+  .heat-count.warm { color: var(--yellow); }
+  .heat-count.cool { color: var(--accent); }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--surface2);
+  }
+  .rank-badge.rank-1 { background: rgba(255,177,0,0.18); border-color: var(--yellow); color: var(--yellow); }
+  .rank-badge.rank-2 { background: rgba(156,163,175,0.15); border-color: #9ca3af; color: #9ca3af; }
+  .rank-badge.rank-3 { background: rgba(180,120,60,0.18); border-color: #cd7f32; color: #cd7f32; }
+
+  .proxy-chain-tag {
+    display: inline-block;
+    background: rgba(165,243,252,0.08);
+    border: 1px solid rgba(165,243,252,0.18);
+    color: #a5f3fc;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    margin-right: 4px;
+    margin-bottom: 2px;
+  }
+
+  .sort-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0 4px;
+    vertical-align: middle;
+    transition: color 0.15s;
+  }
+  .sort-btn:hover, .sort-btn.active { color: var(--accent); }
+
+  .new-ip-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .filter-tab-group {
+    display: flex;
+    gap: 8px;
+  }
+  .filter-tab {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-tab:hover { border-color: var(--border-bright); color: var(--text); }
+  .filter-tab.active { background: var(--accent-dim); border-color: rgba(0,229,255,0.35); color: var(--accent); }
+
+  /* --- 登入失敗歷史紀錄頁面 --- */
+  .failure-ip-tag {
+    font-family: var(--font-main);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fca5a5;
+    letter-spacing: 0.5px;
+  }
+  .failure-time-tag {
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .failure-reason-pill {
+    display: inline-block;
+    background: var(--red-dim);
+    color: var(--red);
+    border: 1px solid rgba(255,69,96,0.25);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .username-tag {
+    font-size: 12px;
+    color: var(--yellow);
+    background: var(--yellow-dim);
+    border: 1px solid rgba(255,177,0,0.2);
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+  .gateway-node-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-family: var(--font-main);
+  }
+  .wl-stat-mini.red-stat::before { background: var(--red); }
+
+  /* --- 欄位連線範例提示區 --- */
+  .field-hint {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: rgba(0,229,255,0.04);
+    border: 1px dashed rgba(0,229,255,0.2);
+    border-radius: 6px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .hint-label {
+    font-family: var(--font-heading);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    opacity: 0.8;
+  }
+
+  .hint-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .hint-examples code,
+  .field-hint > code {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: var(--font-main);
+    font-size: 11px;
+    color: #a5f3fc;
+    white-space: nowrap;
+  }
+
+  .hint-note {
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.7;
+    margin-top: 2px;
+  }
+
+  .hint-note code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0px 5px;
+    font-family: var(--font-main);
+    font-size: 10.5px;
+    color: #6ee7b7;
+  }
+
+  .hint-code-block {
+    background: #07080c;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    overflow-x: auto;
+  }
+</style>
+<script src="/admin/js/vue.global.prod.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <div v-if="!loggedIn" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo"><div class="logo-cube"></div></div>
+      <h2 style="font-family: var(--font-heading); font-weight: 800; font-size: 22px; margin-bottom: 5px;">GATEWAY CONSOLE</h2>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 30px;">請登入以存取分散式路由中樞</p>
+      
+      <form @submit.prevent="doLogin">
+        <div class="form-group" style="text-align: left;">
+          <label>管理員帳號</label>
+          <input type="text" v-model="loginForm.username" class="form-control" placeholder="username" required autocomplete="username" />
+        </div>
+        <div class="form-group" style="text-align: left;">
+          <label>安全存取密碼</label>
+          <input type="password" v-model="loginForm.password" class="form-control" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <div v-if="loginError" class="login-error">⚠️ {{ loginError }}</div>
+        <button type="submit" class="btn btn-accent" style="width: 100%; padding: 12px; margin-top: 10px;" :disabled="loginLoading">
+          {{ loginLoading ? '正在驗證安全性憑證...' : '啟動安全連線' }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div v-else>
+    <header>
+      <div class="brand-group">
+        <div class="logo-cube"></div>
+        <h1>Gateway Central Hub</h1>
+      </div>
+      <div class="sys-clock">NODE LOCALTIME: <span>{{ now }}</span></div>
+    </header>
+
+    <div class="container">
+      <div class="sidebar-cell">
+        <nav>
+          <ul>
+            <li><button class="nav-btn" :class="{active: page==='dashboard'}" @click="page='dashboard'">總覽 Dashboard</button></li>
+            <li><button class="nav-btn" :class="{active: page==='routes'}" @click="page='routes'">全量資料庫路由</button></li>
+            <li><button class="nav-btn" :class="{active: page==='enabled_routes'}" @click="page='enabled_routes'">線上正常啟用中</button></li>
+            <li><button class="nav-btn" :class="{active: page==='add'}" @click="resetForm(); page='add'">新增整合路由</button></li>
+            <li><button class="nav-btn" :class="{active: page==='whitelist'}" @click="page='whitelist'; fetchWhitelist();">安全白名單配置</button></li>
+            <li><button class="nav-btn" :class="{active: page==='refer_ip'}" @click="page='refer_ip'; fetchReferIps();">Refer IP 足跡清單</button></li>
+            <li><button class="nav-btn" :class="{active: page==='failure_log'}" @click="page='failure_log'; fetchFailureLogs();">登入失敗歷史紀錄</button></li>
+            <li><button class="nav-btn" :class="{active: page==='settings'}" @click="page='settings'">控制台設定</button></li>
+          </ul>
+        </nav>
+
+        <div class="user-badge">
+          <p>當前操作信賴憑證：</p>
+          <span>{{ currentUser }}</span>
+          <br/>
+          <a class="logout-lnk" @click="logout">中斷安全授權</a>
+        </div>
+      </div>
+
+      <div class="content-cell">
+        <div class="page-header-block">
+          <h2 class="page-title-text">{{ pageTitle }}</h2>
+        </div>
+
+        <!-- ── Dashboard ── -->
+        <div v-if="page === 'dashboard'">
+          <div class="card-grid" style="margin-bottom: 25px;">
+            <div class="card-col">
+              <div class="stat-card" @click="page='routes'">
+                <div class="stat-label">資料庫總配置路由數</div>
+                <div class="stat-val">{{ routes.length }}</div>
+                <div class="stat-desc">點擊可切換至全量資料庫列表頁面</div>
+              </div>
+            </div>
+            <div class="card-col">
+              <div class="stat-card green" @click="page='enabled_routes'">
+                <div class="stat-label">線上正常啟用中 (Enabled)</div>
+                <div class="stat-val">{{ routes.filter(r => r.status === 'active').length }}</div>
+                <div class="stat-desc">點擊可切換查看僅限線上生效的轉發端點</div>
+              </div>
+            </div>
+            <div class="card-col">
+              <div class="stat-card yellow" @click="page='routes'">
+                <div class="stat-label">被動停用阻斷 (Disabled)</div>
+                <div class="stat-val">{{ routes.filter(r => r.status === 'inactive').length }}</div>
+                <div class="stat-desc">enabled 標記為 false，已從轉發層卸載的 ID</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: var(--surface); padding: 30px; border-radius: 12px; border: 1px solid var(--border);">
+            <h3 style="font-family: var(--font-heading); margin-bottom: 15px;">微服務網關防護狀態</h3>
+            <p style="color: var(--text-dim); line-height: 1.8;">
+              目前網關已全面啟動網路安全過濾器。所有外部傳入請求將強制透過反向代理封包解析 
+              <span style="color: var(--accent); font-weight: bold;">X-Forwarded-For</span> 與 
+              <span style="color: var(--accent); font-weight: bold;">X-Real-IP</span> 屬性，精準取得呼叫者的底層真實 IP (Refer IP)，並即時與 MySQL 儲存庫進行高併發白名單匹配攔截。
+            </p>
+          </div>
+        </div>
+
+        <!-- ── 全量路由 / 線上啟用路由 ── -->
+        <div v-if="page === 'routes' || page === 'enabled_routes'">
+          <div class="table-toolbar">
+            <div class="search-wrapper">
+              <input type="text" v-model="routeSearch" class="search-input" :placeholder="page === 'enabled_routes' ? '在已啟用路由中過濾 ID、路徑、目標...' : '依 ID、路徑、目標端點過濾全量查詢...'" />
+            </div>
+            <div class="btn-group">
+              <button class="btn" @click="fetchRoutes">↻ 重新讀取資料庫</button>
+              <button class="btn btn-accent" @click="refreshAll">⚡ 強制刷新網關快取</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="route-table">
+              <thead>
+                <tr>
+                  <th style="width: 25%;">Route ID (資料庫主鍵)</th>
+                  <th style="width: 12%;">開關控制</th>
+                  <th style="width: 13%;">狀態標籤</th>
+                  <th style="width: 20%;">轉發路徑 (Path)</th>
+                  <th style="width: 18%;">目標 URI</th>
+                  <th style="width: 12%; text-align: right;">維護操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in filteredRoutes" :key="r.id">
+                  <td><span class="id-mono">{{ r.id }}</span></td>
+                  <td>
+                    <label class="switch">
+                      <input type="checkbox" :checked="r.status === 'active'" @change="toggleRouteStatus(r, $event)" :disabled="r.updating" />
+                      <span class="slider"></span>
+                    </label>
+                  </td>
+                  <td>
+                    <span :class="['badge', r.status === 'active' ? 'badge-green' : 'badge-yellow']">
+                      {{ r.status === 'active' ? 'ACTIVE' : 'DISABLED' }}
+                    </span>
+                  </td>
+                  <td><span style="color: #6ee7b7; font-weight: 600;">{{ r.path }}</span></td>
+                  <td><span class="uri-tag">{{ r.uri }}</span></td>
+                  <td style="text-align: right;">
+                    <button class="btn" style="padding: 4px 10px; font-size: 12px; margin-right: 5px; border-color: var(--accent);" @click="editRoute(r)">編輯</button>
+                    <button class="btn" style="padding: 4px 10px; font-size: 12px; border-color: var(--red); color: var(--red);" @click="confirmDelete(r)">刪除</button>
+                  </td>
+                </tr>
+                <tr v-if="filteredRoutes.length === 0">
+                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">沒有找到符合任何條件的路由配置項目。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── 安全 IP 白名單 ── -->
+        <div v-if="page === 'whitelist'">
+
+          <!-- 統計列 -->
+          <div class="wl-stats-bar">
+            <div class="wl-stat-mini">
+              <div class="mini-label">全量白名單 IP 總數</div>
+              <div class="mini-val">{{ whitelistItems.length }}</div>
+            </div>
+            <div class="wl-stat-mini green">
+              <div class="mini-label">生效中防護節點</div>
+              <div class="mini-val">{{ whitelistItems.filter(i => i.enabled === 1).length }}</div>
+            </div>
+            <div class="wl-stat-mini red">
+              <div class="mini-label">已停用節點</div>
+              <div class="mini-val">{{ whitelistItems.filter(i => i.enabled !== 1).length }}</div>
+            </div>
+            <div class="wl-stat-mini" style="--accent: #ffb100;">
+              <div class="mini-label">累計總登入次數</div>
+              <div class="mini-val" style="color: var(--yellow);">{{ totalWhitelistLogins }}</div>
+            </div>
+          </div>
+
+          <div class="table-toolbar">
+            <div class="search-wrapper">
+              <input type="text" v-model="whitelistSearch" class="search-input" placeholder="依 IP 地址或備註搜尋白名單..." />
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-accent" @click="openAddWhitelistModal">＋ 新增防護白名單</button>
+              <button class="btn" @click="fetchWhitelist">↻ 刷新清單</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="route-table">
+              <thead>
+                <tr>
+                  <th style="width: 8%;">ID</th>
+                  <th style="width: 22%;">允許連線之真實 IP (Refer IP)</th>
+                  <th style="width: 25%;">備註與用途說明</th>
+                  <th style="width: 13%; text-align: center;">累計登入次數</th>
+                  <th style="width: 12%;">防護狀態</th>
+                  <th style="width: 10%; text-align: center;">啟停開關</th>
+                  <th style="width: 10%; text-align: right;">維護操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in filteredWhitelist" :key="item.id">
+                  <td><span class="id-mono">#{{ item.id }}</span></td>
+                  <td><span style="color: #6ee7b7; font-weight: 600; font-size: 14px;">{{ item.ipAddress }}</span></td>
+                  <td><span style="color: var(--text-dim);">{{ item.description || '無備註描述' }}</span></td>
+                  <td style="text-align: center;">
+                    <span class="login-count-pill">{{ item.loginCount ?? 0 }}</span>
+                  </td>
+                  <td>
+                    <span :class="['badge', item.enabled === 1 ? 'badge-green' : 'badge-red']">
+                      {{ item.enabled === 1 ? 'ACTIVE' : 'DISABLED' }}
+                    </span>
+                  </td>
+                  <td style="text-align: center;">
+                    <label class="switch">
+                      <input type="checkbox" :checked="item.enabled === 1" @change="toggleIpStatus(item, $event)" />
+                      <span class="slider"></span>
+                    </label>
+                  </td>
+                  <td style="text-align: right;">
+                    <button class="btn" style="padding: 4px 10px; font-size: 12px; border-color: var(--red); color: var(--red);" @click="deleteWhitelist(item.id)">移除</button>
+                  </td>
+                </tr>
+                <tr v-if="filteredWhitelist.length === 0">
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">無任何設定中的 IP 白名單。當白名單為空時，網關預設允許全放行。</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── Refer IP 足跡清單 ── -->
+        <div v-if="page === 'refer_ip'">
+
+          <!-- 統計列 -->
+          <div class="wl-stats-bar">
+            <div class="wl-stat-mini">
+              <div class="mini-label">偵測到的來源 IP 總數</div>
+              <div class="mini-val">{{ referIps.length }}</div>
+            </div>
+            <div class="wl-stat-mini green">
+              <div class="mini-label">白名單內放行 IP</div>
+              <div class="mini-val">{{ referIps.filter(r => r.inWhitelist).length }}</div>
+            </div>
+            <div class="wl-stat-mini" style="">
+              <div class="mini-label">系統自動建立 IP</div>
+              <div class="mini-val" style="color: var(--accent);">{{ referIps.filter(r => r.description && r.description.includes('自動')).length }}</div>
+            </div>
+            <div class="wl-stat-mini" style="">
+              <div class="mini-label">全量累計呼叫總次數</div>
+              <div class="mini-val" style="color: var(--yellow);">{{ totalReferIpCalls }}</div>
+            </div>
+          </div>
+
+          <!-- 工具列 -->
+          <div class="table-toolbar" style="flex-wrap: wrap; gap: 12px;">
+            <div class="search-wrapper">
+              <input type="text" v-model="referIpSearch" class="search-input" placeholder="依真實 IP 或備註搜尋足跡記錄..." />
+            </div>
+            <div class="filter-tab-group">
+              <button class="filter-tab" :class="{active: referIpFilter==='all'}" @click="referIpFilter='all'">全部</button>
+              <button class="filter-tab" :class="{active: referIpFilter==='whitelist'}" @click="referIpFilter='whitelist'">白名單內</button>
+              <button class="filter-tab" :class="{active: referIpFilter==='auto'}" @click="referIpFilter='auto'">系統自動建立</button>
+              <button class="filter-tab" :class="{active: referIpFilter==='hot'}" @click="referIpFilter='hot'">高頻呼叫 (≥100)</button>
+            </div>
+            <div class="btn-group">
+              <button class="btn" @click="toggleReferSort">
+                {{ referIpSort === 'desc' ? '↓ 次數高→低' : '↑ 次數低→高' }}
+              </button>
+              <button class="btn" @click="fetchReferIps">↻ 重新載入</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="route-table">
+              <thead>
+                <tr>
+                  <th style="width: 6%; text-align: center;">排名</th>
+                  <th style="width: 22%;">
+                    真實來源 IP (Refer IP)
+                    <span style="font-size: 10px; color: var(--text-muted); font-weight: 400; margin-left: 6px;">X-Forwarded-For → X-Real-IP → TCP</span>
+                  </th>
+                  <th style="width: 26%;">累計呼叫次數 (loginCount)</th>
+                  <th style="width: 8%; text-align: center;">白名單</th>
+                  <th style="width: 8%; text-align: center;">狀態</th>
+                  <th style="width: 22%;">備註說明</th>
+                  <th style="width: 8%; text-align: right;">資料庫 ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, idx) in filteredReferIps" :key="item.id">
+                  <td style="text-align: center;">
+                    <span :class="['rank-badge', idx===0?'rank-1':idx===1?'rank-2':idx===2?'rank-3':'']">
+                      {{ idx + 1 }}
+                    </span>
+                  </td>
+                  <td>
+                    <span v-if="item.description && item.description.includes('自動')" class="new-ip-dot" title="系統自動偵測建立"></span>
+                    <span class="refer-ip-tag">{{ item.ipAddress }}</span>
+                  </td>
+                  <td>
+                    <div class="heat-bar-wrap">
+                      <div class="heat-bar-bg">
+                        <div class="heat-bar-fill"
+                          :class="item.loginCount >= 100 ? 'hot' : item.loginCount >= 20 ? 'warm' : 'cool'"
+                          :style="{ width: Math.min(100, (item.loginCount / referIpMax) * 100) + '%' }">
+                        </div>
+                      </div>
+                      <span class="heat-count"
+                        :class="item.loginCount >= 100 ? 'hot' : item.loginCount >= 20 ? 'warm' : 'cool'">
+                        {{ item.loginCount ?? 0 }}
+                      </span>
+                    </div>
+                  </td>
+                  <td style="text-align: center;">
+                    <span v-if="item.inWhitelist" class="badge badge-green">✓ 白名單</span>
+                    <span v-else class="badge badge-yellow">— 未配置</span>
+                  </td>
+                  <td style="text-align: center;">
+                    <span :class="['badge', item.enabled === 1 ? 'badge-green' : 'badge-red']">
+                      {{ item.enabled === 1 ? 'ACTIVE' : 'DISABLED' }}
+                    </span>
+                  </td>
+                  <td><span style="color: var(--text-dim); font-size: 12px;">{{ item.description || '無備註' }}</span></td>
+                  <td style="text-align: right;"><span class="id-mono" style="font-size: 12px;">#{{ item.id }}</span></td>
+                </tr>
+                <tr v-if="filteredReferIps.length === 0">
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                    目前尚無任何 Refer IP 足跡記錄，請確認 IpTrackingFilter 已正確掛載於網關。
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 說明區 -->
+          <div style="margin-top: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px;">
+            <h4 style="font-family: var(--font-heading); font-size: 13px; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">IpTrackingFilter 解析優先鏈</h4>
+            <div style="display: flex; gap: 0; align-items: center; flex-wrap: wrap;">
+              <span class="proxy-chain-tag">① X-Forwarded-For (首 IP)</span>
+              <span style="color: var(--border-bright); margin-right: 4px;">→</span>
+              <span class="proxy-chain-tag">② X-Real-IP</span>
+              <span style="color: var(--border-bright); margin-right: 4px;">→</span>
+              <span class="proxy-chain-tag">③ Proxy-Client-IP</span>
+              <span style="color: var(--border-bright); margin-right: 4px;">→</span>
+              <span class="proxy-chain-tag">④ WL-Proxy-Client-IP</span>
+              <span style="color: var(--border-bright); margin-right: 4px;">→</span>
+              <span class="proxy-chain-tag">⑤ TCP RemoteAddress</span>
+              <span style="color: var(--border-bright); margin-right: 4px;">→</span>
+              <span class="proxy-chain-tag" style="border-color: rgba(0,229,255,0.4); color: var(--accent);">⑥ 127.0.0.1 (Fallback)</span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 12px; margin-top: 12px; line-height: 1.7;">
+              過濾器優先級 <span style="color: var(--accent);">order = -2000</span>，確保在所有業務路由篩選前最先執行。
+              新來源 IP 若無白名單配置，將由系統以 <span style="color: var(--green);">enabled=1</span> 自動初始化足跡紀錄並累計 loginCount。
+            </p>
+          </div>
+        </div>
+
+        <!-- ── 登入失敗歷史紀錄 ── -->
+        <div v-if="page === 'failure_log'">
+
+          <!-- 統計列 -->
+          <div class="wl-stats-bar">
+            <div class="wl-stat-mini red-stat">
+              <div class="mini-label">總失敗事件筆數</div>
+              <div class="mini-val" style="color: var(--red);">{{ failureLogs.length }}</div>
+            </div>
+            <div class="wl-stat-mini">
+              <div class="mini-label">不重複來源 IP 數</div>
+              <div class="mini-val" style="color: var(--accent);">{{ uniqueFailureIps }}</div>
+            </div>
+            <div class="wl-stat-mini">
+              <div class="mini-label">不重複帳號數</div>
+              <div class="mini-val" style="color: var(--yellow);">{{ uniqueFailureUsers }}</div>
+            </div>
+            <div class="wl-stat-mini green">
+              <div class="mini-label">涉及網關節點數</div>
+              <div class="mini-val">{{ uniqueGatewayNodes }}</div>
+            </div>
+          </div>
+
+          <!-- 工具列 -->
+          <div class="table-toolbar" style="flex-wrap: wrap; gap: 12px;">
+            <div class="search-wrapper">
+              <input type="text" v-model="failureSearch" class="search-input" placeholder="依來源 IP、帳號或失敗原因搜尋..." />
+            </div>
+            <div class="filter-tab-group">
+              <button class="filter-tab" :class="{active: failureFilter==='all'}" @click="failureFilter='all'">全部</button>
+              <button class="filter-tab" :class="{active: failureFilter==='401'}" @click="failureFilter='401'">401 未授權</button>
+              <button class="filter-tab" :class="{active: failureFilter==='403'}" @click="failureFilter='403'">403 拒絕存取</button>
+              <button class="filter-tab" :class="{active: failureFilter==='unknown'}" @click="failureFilter='unknown'">未知用戶</button>
+            </div>
+            <div class="btn-group">
+              <button class="btn" @click="toggleFailureSort">
+                {{ failureSort === 'desc' ? '↓ 最新優先' : '↑ 最舊優先' }}
+              </button>
+              <button class="btn" @click="fetchFailureLogs">↻ 重新載入</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="route-table">
+              <thead>
+                <tr>
+                  <th style="width: 5%; text-align: center;">#</th>
+                  <th style="width: 18%;">來源 IP (Refer IP)</th>
+                  <th style="width: 15%;">嘗試帳號</th>
+                  <th style="width: 13%;">失敗原因</th>
+                  <th style="width: 22%;">發生時間</th>
+                  <th style="width: 18%;">處理網關節點</th>
+                  <th style="width: 9%; text-align: right;">ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(log, idx) in filteredFailureLogs" :key="log.id">
+                  <td style="text-align: center;">
+                    <span class="rank-badge">{{ idx + 1 }}</span>
+                  </td>
+                  <td>
+                    <span class="failure-ip-tag">{{ log.referIp || '—' }}</span>
+                  </td>
+                  <td>
+                    <span v-if="log.attemptUsername && log.attemptUsername !== '未知用戶'" class="username-tag">
+                      {{ log.attemptUsername }}
+                    </span>
+                    <span v-else style="color: var(--text-muted); font-size: 12px;">未知用戶</span>
+                  </td>
+                  <td>
+                    <span class="failure-reason-pill">{{ log.failureReason || '—' }}</span>
+                  </td>
+                  <td>
+                    <span class="failure-time-tag">{{ log.failureTime ? log.failureTime.replace('T', ' ') : '—' }}</span>
+                  </td>
+                  <td>
+                    <span v-if="log.gatewayNodeIp" class="gateway-node-tag">{{ log.gatewayNodeIp }}</span>
+                    <span v-else style="color: var(--text-muted); font-size: 12px;">—</span>
+                  </td>
+                  <td style="text-align: right;">
+                    <span class="id-mono" style="font-size: 12px;">#{{ log.id }}</span>
+                  </td>
+                </tr>
+                <tr v-if="filteredFailureLogs.length === 0">
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                    目前尚無登入失敗紀錄，或篩選條件下無符合結果。
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 說明區 -->
+          <div style="margin-top: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px;">
+            <h4 style="font-family: var(--font-heading); font-size: 13px; color: var(--red); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">IpTrackingFilter 失敗偵測機制</h4>
+            <p style="color: var(--text-muted); font-size: 12px; line-height: 1.8;">
+              過濾器在下游服務回應後，攔截狀態碼
+              <span style="color: var(--red); font-weight: 700;">401 Unauthorized</span> 或
+              <span style="color: var(--red); font-weight: 700;">403 Forbidden</span>，
+              自動非同步寫入 <span style="color: var(--accent);">gateway_login_failure_log</span>。
+              帳號來自 Query Param <span style="color: var(--yellow);">?username=</span>，
+              缺少時記為「未知用戶」。網關節點 IP 在服務啟動時由
+              <span style="color: var(--accent);">InetAddress.getLocalHost()</span> 解析並快取。
+            </p>
+          </div>
+        </div>
+
+        <!-- ── 新增 / 編輯路由 ── -->
+        <div v-if="page === 'add'">
+          <div class="form-layout">
+            <div class="form-main-cell">
+              <form @submit.prevent="submitRoute">
+
+                <div class="form-group">
+                  <label>路由識別 ID <span style="color:var(--red);">*</span> (不可重複)</label>
+                  <input type="text" v-model="routeForm.id" class="form-control" placeholder="new-surrounding" :disabled="editingRoute !== null" required />
+                  <div class="field-hint">
+                    <span class="hint-label">連線範例</span>
+                    <span class="hint-examples">
+                      <code>new-surrounding</code>
+                      <code>member-service-route</code>
+                      <code>payment-gateway-v2</code>
+                      <code>admin-api-route</code>
+                    </span>
+                    <span class="hint-note">唯一識別鍵值，建議使用小寫英文加 <code>-</code> 連字號，不可含空格或特殊符號</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>下游客戶端目標端點 URI <span style="color:var(--red);">*</span> (Target URI)</label>
+                  <input type="text" v-model="routeForm.uri" class="form-control" placeholder="lb://member-service" required />
+                  <div class="field-hint">
+                    <span class="hint-label">連線範例</span>
+                    <span class="hint-examples">
+                      <code>lb://member-service</code>
+                      <code>lb://payment-service</code>
+                      <code>http://localhost:8081</code>
+                      <code>http://192.168.1.100:9090</code>
+                    </span>
+                    <span class="hint-note"><code>lb://</code> 前綴表示透過 Spring Cloud LoadBalancer 服務發現；<code>http://</code> 直接指向固定 IP 端點</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>預設 Path 斷言路徑匹配 <span style="color:var(--red);">*</span></label>
+                  <input type="text" v-model="routeForm.path" class="form-control" placeholder="/api/v1/member/**" required />
+                  <div class="field-hint">
+                    <span class="hint-label">連線範例</span>
+                    <span class="hint-examples">
+                      <code>/api/v1/member/**</code>
+                      <code>/api/v2/payment/**</code>
+                      <code>/admin/internal/**</code>
+                      <code>/public/static/**</code>
+                    </span>
+                    <span class="hint-note"><code>**</code> 萬用符號可匹配多層子路徑，對應至 Spring Cloud Gateway Path Predicate</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>權重排序值 (Order)</label>
+                  <input type="number" v-model.number="routeForm.order" class="form-control" placeholder="0" />
+                  <div class="field-hint">
+                    <span class="hint-label">連線範例</span>
+                    <span class="hint-examples">
+                      <code>0</code>
+                      <code>1</code>
+                      <code>-1</code>
+                      <code>100</code>
+                    </span>
+                    <span class="hint-note">數字越小優先級越高；當多條路由路徑重疊時，Order 決定匹配順序（預設 <code>0</code>）</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>資料庫生效狀態 (enabled)</label>
+                  <select v-model="routeForm.status" class="form-control" style="background: var(--surface);">
+                    <option value="active">啟用中 (enabled = true)</option>
+                    <option value="inactive">被動停用 (enabled = false)</option>
+                  </select>
+                  <div class="field-hint">
+                    <span class="hint-label">連線範例</span>
+                    <span class="hint-examples">
+                      <code>active → enabled: true</code>
+                      <code>inactive → enabled: false</code>
+                    </span>
+                    <span class="hint-note">僅 <code>active</code> 狀態的路由會被網關載入並生效；切換為 <code>inactive</code> 後路由將從轉發層卸載</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>自訂高階 Predicates 陣列定義 JSON <span style="color:var(--text-muted);">(選填)</span></label>
+                  <textarea v-model="routeForm.predicatesJson" class="form-control" rows="3" placeholder='[{"name": "Path", "args": {"pattern": "/custom/**"}}]'></textarea>
+                  <div class="field-hint">
+                    <span class="hint-label">連線範例</span>
+                    <div class="hint-code-block"><pre style="margin:0; font-size:11px; color:#a5b4fc;">[{"name":"Path","args":{"pattern":"/api/**"}},{"name":"Method","args":{"methods":"GET,POST"}}]</pre></div>
+                    <span class="hint-note">留空時系統將自動使用上方「Path 路徑」欄位產生預設 Predicate；填入後將完整覆蓋預設設定</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>簡化 Filters 字串清單 <span style="color:var(--text-muted);">(選填)</span></label>
+                  <input type="text" v-model="routeForm.filtersStr" class="form-control" placeholder="StripPrefix=1, AddRequestHeader=X-Flow,Gateway" />
+                  <div class="field-hint">
+                    <span class="hint-label">連線範例</span>
+                    <span class="hint-examples">
+                      <code>StripPrefix=1</code>
+                      <code>AddRequestHeader=X-Flow,Gateway</code>
+                      <code>RewritePath=/api/(?&lt;segment&gt;.*),/$\{segment}</code>
+                    </span>
+                    <span class="hint-note">多個 Filter 以英文逗號分隔；每筆格式為 <code>FilterName=arg1,arg2</code>，對應 Spring Cloud Gateway 內建 GatewayFilter</span>
+                  </div>
+                </div>
+
+                <div style="margin-top: 30px;">
+                  <button type="submit" class="btn btn-accent" style="margin-right: 10px;">{{ editingRoute ? '確認覆蓋更新項目' : '持久化寫入 MySQL' }}</button>
+                  <button type="button" class="btn" @click="cancelEdit">放棄回列表</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="form-preview-cell">
+              <div class="preview-panel">
+                <div class="preview-title">Spring Cloud Gateway 內建標準模型 JSON 預覽</div>
+                <pre>{{ payloadPreview }}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 設定 ── -->
+        <div v-if="page === 'settings'">
+          <div style="max-width: 550px;">
+            <div class="form-group">
+              <label>网關後端主機 Host 位置</label>
+              <input type="text" v-model="settings.gatewayUrl" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label>動態管理 API 前綴 (Prefix)</label>
+              <input type="text" v-model="settings.adminPrefix" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label>Basic 安全驗證名稱</label>
+              <input type="text" v-model="settings.authUser" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label>Basic 安全驗證密鑰令牌</label>
+              <input type="password" v-model="settings.authPass" class="form-control" />
+            </div>
+            <button class="btn btn-accent" style="margin-top: 15px;" @click="saveSettings">儲存主機組態</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 刪除路由 Modal ── -->
+    <div v-if="deleteModal.show" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-title">☢ 警告：即將移除持久化配置</div>
+        <div class="modal-msg">您確定要將路由 ID 為「{{ deleteModal.route?.id }}」的設定項目完全從 MySQL 資料庫中抹除嗎？</div>
+        <div style="text-align: right;">
+          <button class="btn" style="margin-right: 10px;" @click="deleteModal.show = false">取消</button>
+          <button class="btn" style="background: var(--red); color: #fff; border: none;" @click="doDelete">確定移除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 新增白名單 IP Modal ── -->
+    <div v-if="showAddModal" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-title">🛡️ 配置持久化安全白名單 IP</div>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 20px;">
+          對應 API：<span style="color: var(--accent);">POST {{ settings.adminPrefix }}/ip-whitelist</span>
+        </p>
+        <form @submit.prevent="submitWhitelist">
+          <div class="form-group">
+            <label>呼叫者實體 IP 位址 (支援單一 IP 或網段)</label>
+            <input type="text" v-model="whitelistForm.ipAddress" class="form-control" placeholder="例如: 210.65.1.102" required />
+          </div>
+          <div class="form-group">
+            <label>關聯備註用途</label>
+            <input type="text" v-model="whitelistForm.description" class="form-control" placeholder="例如: 台北總部外部固定出口 IP" />
+          </div>
+          <div class="form-group">
+            <label>初始生效狀態</label>
+            <select v-model.number="whitelistForm.enabled" class="form-control" style="background: var(--surface);">
+              <option :value="1">啟用防護 (enabled = 1)</option>
+              <option :value="0">暫停停用 (enabled = 0)</option>
+            </select>
+          </div>
+          <div style="text-align: right; margin-top: 25px;">
+            <button type="button" class="btn" style="margin-right: 10px;" @click="showAddModal = false">取消關閉</button>
+            <button type="submit" class="btn btn-accent">持久化寫入 MySQL</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Toasts ── -->
+    <div class="toast-container">
+      <div v-for="t in toasts" :key="t.id" :class="['toast', t.type]">
+        {{ t.msg }}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+createApp({
+  setup() {
+    // ── 1. Auth 帳密驗證 ──
+    const loggedIn = ref(false);
+    const loginForm = ref({ username: '', password: '' });
+    const loginError = ref('');
+    const loginLoading = ref(false);
+    const currentUser = ref('');
+    const DEMO_USERS = { 'gateway-admin': 'secret123', 'admin': 'admin' };
+
+    function doLogin() {
+      loginLoading.value = true;
+      loginError.value = '';
+      setTimeout(() => {
+        const pw = DEMO_USERS[loginForm.value.username];
+        if (pw && pw === loginForm.value.password) {
+          currentUser.value = loginForm.value.username;
+          loggedIn.value = true;
+          fetchRoutes(); 
+          showToast('歡迎登入動態網關路由控制中心', 'success');
+        } else {
+          loginError.value = '連線令牌無效或安全性認證失敗！';
+        }
+        loginLoading.value = false;
+      }, 500);
+    }
+
+    function logout() {
+      loggedIn.value = false;
+      currentUser.value = '';
+      routes.value = [];
+      whitelistItems.value = [];
+      referIps.value = [];
+    }
+
+    // ── 2. Navigation 頁面控制與分頁標題 ──
+    const page = ref('dashboard');
+    const pageTitle = computed(() => ({
+      dashboard:       '網關動態防護與統計總覽',
+      routes:          'MySQL 資料庫全量路由配置清單',
+      enabled_routes:  '線上正常啟用中路由清單 (Enabled Only)',
+      whitelist:       'MySQL 資料庫全量安全 IP 白名單配置清單',
+      refer_ip:        'Refer IP 足跡清單 — 網路呼叫者真實 IP 與累計登入次數',
+      failure_log:     '登入失敗歷史紀錄 — 401 / 403 事件完整稽核軌跡',
+      add:             '建立/維護動態路由端點',
+      settings:        '後端連線主機參數配置',
+    }[page.value]));
+
+    const now = ref('');
+    let clockTimer;
+    function tick() { now.value = new Date().toLocaleTimeString('zh-TW'); }
+
+    // ── 3. 連線引數配置 ──
+    const settings = ref({
+      gatewayUrl: 'http://localhost:8080',
+      adminPrefix: '/admin/gateway',
+      authUser: 'gateway-admin',
+      authPass: 'secret123'
+    });
+
+    function saveSettings() { showToast('系統連線參數已更新', 'success'); }
+
+    // ── 4. 路由數據核心處理 ──
+    const routes = ref([]);
+    const routeSearch = ref('');
+    
+    const filteredRoutes = computed(() => {
+      let baseRoutes = routes.value;
+      if (page.value === 'enabled_routes') {
+        baseRoutes = baseRoutes.filter(r => r.status === 'active');
+      }
+      const q = routeSearch.value.toLowerCase();
+      if (!q) return baseRoutes;
+      return baseRoutes.filter(r =>
+        r.id.toLowerCase().includes(q) || r.uri.toLowerCase().includes(q) || r.path.toLowerCase().includes(q)
+      );
+    });
+
+    function fetchRoutes() {
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/routesDb`;
+      fetch(url, {
+        method: 'GET',
+        headers: { 'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass) }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('無法順利抓取實體路由清單');
+        return res.json();
+      })
+      .then(data => {
+        routes.value = data.map(entity => {
+          let pathPattern = '';
+          let filterNames = [];
+          let parsedOrder = 0;
+
+          if (entity.routeDefinition) {
+            try {
+              const r = JSON.parse(entity.routeDefinition);
+              parsedOrder = r.order || 0;
+              if (r.predicates && r.predicates.length > 0) {
+                const pathPred = r.predicates.find(p => p.name === 'Path');
+                if (pathPred && pathPred.args) {
+                  pathPattern = pathPred.args.pattern || pathPred.args._gen_args_;
+                }
+              }
+              if (r.filters) { filterNames = r.filters.map(f => f.name); }
+            } catch (jsonErr) {
+              console.error("解析內存 JSON 失敗:", entity.routeId, jsonErr);
+            }
+          }
+
+          const targetUri = entity.uri || (entity.routeDefinition ? JSON.parse(entity.routeDefinition).uri : '') || '未定義 URI';
+          const currentStatus = (entity.enabled === 1 || entity.enabled === true) ? 'active' : 'inactive';
+
+          return {
+            id: entity.routeId,
+            uri: targetUri,
+            path: pathPattern || '/**',
+            order: parsedOrder,
+            filters: filterNames,
+            status: currentStatus,
+            updating: false
+          };
+        });
+        showToast('已同步資料庫最原始配置清單', 'success');
+      })
+      .catch(err => {
+        console.error(err);
+        showToast('與 /routesDb 端點通訊失敗', 'error');
+      });
+    }
+
+    function toggleRouteStatus(route, event) {
+      const isChecked = event.target.checked;
+      const targetEnabled = isChecked;
+      route.updating = true;
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/routes/${route.id}/status`;
+      
+      fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass)
+        },
+        body: JSON.stringify({ enabled: targetEnabled })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('狀態變更失敗');
+        return res.json();
+      })
+      .then(() => {
+        route.status = targetEnabled ? 'active' : 'inactive';
+        showToast(`路由 "${route.id}" 狀態已成功切換為: ${targetEnabled ? '啟用' : '停用'}`, 'success');
+      })
+      .catch(err => {
+        console.error(err);
+        showToast(`無法更新路由 "${route.id}" 的狀態`, 'error');
+        event.target.checked = !isChecked;
+      })
+      .finally(() => {
+        route.updating = false;
+      });
+    }
+
+    function refreshAll() {
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/refresh`;
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass) }
+      })
+      .then(res => {
+        if(!res.ok) throw new Error('刷新事件被拒絕');
+        showToast('快取刷新命令已發送，全量路由狀態重新載入！', 'success');
+      })
+      .catch(() => showToast('網關動態刷新失敗', 'error'));
+    }
+
+    // ── 5. 🛡️ 安全 IP 白名單核心流處理 ──
+    // 對應 IpWhitelistController：
+    //   GET    /admin/gateway/ip-whitelist           → fetchWhitelist()  (gateway_ip_whitelist)
+    //   POST   /admin/gateway/ip-whitelist           → submitWhitelist()
+    //   PATCH  /admin/gateway/ip-whitelist/{id}/status → toggleIpStatus()
+    //   DELETE /admin/gateway/ip-whitelist/{id}      → deleteWhitelist()
+    //   GET    /admin/gateway/ip-registry            → fetchReferIps()   (gateway_ip_registry, loginCount)
+    //   GET    /admin/gateway/failure-logs           → fetchFailureLogs() (gateway_login_failure_log)
+
+    const whitelistItems = ref([]);
+    const whitelistSearch = ref('');
+    const showAddModal = ref(false);
+    const whitelistForm = ref({ ipAddress: '', description: '', enabled: 1 });
+
+    const filteredWhitelist = computed(() => {
+      const q = whitelistSearch.value.toLowerCase().trim();
+      if (!q) return whitelistItems.value;
+      return whitelistItems.value.filter(item => 
+        item.ipAddress.toLowerCase().includes(q) || 
+        (item.description && item.description.toLowerCase().includes(q))
+      );
+    });
+
+    // GET /admin/gateway/ip-whitelist — 獲取全量 IP 清單 (含真實 IP 與累計登入次數)
+    function fetchWhitelist() {
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/ip-whitelist`;
+      fetch(url, {
+        method: 'GET',
+        headers: { 'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass) }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(data => { whitelistItems.value = data; })
+      .catch(() => showToast('讀取安全白名單失敗，請檢查後端 API 連線', 'error'));
+    }
+
+    function openAddWhitelistModal() {
+      whitelistForm.value = { ipAddress: '', description: '', enabled: 1 };
+      showAddModal.value = true;
+    }
+
+    // POST /admin/gateway/ip-whitelist — 手動新增持久化白名單 IP
+    function submitWhitelist() {
+      if (!whitelistForm.value.ipAddress.trim()) {
+        return showToast('請輸入有效的 IP 地址', 'error');
+      }
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/ip-whitelist`;
+      fetch(url, {
+        method: 'POST',
+        headers: { 
+          'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass),
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify(whitelistForm.value)
+      })
+      .then(res => res.json().then(body => ({ ok: res.ok, body })))
+      .then(({ ok, body }) => {
+        if (!ok) throw new Error(body.message || '寫入失敗');
+        showAddModal.value = false;
+        showToast(body.message || '安全連線 IP 已成功持久化寫入 MySQL', 'success');
+        fetchWhitelist();
+      })
+      .catch(err => showToast(err.message || '寫入資料庫失敗', 'error'));
+    }
+
+    // PATCH /admin/gateway/ip-whitelist/{id}/status — 動態切換生效開關
+    function toggleIpStatus(item, event) {
+      const isChecked = event.target.checked;
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/ip-whitelist/${item.id}/status`;
+      
+      fetch(url, {
+        method: 'PATCH',
+        headers: { 
+          'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass),
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({ enabled: isChecked })
+      })
+      .then(res => res.json().then(body => ({ ok: res.ok, body })))
+      .then(({ ok, body }) => {
+        if (!ok) throw new Error(body.message || '狀態更新失敗');
+        item.enabled = isChecked ? 1 : 0;
+        showToast(body.message || `IP [${item.ipAddress}] 防護開關已變更`, 'success');
+      })
+      .catch(err => {
+        event.target.checked = !isChecked;
+        showToast(err.message || '修改動態防火牆狀態失敗', 'error');
+      });
+    }
+
+    // DELETE /admin/gateway/ip-whitelist/{id} — 移除指定 IP 持久化配置
+    function deleteWhitelist(id) {
+      if(!confirm('確認將此驗證節點從安全防護白名單中完全移出？')) return;
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/ip-whitelist/${id}`;
+      fetch(url, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass) }
+      })
+      .then(res => res.json().then(body => ({ ok: res.ok, body })))
+      .then(({ ok, body }) => {
+        if (!ok) throw new Error(body.message || '刪除失敗');
+        showToast(body.message || '該 IP 鏈路配置已從 MySQL 卸載抹除', 'success');
+        fetchWhitelist();
+      })
+      .catch(err => showToast(err.message || '資料庫解除綁定失敗', 'error'));
+    }
+
+    // ── 6. 🔍 Refer IP 足跡清單 (IpTrackingFilter 對應) ──
+    // IpTrackingFilter 透過 X-Forwarded-For → X-Real-IP → Proxy-Client-IP → WL-Proxy-Client-IP → TCP 取得真實 IP
+    // 並呼叫 ipRepository.incrementloginCount(realIp) 累計登入次數
+    // 此頁面讀取全量白名單（含系統自動建立）並以 loginCount 排序呈現
+
+    const referIps = ref([]);
+    const referIpSearch = ref('');
+    const referIpFilter = ref('all');
+    const referIpSort = ref('desc'); // 'desc' = 高→低, 'asc' = 低→高
+
+    const referIpMax = computed(() => {
+      if (!referIps.value.length) return 1;
+      return Math.max(...referIps.value.map(r => r.loginCount || 0), 1);
+    });
+
+    // 累計總登入次數（白名單頁面用）
+    const totalWhitelistLogins = computed(() => {
+      if (!whitelistItems.value || !whitelistItems.value.length) return 0;
+      return whitelistItems.value.reduce((sum, item) => sum + (Number(item.loginCount) || 0), 0);
+    });
+
+    // 全量累計呼叫總次數（Refer IP 頁面用）
+    const totalReferIpCalls = computed(() => {
+      if (!referIps.value || !referIps.value.length) return 0;
+      return referIps.value.reduce((sum, item) => sum + (Number(item.loginCount) || 0), 0);
+    });
+
+    const filteredReferIps = computed(() => {
+      let list = [...referIps.value];
+
+      // 過濾器
+      if (referIpFilter.value === 'whitelist') {
+        list = list.filter(r => r.inWhitelist);
+      } else if (referIpFilter.value === 'auto') {
+        list = list.filter(r => r.description && r.description.includes('自動'));
+      } else if (referIpFilter.value === 'hot') {
+        list = list.filter(r => (r.loginCount || 0) >= 100);
+      }
+
+      // 搜尋
+      const q = referIpSearch.value.toLowerCase().trim();
+      if (q) {
+        list = list.filter(r =>
+          r.ipAddress.toLowerCase().includes(q) ||
+          (r.description && r.description.toLowerCase().includes(q))
+        );
+      }
+
+      // 排序
+      list.sort((a, b) => referIpSort.value === 'desc'
+        ? (b.loginCount || 0) - (a.loginCount || 0)
+        : (a.loginCount || 0) - (b.loginCount || 0)
+      );
+
+      return list;
+    });
+
+    function toggleReferSort() {
+      referIpSort.value = referIpSort.value === 'desc' ? 'asc' : 'desc';
+    }
+
+    // GET /admin/gateway/ip-registry — 取得 gateway_ip_registry 全量足跡清單（含 loginCount）
+    function fetchReferIps() {
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/ip-registry`;
+      fetch(url, {
+        method: 'GET',
+        headers: { 'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass) }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(data => {
+        // gateway_ip_registry 直接包含 loginCount（@JsonProperty 序列化）
+        referIps.value = data.map(item => ({
+          ...item,
+          loginCount: Number(item.loginCount ?? 0),
+          inWhitelist: item.enabled === 1 || item.enabled === 0  // 只要有記錄就是在 中
+        }));
+        showToast(`已載入 ${data.length} 筆 Refer IP 足跡記錄`, 'success');
+      })
+      .catch(() => showToast('讀取 Refer IP 足跡記錄失敗，請確認 /ip-registry API 連線', 'error'));
+    }
+
+    // ── 6. 🚨 登入失敗歷史紀錄 ──
+    // 對應 API：GET /admin/gateway/failure-logs → gateway_login_failure_log
+    const failureLogs = ref([]);
+    const failureSearch = ref('');
+    const failureFilter = ref('all');
+    const failureSort = ref('desc'); // 'desc' = 最新優先
+
+    const uniqueFailureIps = computed(() => new Set(failureLogs.value.map(l => l.referIp).filter(Boolean)).size);
+    const uniqueFailureUsers = computed(() => new Set(failureLogs.value.map(l => l.attemptUsername).filter(u => u && u !== '未知用戶')).size);
+    const uniqueGatewayNodes = computed(() => new Set(failureLogs.value.map(l => l.gatewayNodeIp).filter(Boolean)).size);
+
+    const filteredFailureLogs = computed(() => {
+      let list = [...failureLogs.value];
+
+      // 狀態篩選
+      if (failureFilter.value === '401') {
+        list = list.filter(l => l.failureReason && l.failureReason.includes('401'));
+      } else if (failureFilter.value === '403') {
+        list = list.filter(l => l.failureReason && l.failureReason.includes('403'));
+      } else if (failureFilter.value === 'unknown') {
+        list = list.filter(l => !l.attemptUsername || l.attemptUsername === '未知用戶');
+      }
+
+      // 關鍵字搜尋
+      const q = failureSearch.value.toLowerCase().trim();
+      if (q) {
+        list = list.filter(l =>
+          (l.referIp && l.referIp.toLowerCase().includes(q)) ||
+          (l.attemptUsername && l.attemptUsername.toLowerCase().includes(q)) ||
+          (l.failureReason && l.failureReason.toLowerCase().includes(q)) ||
+          (l.gatewayNodeIp && l.gatewayNodeIp.toLowerCase().includes(q))
+        );
+      }
+
+      // 時間排序
+      list.sort((a, b) => {
+        const ta = a.failureTime ? new Date(a.failureTime).getTime() : 0;
+        const tb = b.failureTime ? new Date(b.failureTime).getTime() : 0;
+        return failureSort.value === 'desc' ? tb - ta : ta - tb;
+      });
+
+      return list;
+    });
+
+    function toggleFailureSort() {
+      failureSort.value = failureSort.value === 'desc' ? 'asc' : 'desc';
+    }
+
+    // GET /admin/gateway/failure-logs — 取得 gateway_login_failure_log 全量失敗紀錄
+    function fetchFailureLogs() {
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/failure-logs`;
+      fetch(url, {
+        method: 'GET',
+        headers: { 'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass) }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(data => {
+        failureLogs.value = data;
+        showToast(`已載入 ${data.length} 筆登入失敗紀錄`, data.length > 0 ? 'error' : 'success');
+      })
+      .catch(() => showToast('讀取登入失敗紀錄失敗，請確認 /failure-logs API 連線', 'error'));
+    }
+
+    // ── 7. 路由表單維護處理 ──
+    const editingRoute = ref(null);
+    const routeForm = ref({ id: '', uri: '', path: '', order: 0, status: 'active', filtersStr: '', predicatesJson: '' });
+
+    const payloadPreview = computed(() => {
+      const f = routeForm.value;
+      const filters = f.filtersStr ? f.filtersStr.split(',').map(s => ({ name: s.trim(), args: {} })) : [];
+      let predicates;
+      if (f.predicatesJson) {
+        try { predicates = JSON.parse(f.predicatesJson); } catch { predicates = [{ name: 'Path', args: { pattern: f.path } }]; }
+      } else {
+        predicates = [{ name: 'Path', args: { pattern: f.path } }];
+      }
+      return JSON.stringify({
+        id: f.id || '<id>',
+        uri: f.uri || '<uri>',
+        predicates,
+        filters,
+        order: f.order,
+        metadata: { status: f.status }
+      }, null, 2);
+    });
+
+    function resetForm() {
+      routeForm.value = { id: '', uri: '', path: '', order: 0, status: 'active', filtersStr: '', predicatesJson: '' };
+      editingRoute.value = null;
+    }
+    function cancelEdit() { resetForm(); page.value = 'routes'; }
+
+    function editRoute(r) {
+      editingRoute.value = r;
+      routeForm.value = {
+        id: r.id, uri: r.uri, path: r.path, order: r.order, status: r.status,
+        filtersStr: (r.filters || []).join(', '), predicatesJson: ''
+      };
+      page.value = 'add';
+    }
+
+    function submitRoute() {
+      const f = routeForm.value;
+      if (!f.id || !f.uri || !f.path) return showToast('提示：請完整填寫必填欄位', 'error');
+
+      const filters = f.filtersStr ? f.filtersStr.split(',').map(s => ({ name: s.trim(), args: {} })) : [];
+      let predicates = [{ name: 'Path', args: { pattern: f.path } }];
+      if (f.predicatesJson) { try { predicates = JSON.parse(f.predicatesJson); } catch(e) {} }
+
+      const routeDefinitionPayload = {
+        id: f.id, uri: f.uri, predicates, filters, order: f.order,
+        metadata: { status: f.status }
+      };
+
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/routes/${f.id}`;
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass)
+        },
+        body: JSON.stringify(routeDefinitionPayload)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('寫入異常');
+        return res.json();
+      })
+      .then(() => {
+        showToast(`變更項目已持久化儲存`, 'success');
+        resetForm();
+        fetchRoutes();
+        page.value = 'routes';
+      })
+      .catch(() => showToast('無法完成動態寫入', 'error'));
+    }
+
+    // ── 7. 刪除路由視窗 ──
+    const deleteModal = ref({ show: false, route: null });
+    function confirmDelete(r) { deleteModal.value = { show: true, route: r }; }
+    function doDelete() {
+      const id = deleteModal.value.route?.id;
+      const url = `${settings.value.gatewayUrl}${settings.value.adminPrefix}/routes/${id}`;
+      fetch(url, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Basic ' + btoa(settings.value.authUser + ':' + settings.value.authPass) }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('刪除失敗');
+        deleteModal.value.show = false;
+        showToast(`配置單元 "${id}" 已從 MySQL 抹除`, 'success');
+        fetchRoutes();
+      })
+      .catch(() => showToast('移除設定失敗', 'error'));
+    }
+
+    // ── 8. 全域訊息快顯 ──
+    const toasts = ref([]);
+    function showToast(msg, type = 'info') {
+      const id = Date.now();
+      toasts.value.push({ id, msg, type });
+      setTimeout(() => { toasts.value = toasts.value.filter(t => t.id !== id); }, 3500);
+    }
+
+    onMounted(() => { tick(); clockTimer = setInterval(tick, 1000); });
+    onUnmounted(() => clearInterval(clockTimer));
+
+    return {
+      loggedIn, loginForm, loginError, loginLoading, currentUser, doLogin, logout,
+      page, pageTitle, now, settings, saveSettings,
+      routes, routeSearch, filteredRoutes, fetchRoutes, refreshAll, toggleRouteStatus,
+      whitelistItems, whitelistSearch, showAddModal, whitelistForm, filteredWhitelist,
+      fetchWhitelist, openAddWhitelistModal, submitWhitelist, toggleIpStatus, deleteWhitelist,
+      referIps, referIpSearch, referIpFilter, referIpSort, referIpMax, filteredReferIps, fetchReferIps, toggleReferSort,
+      totalWhitelistLogins, totalReferIpCalls,
+      failureLogs, failureSearch, failureFilter, failureSort, filteredFailureLogs,
+      fetchFailureLogs, toggleFailureSort, uniqueFailureIps, uniqueFailureUsers, uniqueGatewayNodes,
+      editingRoute, routeForm, payloadPreview, resetForm, cancelEdit, editRoute, submitRoute,
+      deleteModal, confirmDelete, doDelete, toasts
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

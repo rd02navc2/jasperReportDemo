@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Zookeeper 服務：負責管理 Kafka 叢集的元數據與協調狀態
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    restart: always # 確保異常退出時自動重啟
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181 # 指定 Zookeeper 的客戶端連線埠
+      ZOOKEEPER_TICK_TIME: 2000 # 基礎時間單位（毫秒），用作心跳同步檢測
+    ports:
+      - "2181:2181" # 對宿主機暴露 2181 埠
+    networks:
+      - bonus-network # 加入專屬微服務網路
+
+  # Kafka 核心服務：負責高並發的消息隊列傳輸
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    restart: always
+    depends_on:
+      - zookeeper # 確保 Zookeeper 完全啟動後才拉起 Kafka
+    ports:
+      - "9092:9092" # 提供給宿主機本機（localhost:9092）開發環境連線
+    environment:
+      KAFKA_BROKER_ID: 1 # 叢集內唯一的節點識別編號
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181 # 連結的 Zookeeper 路由位置
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT # 定義內外部監聽器的安全通訊協議
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092 # 關鍵設定：外部用 localhost:9092，內部容器互連走 kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # 位移量主題的副本因子，開發測試環境設 1 即可
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1 # 事務日誌最低同步副本數
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1 # 事務狀態主題的副本因子
+    networks:
+      - bonus-network # 加入專屬微服務網路
+
+  # Kafka-UI 服務：提供網頁視覺化介面，方便監控 Topic、消費組與異步事件流量
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    restart: always
+    depends_on:
+      - kafka # 確保 Kafka 本體就位後才啟動介面
+    ports:
+      - "8088:8080" # 網頁端映射埠：請在瀏覽器輸入 http://localhost:8088 進入後台
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true' # 允許在網頁介面上動態修改配置
+      KAFKA_CLUSTERS_0_NAME: local-cluster # UI 畫面上呈現的叢集名稱
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092 # 關鍵：因為在同一個網路，UI 直接走內部通訊埠連線 Kafka
+    networks:
+      - bonus-network # 加入專屬微服務網路
+
+# 虛擬網路配置：完美對齊並沿用 Redis 的網路空間，確保整體中台容器互通
+networks:
+  bonus-network:
+    driver: bridge # 採用標準橋接網路模式

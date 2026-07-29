@@ -1,0 +1,5 @@
+## SyncPChomeReturn PChome退貨資料同步系統
+
+1. PChome退貨資料同步 API
+   - API: GET /syncPChomeReturn[cite: 15]
+   - 說明: 執行 PChome 平台退貨資料同步作業，透過 `SyncPChomeReturnEntry` 呼叫 `doSync()`，串接 PChome 退貨與明細查詢 API，並透過 AES 解密處理退貨聯絡人的個資，將退貨明細與相關狀態寫入或更新至資料庫中[cite: 15]

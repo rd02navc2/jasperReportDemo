@@ -1,0 +1,13 @@
+## ProductUpload 產品上傳與價格管理系統
+
+1. 修改價格 API
+POST /ProductUpload/changePrice
+接收JSON請求驗證使用者登入狀態與公司代碼，執行一般產品價格更新邏輯並回傳處理結果
+
+2. PChome產品變價與下架處理 API
+POST /ProductUpload/changePrice_PChome
+解析PChome變價資料，針對有效狀態產品自動執行離線下架後更新價格資料庫
+
+3. 上傳Excel檔案處理 API
+POST /ProductUpload/uploadExcel
+檢查使用者登入與multipart內容，驗證供應商編號後將上傳的Excel變價檔案儲存並解析匯入產品清單與明細

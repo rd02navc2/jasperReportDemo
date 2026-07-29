@@ -1,0 +1,5 @@
+## Yahoo基本資料同步系統
+
+1. API: 執行Yahoo基本資料同步作業
+GET /syncYahooBasic
+執行Yahoo基本資料同步作業，透過 `SyncYahooBasicEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 同步退貨原因列表 (`ReturnReasonList`) 與商品異常原因列表 (`ProductAbnormalReasonList`)，並將資料寫入或更新至本地資料庫中[cite: 7]

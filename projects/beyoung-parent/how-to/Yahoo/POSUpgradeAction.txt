@@ -1,0 +1,29 @@
+## POSUpgrade POS 系統版更管理 API
+
+1. 儲存 POS 版更申請 API[cite: 11]
+   * POST /POSUpgrade/savePOSUpgrade[cite: 11]
+   * 接收前端傳入的版更申請資料，執行儲存、複製相關上傳檔案（暫存區至正式區），並自動排程發送版更申請通知信件給相關人員[cite: 11]。
+
+2. 上傳 POS 版更相關檔案 API[cite: 11]
+   * POST /POSUpgrade/uploadImage[cite: 11]
+   * 檢查使用者登入狀態，解析多部分表單內容（Multipart），將上傳的檔案儲存至系統設定的暫存目錄（POSUpgradeTemp），並回傳檔案目錄與檔名[cite: 11]。
+
+3. 取得 POS 版更清單 API[cite: 11]
+   * GET /POSUpgrade/getPOSUpgrade[cite: 11]
+   * 根據分頁、排序及查詢條件取得 POS 版更申請清單，包含公司代號、狀態、狀態名稱、版本編號、申請日期、申請人資訊、說明、是否為 POS 相關與附件狀態等資訊[cite: 11]。
+
+4. 依編號取得 POS 版更詳細資料 API[cite: 11]
+   * GET /POSUpgrade/getPOSUpgradeByNo[cite: 11]
+   * 依據傳入的公司代號與版本編號查詢單筆版更的詳細記錄，包含確認人員、退回資訊、完成日期、備忘錄及檔案路徑等完整內容[cite: 11]。
+
+5. 執行 POS 版更審核/核准 API[cite: 11]
+   * POST /POSUpgrade/doApprove[cite: 11]
+   * 處理版更的接收、確認完成或上版作業，並根據狀態自動寄送通知信件或透過 Line 傳送更版完成訊息[cite: 11]。
+
+6. 儲存 IT 版更備忘錄 API[cite: 11]
+   * POST /POSUpgrade/saveITMemo[cite: 11]
+   * 依據公司代號與版本編號更新並儲存 IT 相關的備忘錄（it_memo）內容[cite: 11]。
+
+7. 執行 POS 版更退回 API[cite: 11]
+   * POST /POSUpgrade/doReturn[cite: 11]
+   * 處理版更申請的退回作業，更新狀態並寄送退回原因通知信件給申請人[cite: 11]。

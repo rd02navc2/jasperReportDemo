@@ -1,0 +1,29 @@
+## VipRoom 貴賓室管理系統
+
+1. 取得無限期資料 API
+   - API: GET /VipRoom/getUnlimitData[cite: 11]
+   - 說明: 查詢並回傳貴賓室無限期會員的使用者編號與姓名清單[cite: 11]
+
+2. 新增無限期資料 API
+   - API: GET /VipRoom/insertUnlimitData[cite: 11]
+   - 說明: 檢查會員資料與重複性後，新增貴賓室無限期會員資料[cite: 11]
+
+3. 刪除無限期資料 API
+   - API: GET /VipRoom/deleteUnlimitData[cite: 11]
+   - 說明: 依據卡號刪除指定的貴賓室無限期會員資料[cite: 11]
+
+4. 依使用者編號查詢預約紀錄 API
+   - API: GET /VipRoom/getBookingByUID[cite: 11]
+   - 說明: 分頁查詢並回傳會員的貴賓室預約與進出紀錄，包含交易日期、進出時間、退款日期及總數量等資訊[cite: 11]
+
+5. 貴賓室預約（購買） API
+   - API: GET /VipRoom/booking[cite: 11]
+   - 說明: 驗證會員資料後，呼叫遠端服務執行貴賓室消費預約，並記錄操作人員與處理結果[cite: 11]
+
+6. 取消貴賓室預約（退款） API
+   - API: GET /VipRoom/cancelbooking[cite: 11]
+   - 說明: 驗證會員資料後，呼叫遠端服務執行貴賓室預約退款作業，並回傳處理狀態[cite: 11]
+
+7. 取得貴賓會員資料 API
+   - API: GET /VipRoom/getVipMember[cite: 11]
+   - 說明: 依條件查詢並回傳貴賓室會員的詳細資料，包含卡號、姓名、性別、年齡及總消費數量等統計數據[cite: 11]

@@ -1,0 +1,9 @@
+## BICheck 檢核系統 API
+
+1. 銷售資料檢核 API
+POST /BICheck/checkSales
+接收銷售起始日期參數，呼叫 biCheckService 檢核相關銷售檔案清單，並回傳詳細的銷售資料與發票號碼資訊[cite: 10]
+
+2. 櫃位資料檢核 API
+POST /BICheck/checkCounter
+接收銷售起訖日期與搜尋樓層參數，整合預算資料與櫃位資料比對檢核，回傳異常或符合條件的櫃位及預算明細清單[cite: 10]

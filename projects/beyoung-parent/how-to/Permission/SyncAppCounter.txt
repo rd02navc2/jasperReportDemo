@@ -1,0 +1,5 @@
+## SyncAppCounter 會員註冊統計系統
+
+1. 會員註冊統計資料同步 API
+   - API: GET /syncAppCounter[cite: 9]
+   - 說明: 執行會員註冊與 TS 相關統計資料的同步作業，透過 SyncAppCounterEntry 呼叫 doSync() 讀取外部來源資料並寫入至 `TOPPROD.APP_COUNTER` 及 `TOPPROD.TS_COUNTER` 資料表中[cite: 9]

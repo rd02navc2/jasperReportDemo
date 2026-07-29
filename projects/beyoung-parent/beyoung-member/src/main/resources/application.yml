@@ -1,0 +1,72 @@
+server:
+  port: 8096
+  address: 127.0.0.1
+remote:
+  bonus-service:
+    # 宣告變數。若未來有 K8s 或外部注入則優先使用，否則預設走 localhost:8095
+    url: ${BONUS_SERVICE_URL:localhost:8095}
+spring:
+  application:
+    name: beyoung-member
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+      function:
+        # 宣告要啟用的函數名稱（對應 Java 中的 Bean 名稱）
+        definition: syncMemberPoints
+      bindings:
+        # 命名規則: [functionName]-in-[index]
+        syncMemberPoints-in-0:
+          destination: member-point-topic
+          group: member-service-group # 設定 Consumer Group 確保消費機制的穩定
+          content-type: application/json
+  # 新增：允許 FeignClient 的 Bean 定義覆蓋，解決註冊衝突崩潰問題
+  main:
+    allow-bean-definition-overriding: true
+
+  # Java 21 虛擬執行緒
+  threads:
+    virtual:
+      enabled: true
+
+  # MySQL 資料來源設定
+  datasource:
+    url: jdbc:mysql://localhost:3306/member_sf?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: root
+    password: abcd@1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA / Hibernate 設定
+  jpa:
+    hibernate:
+      ddl-auto: update # 第一次啟動會自動建立資料表
+    show-sql: true     # 控制台顯示 SQL 語句，方便開發偵錯
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+          
+# ================================================================
+# 新增：外部服務與自訂業務參數
+# ================================================================
+erp:
+  ws:
+    url: http://localhost:8097  # 改成您實際的 Upstream ERP 網址
+
+# ================================================================
+# 新增：Feign 客戶端個別連線路由設定（可選，方便測試）
+# ================================================================
+app:
+  invoice-service:
+    url: http://localhost:8096  # 讓 @FeignClient 裡的 ${app.invoice-service.url} 有值可循
+
+# ================================================================
+# 日誌設定
+# ================================================================
+logging:
+  level:
+    com.beyoung.erp: DEBUG
+    org.springframework.security: INFO
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    org.springframework.jdbc.core.StatementCreatorUtils: TRACE

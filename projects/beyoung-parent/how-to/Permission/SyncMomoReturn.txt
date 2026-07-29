@@ -1,0 +1,5 @@
+## SyncMomoReturn Momo退貨資料同步系統
+
+1. Momo退貨資料同步 API
+   - API: GET /syncMomoReturn[cite: 15]
+   - 說明: 執行 Momo 平台退貨資料同步作業，透過 `SyncMomoReturnEntry` 呼叫 `doSync()`，串接 Momo 退貨查詢 API（`/v2/Order/ReturnQuery`）進行 AES 解密與處理，並將退貨明細及取件資訊寫入或更新至資料庫中[cite: 15]

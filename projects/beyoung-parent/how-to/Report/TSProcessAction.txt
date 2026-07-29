@@ -1,0 +1,13 @@
+## TSProcess 處理程序與電商管理系統
+
+1. 補點處理 API
+   - API: GET /TSProcess/appendPoint[cite: 9]
+   - 說明: 檢查 ERP 狀態與重複性後執行補點作業，並回傳會員姓名、基本點數、發票日期、櫃位名稱、金額、點數及前後點數餘額等資訊[cite: 9]
+
+2. 依訂單號碼查詢電商紀錄 API
+   - API: GET /TSProcess/getECLogByOrderNO[cite: 9]
+   - 說明: 透過分頁與訂單號碼查詢並回傳電商交易紀錄清單，包含訂單編號、型態說明、卡號、金額、退款金額及各項授權與退貨日期[cite: 9]
+
+3. 電商退款處理 API
+   - API: GET /TSProcess/refundEC[cite: 9]
+   - 說明: 記錄操作人員並呼叫外部 Web Service 執行電商交易退款作業，處理並回傳退款結果狀態碼與訊息[cite: 9]

@@ -1,0 +1,5 @@
+## TS SyncTSPoint 點數補點作業系統
+
+1. API: 執行TS點數補點作業
+GET /syncTSPoint
+執行TS點數補點作業，透過 `SyncTSPointEntry` 接受選填的起訖日期參數 (`sStartDate`, `sEndDate`) 並呼叫 `doSync()`，串接外部來源資料庫同步與計算點數相關資料，並將其寫入或更新至本地資料庫中

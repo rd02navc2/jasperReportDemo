@@ -1,0 +1,21 @@
+## InvoiceProcess 發票處理系統
+
+1. 停車發票補登 API
+   - API: POST /InvoiceProcess/appendInvoice4Parking[cite: 8]
+   - 說明: 接收頻道、發票號碼與車牌號碼等參數，透過 Web Service 執行停車發票補登作業，並回傳執行結果與運算代號[cite: 8]
+
+2. 發票銷退補登 API
+   - API: GET /InvoiceProcess/appendReturn[cite: 8]
+   - 說明: 驗證會員資料與補登歷程後，透過 Web Service 執行發票銷退補登與點數異動處理，並記錄相關操作人員與時間[cite: 8]
+
+3. 一般發票補登 API
+   - API: GET /InvoiceProcess/appendInvoice[cite: 8]
+   - 說明: 檢查會員身分並呼叫後端 Web Service 執行發票補登，寫入補登日誌並回傳詳細的點數與金額計算結果[cite: 8]
+
+4. 發票贈獎補登 API
+   - API: GET /InvoiceProcess/appendInvoicePrize[cite: 8]
+   - 說明: 依據發票號碼查詢櫃位發票明細，並將發票記錄新增至使用者帳號中，回傳對應的金額與櫃位資訊[cite: 8]
+
+5. 影城發票補登 API
+   - API: GET /InvoiceProcess/TheaterAppend[cite: 8]
+   - 說明: 驗證會員資料、發票日期區間與發票編號格式後，呼叫影城補登 Web Service 進行點數與金額補登，並記錄異動日誌[cite: 8]

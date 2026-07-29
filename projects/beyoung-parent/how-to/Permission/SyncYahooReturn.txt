@@ -1,0 +1,5 @@
+SyncYahooReturn ## Yahoo退貨/退貨異常資料同步系統
+
+1. API: 執行Yahoo退貨/退貨異常資料同步作業[cite: 9]
+   - `GET /syncYahooReturn`[cite: 9]
+   - 執行Yahoo退貨及退貨異常資料同步作業，透過 `SyncYahooReturnEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢指定區間內的退貨、退貨異常清單與詳細資料，並將相關退貨主檔、異常明細及狀態寫入或更新至本地資料庫中[cite: 9]。

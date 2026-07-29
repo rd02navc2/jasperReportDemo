@@ -1,0 +1,5 @@
+## CheckBudgetDone 預算檢查系統
+
+1. 每月月底預算匯入櫃位檢查 API
+   - API: GET /checkBudgetDone[cite: 17]
+   - 說明: 執行每月月底預算匯入櫃位檢查作業，透過 CheckBudgetDoneEntry 呼叫 doSync() 進行檢核與通知處理[cite: 17]

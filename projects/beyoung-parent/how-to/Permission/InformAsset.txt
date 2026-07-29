@@ -1,0 +1,5 @@
+## InformAsset 資產盤點系統
+
+1. 檢查尚未進行盤點確認人員 API
+   - API: GET /informAsset
+   - 說明: 執行檢查尚未進行資產盤點確認之人員作業，透過 InformAssetEntry 呼叫 doSync() 檢查盤點狀態、抓取未確認人員與主管信箱並發送提醒通知

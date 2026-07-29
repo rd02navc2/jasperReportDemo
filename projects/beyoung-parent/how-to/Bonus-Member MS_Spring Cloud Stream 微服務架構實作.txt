@@ -1,0 +1,98 @@
+## Bonus-Member MS_Spring Cloud Stream 微服務架構實作
+
+
+1. /addPoint 手動加點流程圖（事件驅動、非同步解耦）
+
+前端 (POS / Web 端)
+|
++---> (1) POST /addPoint (JSON/XML)
+v
+
+bonus-service (紅利微服務)
+|
++---> (2) 進入 Controller (確認格式、印出 log.info)
+|
++---> (3) 呼叫 bonusService.addPoint() [@Transactional]
+|      |
+|      +---> 驗證專櫃 (validateCounter)
+|      |     [不合法] ---> 拋出異常，回傳 HTTP 400
+|      |
+|      +---> 查詢本地 lrq_file (活動設定，取得贈點基數)
+|      |
+|      +---> 寫入本地 lsm_file (同步儲存點數流水帳明細)
+|
++---> (4) 封裝 PointChangedEvent 透過 StreamBridge 發送
+|	      event = PointChangedEvent.builder()
+|
++---> (5) 發送事件 (Event)
+|
+|
+v
+
+Kafka 訊息佇列 (MQ) ---> Topic: member-point-topic
+|
++---> (6) 非同步派送事件 (監聽器觸發)
+|   	  cloud:
+|			stream:
+|			  kafka:
+|				binder:
+|				  brokers: localhost:9092
+|			  function:
+|				# 宣告要啟用的函數名稱（對應 Java 中的 Bean 名稱）
+|				definition: syncMemberPoints
+|			  bindings:
+|
+v
+
+member-service (會員微服務)
+|
++---> (7) PointChangedListener 接收到點數異動事件
+|	      MemberEventListener.java @Bean syncMemberPoints()
+|
++---> (8) 啟動本地事務, 更新 lpj_file (會員主檔總點數)
+
+2. /getPointHistByMemberID 查詢流程圖（資料聚合、RPC 直連）
+
+前端 (POS / Web 端)
+|
++---> (1) POST /getPointHistByMemberID
+|
+v
+
+bonus-service (紅利微服務)
+|
++---> (2) 進入 BonusService.getPointHistByMemberID()
+|
++---> (3) 透過 FeignClient 跨服務呼叫 (直連特定 URL)
+|
++---> (4) HTTP POST /api/member/cards
+|
+v
+
+member-(會員微服務)
+|
++----> (5) 查詢本地 lpj_file -> 找出該會員 ID 綁定的所有卡號
+|
++----> (6) 回傳 List cardNos
+|
+v
+ 
+bonus-service (紅利微服務)
+|
++---> (7) 收到卡號清單, 進入防禦性檢查機制：
+|      |
+|      +---> [RPC 失敗/逾時] -> catch 攔截，回傳空列表
+|      +---> [卡號清單為空]  -> Java 攔截，直接回傳空列表 (防止 Oracle IN () 報錯)
+|
+|---> (8) 執行本地 Native SQL (運用 Java Text Blocks)
+|      |
+|      +---> 條件限制: WHERE lsm01 IN (:cardNos)
+|      +---> 跨表關聯: lsm_file LEFT JOIN lnt_file / tqa_file
+|
+|---> (9) 結果映射為 List -> 回傳給前端畫面渲染
+
+
+
+
+
+

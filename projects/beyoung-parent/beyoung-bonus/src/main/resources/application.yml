@@ -1,0 +1,129 @@
+server:
+  port: 8095
+  address: 127.0.0.1
+
+spring:
+  application:
+    name: beyoung-bonus
+  
+  # ================================================================
+  # 開啟 Spring Cache 快取管理，並定調為 Redis 
+  # ================================================================
+  cache:
+    type: redis
+    redis:
+      time-to-live: 86400000 # 快取存活時間（預設 24 小時，單位微秒），防止 Redis 被死資料塞滿
+      use-key-prefix: true   # 開啟前綴，這樣 Redis 裡才會呈現 "bonus:project::701:..."
+
+  # ================================================================
+  # 本機 Docker Redis 連線設定與安全密碼
+  # ================================================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: BeyoungBonusPass2026 # 完美對齊剛才 docker-compose 設定的強密碼
+      timeout: 5000ms # 連線逾時控管
+      lettuce:
+        pool:
+          max-active: 100 # 高並發週年慶防線：連線池最大活躍數
+          max-idle: 20
+          min-idle: 5
+
+  cloud:
+    # 明確宣告要啟動的函數監聽器名稱（對齊監聽器類別中的 @Bean 方法名）
+    function:
+      definition: acceptOrderCompleted
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+      bindings:
+        # ==============================================================
+        # 接收端（監聽外系統發出的 ORDER_COMPLETED 事件）
+        # ==============================================================
+        acceptOrderCompleted-in-0:
+          destination: order-completed-topic # 訂單系統拋事件的 Topic 名稱
+          group: bonus-order-consumer-group   # 專屬消費組，防止多台 Bonus 服務重複加點
+          content-type: application/json
+          
+        # 定義一個發送端的 binding 名稱（原本就有的點數同步通道）
+        bonus-out-0:
+          destination: member-point-topic
+          content-type: application/json
+
+  # 允許 FeignClient 的 Bean 定義覆蓋，解決註冊衝突崩潰問題
+  main:
+    allow-bean-definition-overriding: true
+
+  # Java 21 虛擬執行緒
+  threads:
+    virtual:
+      enabled: true
+
+  # MySQL 資料來源設定
+  datasource:
+    url: jdbc:mysql://localhost:3306/bonus_sf?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: root
+    password: abcd@1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA / Hibernate 設定
+  jpa:
+    hibernate:
+      ddl-auto: update # 第一次啟動會自動建立資料表
+    show-sql: true     # 控制台顯示 SQL 語句，方便開發偵錯
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true # 讓 SQL 排版更易閱讀，方便看 Point 欄位是否有值
+        use_sql_comments: true # 在 SQL 中加入註解，方便追蹤
+        # 重要停用 JDBC batch，有時會因為批量更新而隱藏了單筆寫入的錯誤
+        jdbc.batch_size: 0
+          
+# ================================================================
+# 外部服務與自訂業務參數
+# ================================================================
+erp:
+  ws:
+    url: http://localhost:8097  # 改成您實際的 Upstream ERP 網址
+
+# ================================================================
+# Feign 客戶端個別連線路由設定
+# ================================================================
+app:
+  invoice-service:
+    url: http://localhost:8096  # 讓 @FeignClient 裡的 ${app.invoice-service.url} 有值可循
+    
+feign:
+  client:
+    config:
+      # 對應到您 FeignClient 中設定的 name = "member-service"
+      member-service:
+        connectTimeout: 5000 # 連接逾時 5 秒
+        readTimeout: 5000    # 讀取逾時 5 秒
+      # 您也可以為 invoice-service 設定獨立逾時
+      invoice-service:
+        connectTimeout: 3000
+        readTimeout: 3000
+
+# ================================================================
+# 日誌設定
+# ================================================================
+logging:
+  level:
+    com.beyoung.erp: DEBUG
+    org.springframework.security: INFO
+    org.springframework.jdbc.core.JdbcTemplate: DEBUG
+    org.springframework.jdbc.core.StatementCreatorUtils: TRACE
+    # 開發階段開啟 Spring Cache 運作日誌，看有沒有成功 Evict
+    org.springframework.cache: TRACE
+    # 這三行能幫您從 Hibernate 視角看到「到底有沒有把 100 塞進 POINT 欄位」
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: DEBUG
+    
+    
+    
+    
+    

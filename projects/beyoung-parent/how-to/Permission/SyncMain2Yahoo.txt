@@ -1,0 +1,5 @@
+## SyncMain2Yahoo 同步商品資料至Yahoo系統
+
+1. 同步商品資料至Yahoo API
+   - API: GET /syncMain2Yahoo[cite: 14]
+   - 說明: 執行同步商品資料至Yahoo作業，透過 SyncMain2YahooEntry 呼叫 `doSync()` 讀取產品主檔資料，並透過 RESTful API 與 HmacSHA1 加密機制將資料同步更新至 Yahoo 平台中[cite: 14]

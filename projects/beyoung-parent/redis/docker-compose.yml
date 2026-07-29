@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # ====================================================================================
+  # Redis 核心快取服務
+  # ====================================================================================
+  bonus-redis:
+    image: redis:7.2-alpine # 採用輕量化 alpine 映像檔，兼顧效能、安全性與極小的磁碟佔用
+    container_name: bonus-redis-container # 指定明確的容器名稱，方便維運與盯 monitor 指令
+    restart: always # 確保作業系統重啟、或是 Docker daemon 異常重啟時，Redis 會自動拉起
+    ports:
+      - "6379:6379" # 將容器內的 6379 埠對應到宿主機的 6379，供 Bonus 服務直連
+    
+    command: >
+      redis-server 
+      --requirepass BeyoungBonusPass2026
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    # Command 核心參數精準解讀：
+    # 1. --requirepass: 設定強密碼防禦（請依安全性調整），避免前線中台無密碼暴露。
+    # 2. --appendonly yes: 開啟 AOF 持久化機制，確保每一筆寫入（如活動變更）都被記錄。
+    # 3. --appendfsync everysec: 每秒將記憶體快取強刷（fsync）進硬碟，兼顧性能與資料不遺失（最多掉1秒資料）。
+    # 4. --maxmemory 512mb: 限制此快取實例的最大記憶體上限，防止高並發時把主機記憶體吃爆（引發 OOM killer）。
+    # 5. --maxmemory-policy allkeys-lru: 當記憶體滿了，自動移除「最久沒被使用的舊快取 (LRU)」，這對熱點活動檢核最安全。
+
+    volumes:
+      # ================================================================================
+      # 資料持久化與掛載點
+      # ================================================================================
+      - redis-data:/data # 將 Redis 的 AOF/RDB 數據檔案掛載到 Docker 具名磁碟卷，重啟容器資料絕不蒸發
+      - /etc/localtime:/etc/localtime:ro # 鏡像時間同步主機時間（唯讀），確保 Redis 日誌時間與台北時間（CST）100% 一致
+
+    networks:
+      - bonus-network # 將 Redis 歸納入專屬的微服務虛擬網路，未來與本機其他微服務容器容器間互連
+
+# ======================================================================================
+# ⚙網路與磁碟卷宣告
+# ======================================================================================
+volumes:
+  redis-data: # 宣告具名磁碟卷，由 Docker 引擎進行底層高效管理
+
+networks:
+  bonus-network:
+    driver: bridge # 採用標準橋接網路

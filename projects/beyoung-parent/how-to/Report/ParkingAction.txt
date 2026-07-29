@@ -1,0 +1,37 @@
+## Parking 停車管理系統
+
+1. 刪除租賃車輛 API
+   - API: GET /Parking/delRentCar[cite: 8]
+   - 說明: 依據請求內容刪除指定的租賃車輛資料[cite: 8]
+
+2. 儲存租賃車輛 API
+   - API: GET /Parking/saveRentCar[cite: 8]
+   - 說明: 驗證並儲存租賃車輛資訊，同時記錄操作人員的登入編號[cite: 8]
+
+3. 取得租賃車輛清單 API
+   - API: GET /Parking/getRentCar[cite: 8]
+   - 說明: 查詢並回傳所有租賃車輛的詳細清單與相關日期時間[cite: 8]
+
+4. 取得停車折抵設定清單 API
+   - API: GET /Parking/getDiscSet[cite: 8]
+   - 說明: 依分頁與查詢條件取得停車折抵設定列表[cite: 8]
+
+5. 依代號取得停車折抵設定 API
+   - API: GET /Parking/getDiscSetByID[cite: 8]
+   - 說明: 根據折抵編號（disc_id）查詢單一停車折抵設定的詳細內容與上下限資訊[cite: 8]
+
+6. 執行停車折抵試算 API
+   - API: GET /Parking/getDiscExec[cite: 8]
+   - 說明: 呼叫外部停車場 API 進行試算，計算停車時間、費用與折抵結果，並回傳相關數據[cite: 8]
+
+7. 儲存停車折抵設定 API
+   - API: GET /Parking/saveDiscSet[cite: 8]
+   - 說明: 新增或修改停車折抵設定，並記錄操作人員身分[cite: 8]
+
+8. 更新停車折抵執行 API
+   - API: GET /Parking/updateDiscExec[cite: 8]
+   - 說明: 重新執行試算並更新停車折抵的執行狀態與相關金額[cite: 8]
+
+9. 依車號查詢歷史紀錄 API
+   - API: GET /Parking/getHistByCarNO[cite: 8]
+   - 說明: 透過分頁查詢指定車號的停車折抵與進出歷史紀錄[cite: 8]

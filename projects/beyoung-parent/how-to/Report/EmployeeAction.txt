@@ -1,0 +1,9 @@
+## Employee 員工資料管理系統
+
+1. 取得員工清單 API
+   - API: GET /Employee/getEmployee[cite: 8]
+   - 說明: 根據前端請求參數與搜尋編號查詢員工清單資料，並回傳 JSON 格式結果[cite: 8]
+
+2. 依編號取得員工詳細資料 API
+   - API: GET /Employee/getEmployeeByID[cite: 8]
+   - 說明: 根據指定的員工代號查詢其詳細個人資料，包含職稱、部門、到職日、生日、聯絡方式及學歷等資訊[cite: 8]

@@ -1,0 +1,57 @@
+## Asset 資產盤點系統
+
+1. 取得盤點日期清單 API
+   - API: GET /Asset/getInventoryDate
+   - 說明: 查詢所有資產盤點日期的表頭資訊、產生類型與結案日期狀態
+
+2. 取得資產盤點明細 API
+   - API: POST /Asset/getAssetInventory
+   - 說明: 根據指定的盤點日期與排序條件，查詢資產盤點的詳細清單與員工擁有者資訊
+
+3. 取得資產類別選單 API
+   - API: GET /Asset/getAssetType
+   - 說明: 取得系統中所有的資產類別並組成 HTML <select> 下拉選單供前端使用
+
+4. 上傳資產 Excel 檔案 API
+   - API: POST /Asset/uploadExcel
+   - 說明: 驗證使用者登入狀態，上傳並解析資產 Excel 盤點檔案，並對照員工與資產編號回傳明細
+
+5. 儲存匯入資產資料 API
+   - API: POST /Asset/saveImport
+   - 說明: 接收並儲存從前端傳入的匯入資產盤點資料
+
+6. 儲存資產資料 API
+   - API: POST /Asset/saveAsset
+   - 說明: 針對指定的盤點日期與資料集進行資產盤點資料的儲存與更新
+
+7. 刪除全部資產盤點資料 API
+   - API: POST /Asset/deleteAll
+   - 說明: 刪除指定盤點日期的所有資產盤點資料
+
+8. 刪除單筆資產資料 API
+   - API: POST /Asset/delete
+   - 說明: 刪除指定盤點日期與自身財產編號的單筆資產資料
+
+9. 資產報廢 API
+   - API: POST /Asset/scrapped
+   - 說明: 將指定盤點日期與財產編號的資產標記為報廢狀態
+
+10. 建立新資產盤點 API
+    - API: POST /Asset/newAsset
+    - 說明: 檢查驗證狀態後發起新的個人設備資產盤點任務，並寄送盤點通知郵件給全體同仁
+
+11. 取得員工個人資產 API
+    - API: POST /Asset/getStaffAsset
+    - 說明: 取得目前登入員工名下的個人設備資產清單與盤點確認狀態
+
+12. 取得已報廢資產 API
+    - API: POST /Asset/getAssetScrapped
+    - 說明: 依據指定的銷售/報廢日期區間與財產編號查詢已報廢的資產清單
+
+13. 提交個人資產盤點確認 API
+    - API: POST /Asset/submit
+    - 說明: 供登入員工提交並確認其名下的個人資產盤點結果
+
+14. 發送未盤點人員提醒通知 API
+    - API: POST /Asset/inform
+    - 說明: 檢查尚未完成盤點確認的人員，並批次發送資產盤點再次提醒通知電子郵件

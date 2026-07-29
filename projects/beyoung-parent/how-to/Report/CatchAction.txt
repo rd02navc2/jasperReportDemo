@@ -1,0 +1,45 @@
+## Catch 資訊擷取與查詢系統
+
+1. 取得產品排行 API
+   - API: GET /Catch/getProductRank[cite: 5]
+   - 說明: 根據前端請求參數與分頁資訊查詢產品排行資料清單與總筆數[cite: 5]
+
+2. 取得會員清單 API
+   - API: GET /Catch/getMemberList[cite: 5]
+   - 說明: 查詢符合條件的會員詳細清單、基本資料及相關統計資訊[cite: 5]
+
+3. 取得部門清單 API
+   - API: GET /Catch/getDeptList[cite: 5]
+   - 說明: 查詢系統中的部門與相關對應資訊清單[cite: 5]
+
+4. 取得櫃位清單 API
+   - API: GET /Catch/getCounterList[cite: 5]
+   - 說明: 查詢櫃位相關的詳細資訊、期間與類別資料[cite: 5]
+
+5. 取得部門交易資訊 API
+   - API: GET /Catch/getDeptTransaction[cite: 5]
+   - 說明: 查詢各部門的交易金額、次數與平均客單價等統計數據[cite: 5]
+
+6. 取得會員購買記錄 API
+   - API: GET /Catch/getMemberBuy[cite: 5]
+   - 說明: 查詢會員在各櫃位的購買明細、消費金額與平均單價[cite: 5]
+
+7. 取得會員年齡層購買分析 API
+   - API: GET /Catch/getMemberAgeBuy[cite: 5]
+   - 說明: 依會員年齡層分組統計購買金額、平均價格與交易筆數，並回傳圖表陣列格式[cite: 5]
+
+8. 取得合約清單 API
+   - API: GET /Catch/getContractList[cite: 5]
+   - 說明: 依據分頁與請求參數查詢櫃位合約清單與相關基本資料[cite: 5]
+
+9. 取得零關鍵字明細 API
+   - API: GET /Catch/get0KeyDetail[cite: 5]
+   - 說明: 查詢特定條件下的零關鍵字詳細紀錄清單[cite: 5]
+
+10. 取得合約明細資料 API
+    - API: GET /Catch/getContractDetail[cite: 5]
+    - 說明: 查詢指定合約的詳細資料，包含各項費用、租金、管理費及水電瓦斯等細項[cite: 5]
+
+11. 依合約編號取得合約清單 API
+    - API: GET /Catch/getContractListByCNO[cite: 5]
+    - 說明: 根據指定的合約編號查詢相關的合約清單資訊[cite: 5]

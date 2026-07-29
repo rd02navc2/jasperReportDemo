@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('/admin/fonts/jetbrains-mono.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Syne';
+    src: url('/admin/fonts/syne.woff2') format('woff2');
+}

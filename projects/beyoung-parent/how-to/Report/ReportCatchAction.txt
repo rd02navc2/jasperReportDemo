@@ -1,0 +1,25 @@
+## ReportCatch 擷取報表管理系統
+
+1. 產生自營商品排行 Excel 報表 API
+   - API: GET /ReportCatch/genProductRankExcel[cite: 9]
+   - 說明: 查詢自營商品排行資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+2. 產生會員名單 Excel 報表 API
+   - API: GET /ReportCatch/genMemberListExcel[cite: 9]
+   - 說明: 查詢會員名單資料，產生 Excel 報表檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+3. 產生部類銷售 Excel 報表 API
+   - API: GET /ReportCatch/genDeptTransactionExcel[cite: 9]
+   - 說明: 查詢部類銷售資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+4. 產生部類消費 Excel 報表 API
+   - API: GET /ReportCatch/genMemberBuyExcel[cite: 9]
+   - 說明: 查詢會員部類消費資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+5. 產生年齡層消費 Excel 報表 API
+   - API: GET /ReportCatch/genMemberAgeBuyExcel[cite: 9]
+   - 說明: 查詢會員年齡層消費資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+6. 檔案下載 API
+   - API: GET /ReportCatch/download[cite: 9]
+   - 說明: 依據請求的檔案路徑讀取檔案，設定適當的 Content-Type 與 UTF-8 附檔名標頭，將檔案串流輸出供使用者下載[cite: 9]

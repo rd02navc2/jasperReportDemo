@@ -1,0 +1,5 @@
+## MailTask 郵件處理系統
+
+1. 檢查郵件與排程發送 API
+   - API: GET /checkMail[cite: 8]
+   - 說明: 執行郵件檢查與排程發送作業，透過 MailTaskEntry 呼叫 doCheck() 查詢 `schedule_email` 中狀態為 0 的待發送郵件，並透過 HTML 格式進行寄送與狀態更新[cite: 8]

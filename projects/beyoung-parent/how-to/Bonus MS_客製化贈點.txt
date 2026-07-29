@@ -1,0 +1,244 @@
+## 客製化贈點
+
+路徑 A：POS 手動補點流程
+
+[ POS 操作員 ]
+|
+| 1. 輸入會員卡號, 活動代碼 (lrq01), 點數
+v
+[ addPoint API 入口 ]
+|
+| 2. 判斷活動代碼是否屬於 VIP 專屬清單
+|
++---> 若屬於 VIP 清單 ---> 導向 addVipGiftPoint
+|      | 3. 生成字軌 POS_VIP_時間戳記
+|      | 4. 執行冪等性檢查
+|      | 5. 寫入 bonus_log 審計日誌
+|      | 6. 拋送 Kafka 變更通知
+|
+|--- 若為一般活動 ---> 導向 傳統 addPoint
+| 3. 執行標準 603 補點規則
+| 4. 寫入系統資料庫
+
+
+路徑 B：Kafka 自動贈點流程
+
+[ 訂單系統結帳 ]
+|
+| 1. 交易提交成功 (afterCommit)
+v
+[ Kafka Topic (order-completed-topic) ]
+|
+| 2. 自動監聽 (BonusPointListener)
+v
+[ addVipGiftPoint 核心邏輯 ]
+|
+| 3. 使用訂單編號生成字軌 VIP_GIFT_訂單號
+| 4. 執行冪等性檢查 (防止重複消費)
+| 5. 寫入 bonus_log 審計日誌
+| 6. 拋送 Kafka 變更通知 (bonus-out-0)
+|
+v
+[ Member 微服務 (完成點數更新) ]
+
+================================================================================
+【滿額自動贈點與手動補點整合流程圖】
+================================================================================
+
+[ POS 系統 ]           [ 訂單系統/Kafka ]
+     |                       |
+     | 1. 手動補點 API       | 2. 自動觸發加贈事件
+     | (不帶 orderNo)        | (帶 orderNo)
+     v                       v
+    ---------------------------------------------------
+    |             Bonus API 入口 (addPoint)           |
+    |    (依據是否含有 orderNo 進行路由分流)          |
+    ---------------------------------------------------
+     |                       |
+     | (邏輯分流)            | (邏輯分流)
+     |                       |
+     v                       v
+  [ 舊版加點邏輯 ]        [ addVipGiftPoint 核心 ]
+  (finalLrq01/02)         (唯一字軌: VIP_GIFT_...)
+     |                       |
+     |                       | 3. 冪等性檢查 (防止重複贈點)
+     |                       | 4. 寫入 bonus_log (審計存證)
+     |                       | 5. 拋送 Kafka (bonus-out-0)
+     |                       |
+     v                       v
+    ---------------------------------------------------
+    |           資料庫 (bonus_sf.bonus_log)           |
+    ---------------------------------------------------
+                             |
+                             v
+                  [ Member 微服務 (更新總帳) ]
+
+================================================================================
+流程說明：
+1. 統一入口：Controller 透過判斷 requestBody 中是否有 orderNo 分流;
+2. 防呆設計：舊 POS 請求保持原有 603 代碼規則，確保向下相容;
+3. 自動化防禦：VIP 自動贈點強制使用字軌 'VIP_GIFT_' + orderNo，確保冪等性;
+4. 審計閉環：所有點數異動均存入 bonus_log，確保財務對帳完整性;
+================================================================================
+
+================================================================================
+【核心實作代碼】
+================================================================================
+
+--- 1. BonusController.java (路徑 A 入口) ---
+@PostMapping("/addPoint")
+public BonusDTO.Response<Void> addPoint(@RequestBody BonusDTO.Request req) {
+    try {
+        // 智慧分流判斷
+        if ((req.getOrderNo() != null && !req.getOrderNo().isEmpty()) || isVipPromo(req.getLrq01())) {
+            String billNo = (req.getOrderNo() != null) ? "VIP_GIFT_" + req.getOrderNo() : "POS_VIP_" + System.currentTimeMillis();
+            bonusService.addVipGiftPoint(req.getCenter(), req.getCounterId(), req.getCardNo(), req.getPoint(), billNo);
+        } else {
+            String lrq01 = (req.getLrq01() != null) ? req.getLrq01() : "603";
+            String lrq02 = (req.getLrq02() != null) ? req.getLrq02() : "603";
+            bonusService.addPoint(req.getCenter(), req.getCounterId(), req.getCardNo(), lrq01, lrq02, req.getPoint());
+        }
+        return BonusDTO.Response.success(null);
+    } catch (Exception e) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+}
+
+--- 2. BonusService.java (核心邏輯封裝) ---
+@Transactional(rollbackFor = Exception.class)
+public void addVipGiftPoint(String center, String counterId, String cardNo, int points, String accessId) {
+    // 冪等性保障
+    if (bonusLogRepository.existsByAccessId(accessId)) return;
+
+    // 寫入日誌 (Audit)
+    bonusLogRepository.save(BonusLog.builder().center(center).counterId(counterId).accessId(accessId).point(points).build());
+
+    // 寫入流水帳 (LSM_FILE)
+    LsmFile lsm = new LsmFile();
+    lsm.setLsm01(cardNo);
+    lsm.setLsm03(accessId); // 將字軌設為關聯單號
+    lsm.setLsm04((double)points);
+    lsmFileRepository.save(lsm);
+
+    // 發送事件
+    boolean ok = streamBridge.send("bonus-out-0", PointChangedEvent.builder().billNo(accessId).build());
+    if (!ok) throw new RuntimeException("Kafka 發送失敗");
+}
+
+--- 3. BonusPointListener.java (路徑 B 入口) ---
+@Bean
+public Consumer<BonusDTO.Request> addPointListener() {
+    return req -> bonusService.addVipGiftPoint(req.getCenter(), req.getCounterId(), req.getCardNo(), req.getPoint(), "VIP_GIFT_" + req.getOrderNo());
+}
+================================================================================
+
+---
+如何在訂單系統結帳成功時，精準且不漏接地將事件拋給 Kafka，進而觸發 Bonus 的加贈邏輯？
+p.s. 目前還沒有實作訂單系統
+
+暫時不用寫 Listener，直接讓外部呼叫端（例如現有的測試程式或未來要寫的簡單模擬器）透過 Postman 或 HTTP Client 呼叫我們已經整合好的 addPoint API;
+整合後的 API 使用方法：
+只要呼叫 POST /Surrounding/api/bonus/Point/addPoint，並在 Request Body 中傳入 orderNo，系統就會自動執行那套「VIP 自動贈點」邏輯;
+
+================================================================================
+【未來訂單接入藍圖】
+================================================================================
+
+[ 訂單服務 ] 
+      | 
+      | 1. 發送 JSON 事件
+      v
+[ Kafka Topic ]
+      |
+      | 2. Bonus 服務的 Listener (現在寫好放著即可)
+	  
+				public class BonusPointListener {
+
+					private final BonusService bonusService;
+
+					/**
+					 * 監聽 Kafka 的 order-completed-topic
+					 * 當訂單系統拋出事件時，自動呼叫整合好的加點邏輯
+					 */
+					@Bean
+					public Consumer<BonusDTO.Request> addPointListener() {
+						return request -> {
+							log.info("[Kafka 觸發]監聽到訂單加點事件，訂單號: {}, 卡號: {}", 
+									 request.getOrderNo(), request.getCardNo());
+							
+							try {
+								// 直接呼叫整合後的 Service 邏輯
+								// 這裡會自動進到我們剛才寫好的分流判斷 (因為帶有 orderNo)
+								bonusService.addVipGiftPoint(
+   
+
+      v
+[ BonusService.addVipGiftPoint ] (核心邏輯已在內部就緒) //dc- 0605-2026
+
+================================================================================
+
+
+---
+[ OrderService ] 
+      |
+      | 呼叫 orderRepository.save(order)
+      | 呼叫 orderEventProducer.send(event)
+      v
+[ Infrastructure 層 ]
+      |
+      | OrderRepository (寫入 DB)
+      | OrderEventProducer (StreamBridge -> Kafka)
+      v
+[ Kafka (order-completed-topic) ]
+
+
+---
+[ POS 手動請求 ]          [ Kafka 自動請求 ]
+      |                         |
+      | 1. API 呼叫              | 2. 事件觸發
+      v                         v
+---------------------------------------------------
+            BonusController (統一入口)
+---------------------------------------------------
+      |                         |
+      | [判斷]                  | [判斷]
+      | (if orderNo == null)    | (if orderNo != null)
+      v                         v
+[ 執行傳統加點邏輯 ]      [ 呼叫 addVipGiftPoint ]
+(addPoint)                (冪等性保護: access_id)
+      |                         |
+      ---------------------------
+                  |
+                  v
+       [ BonusService.addVipGiftPoint ]
+       (核心邏輯：DB 寫入 + Kafka 發送)
+	   
+---
+若帶有 orderNo 則走 VIP 自動加點，否則走傳統邏輯 ---> 傳統邏輯也可依照VIP官則贈點, 傳統邏輯中如果消費金額很大, 也會自動贈點;
+-> 重構 BonusService：加入「規則引擎」邏輯
+我們將「判定是否贈點」的邏輯全部收斂進 isEligibleForVipBonus 方法中，這樣無論輸入來源為何，標準都是一致的;
+
+		[ 接收加點請求 ]
+             |
+             v
+    +-----------------------+
+    | 判斷是否滿足 VIP 條件?  | <--- (您的決策閘道器邏輯)
+    +-----------------------+
+      | (Yes: 符合任一條件)    | (No: 傳統中小額消費)
+      |                       |
+      v                       v
+ [ 執行 VIP 贈點邏輯 ]      [ 執行傳統加點邏輯 ]
+ 1. 生成唯一 AccessId      1. 依據 Lrq01/02 規則
+ 2. 冪等性防重複檢查        2. 直接寫入流水帳
+ 3. 寫入 BonusLog & LSM   3. 完成簡易處理
+ 4. 拋送 Kafka 事件
+      |                       |
+      +-----------+-----------+
+                  |
+                  v
+           [ 回傳處理結果 ]
+
+
+// 定義是否觸發 VIP 贈點的輔助條件
+	    	boolean isVipBonus = (requestBody.getOrderNo() != null && !requestBody.getOrderNo().isEmpty()) 
+	                || (requestBody.getAmount() != null && requestBody.getAmount().compareTo(Constants.VIP_AMOUNT_THRESHOLD) >= 0);

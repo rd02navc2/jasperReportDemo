@@ -1,0 +1,5 @@
+## CompYahooProduct Yahoo商品主檔系統
+
+1. Yahoo商品主檔比對 API
+   - API: GET /compYahooProduct[cite: 17]
+   - 說明: 執行 Yahoo 商品主檔資料比對與同步作業，透過 SyncYahooProductEntry 呼叫 doSync() 取得 Yahoo 商店分類與商品列表進行比對和儲存[cite: 17]

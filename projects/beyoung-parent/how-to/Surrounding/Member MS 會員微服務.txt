@@ -1,0 +1,704 @@
+## Member 架構與 API 流程
+
+1. Base Path 基礎路由規範
+   
+   Base Path: /Surrounding/api/app/Member (RESTful JSON / Java 21 + Spring Boot 3.4.3)
+   |
+   +---> @Validated (啟用控制器層級校驗)
+   +---> @Slf4j (結構化日誌記錄)
+   +---> @RequiredArgsConstructor (建構子 DI 注入)
+
+
+2. 壹 · 會員查詢服務 (Member Inquiry Services)
+
+   [卡片查詢]
+   |
+   +---> getAllCardByMemberID (依會員 ID 查詢全部卡片)
+   |     |
+   |     v 查詢 LpjFile
+   |       回傳該會員底下所有狀態為啟用的卡片清單
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getAllCardByMemberID/TEST_MEMBER_001
+ 
+		 + -> dto 已改成有 回傳 lpj 欄位值的格式
+		 
+   |
+   +---> getAllCardByID (依身分證 ID 查詢全部卡片)
+   |     |
+   |     v 查詢 LpjFile
+   |       跨帳號搜尋，獲取該身分證字號名下所有卡片
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getAllCardByID/A123456789
+   |
+   +---> getMainCard (查詢主卡資訊)
+   |     |
+   |     v 查詢 LpkFile / LpjFile
+   |       依據卡號查詢其對應的主卡姓名與主卡卡號
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMainCard/CARD_MAIN_001
+   |
+   +---> isExistLPK (確認 LPK 卡片是否存在)
+         |
+         v 查詢 LpkFile
+           傳入會員 ID，確認該會員在系統中是否存在
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/isExistLPK/MEMBER_001
+
+   [點數查詢]
+   |
+   +---> 依會員 ID 查詢點數餘額 (getPointByMemberID)
+   |     |
+   |     v 查詢 LpjFile
+   |       獲取該會員目前累積點數與點數主卡欄位
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getPointByMemberID/TEST_MEMBER_001
+   
+   
+		 |
+   +---> 依身分證 ID 查詢點數餘額 (getPointByID)
+         |
+         v 查詢 LpjFile
+           依身分證字號查詢其名下的點數與卡片狀態
+		    GET
+			http://localhost:8096/Surrounding/api/app/Member/getPointByID/A123456789 
+			
+	SET SQL_SAFE_UPDATES = 0;
+	DELETE FROM lsm_file WHERE lsm01 = 'A123456789';
+	DELETE FROM lpj_file WHERE lpj03 = 'A123456789';
+	DELETE FROM LPJ_FILE;
+	DELETE FROM LPK_FILE;
+	
+	INSERT INTO LPK_FILE (LPK01, LPK03, LPK04, LPKACTI) 
+	VALUES ('MEMBER_001', 'A123456789', '王小明', 'Y');
+	
+	-- 插入主卡 (TA_LPJ04 = 'Y')
+	INSERT INTO LPJ_FILE (
+		LPJ01, LPJ03, LPJ09, LPJ02, LPJ07, 
+		LPJ12, LPJ14, LPJ15, TA_LPJ02, TA_LPJ03, TA_LPJ04
+	) VALUES (
+		'MEMBER_001', 'CARD_MAIN_001', '2', '000', 150, 
+		1200.5, 50.0, 30.0, 10.0, 5.0, 'Y'
+	);
+
+	-- 插入副卡 (TA_LPJ04 = 'N')
+	INSERT INTO LPJ_FILE (
+		LPJ01, LPJ03, LPJ09, LPJ02, LPJ07, 
+		LPJ12, LPJ14, LPJ15, TA_LPJ02, TA_LPJ03, TA_LPJ04
+	) VALUES (
+		'MEMBER_001', 'CARD_SUB_001', '2', '000', 50, 
+		300.0, 10.0, 5.0, 0.0, 0.0, 'N'
+	);
+	
+	UPDATE LPJ_FILE 
+	SET LPJ07 = 150, 
+		LPJ12 = 1200.5, 
+		TA_LPJ04 = 'Y' 
+	WHERE LPJ01 = 'MEMBER_001' AND LPJ09 = '2';
+	
+
+
+   [聯絡資訊查詢]
+   |
+   +---> getMemberContact (依會員 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 LpkFile
+   |       獲取聯絡資料（底層包含去年消費加總與 VIP 等級判斷）
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMemberContact/MEMBER_001		
+   
+   
+   |
+   +---> getMemberContactByID (依身分證 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 LpkFile
+   |       依據身分證字號查詢該會員的聯絡資訊
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMemberContactByID/A123456789
+   
+   
+   |
+   +---> getMemberContactByCardID (依卡號查詢聯絡資訊)
+         |
+         v 查詢 LpkFile
+           依傳入卡號尋找對應的主卡，並查詢其聯絡資訊
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMemberContactByCardID/CARD_MAIN_001
+		   
+		   
+
+   [內部微服務 RPC]
+   |
+   +---> getCardNumbersByMemberID 依會員 ID 取得卡號清單 (internal /card-numbers)
+         |
+         v 專供內部 RPC
+           僅供紅利微服務 (Bonus Service) 等內部系統直連，回傳純字串卡號清單
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/internal/members/MEMBER_001/card-numbers
+
+
+--0609
+
+
+3. 貳 · 會員管理服務 (Member Management Services)
+
+   [臨時會員建立]
+   |
+   +---> addTempMember (新增一般臨時會員)
+   |     |
+   |     +---> 需帶入中心代碼（sCenter）
+   |     +---> 檢查會員 ID 是否重複，建立過渡期卡片與帳號
+			   POST
+		       http://localhost:8096/Surrounding/api/app/Member/addTempMember
+			   JSON
+			   {
+					"sCenter": "中心代號",
+					"sMemberID": "A123456789"
+			   }
+   
+   
+   |
+   +---> addRSTempMember (新增 RS 臨時會員)
+         |
+         +---> 專用於線下零售店鋪 (Retail Store) 渠道
+         +---> 需帶入中心代碼（sCenter）
+         +---> 系統自動代入姓名為「臨時會員」，等級標記為 "TEMP"
+			   POST
+		       http://localhost:8096/Surrounding/api/app/Member/addRSTempMember
+			   JSON
+			   {
+					"sCenter": "中心代號",
+					"sMemberID": "A123456789"
+			   }
+			   -> [2m2026-06-09T16:03:02.372+08:00[0;39m [31mERROR[0;39m [35m20664[0;39m [2m--- [beyoung-member] [omcat-handler-2] [0;39m[36mc.beyoung.member.api.MemberController   [0;39m [2m:[0;39m addRSTempMember 處理異常: 
+
+				  java.lang.Exception: A123456789 已存在，無法新增RS臨時會員
+			    
+			   JSON
+			   {
+					"timestamp": "2026-06-09T08:03:02.416+00:00",
+					"status": 417,
+					"error": "Expectation Failed",
+					"path": "/Surrounding/api/app/Member/addRSTempMember"
+				}
+				
+				JSON
+				{
+					"sCenter": "中心代號",
+					"sMemberID": "NEW_USER_001"
+				}
+				-> 新增RS臨時會員：sCenter -> 中心代號, sMemberID -> NEW_USER_001
+								
+
+   [轉正式會員]
+   |
+   +---> doFormal (臨時會員升級為正式會員)
+         |
+         +---> (1) 傳入參數: sTempMemberID
+         +---> (2) 身分證檢核機制 (檢查 sID 是否已被佔用)
+         +---> (3) 帶入必填欄位: 姓名、身分證、生日、手機、地址、Email
+         +---> (4) 系統自動校驗與自動化處理
+                   |
+                   +---> 生日格式驗證 YYYYMMDD（8 碼）
+                   +---> 手機格式驗證（09xxxxxxxx）
+                   +---> 依身分證第 2 碼自動判斷性別 (1為男, 2為女)
+				   
+				   POST
+				   http://localhost:8096/Surrounding/api/app/Member/addTempMember
+				   JSON
+				   {
+						"sCenter": "603",
+						"sMemberID": "TEMP_001"
+				   }
+									   
+				   POST
+				   http://localhost:8096/Surrounding/api/app/Member/doFormal
+				   JSON
+				   {
+					"sTempMemberID": "TEMP_001",
+					"sName": "王小明",
+					"sID": "A123456789",
+					"sBirthday": "1990-01-01",
+					"sMobile": "0912345678",
+					"sAddress": "台北市信義區測試路1號",
+					"sEmail": "test@example.com"
+				   }
+				   JSON
+				   {
+						"success": true,
+						"message": "成功",
+						"data": "轉正式會員成功"
+				   }
+				   -> 轉正式會員：sTempMemberID -> TEMP_001, sName -> 王小明, sID -> A123456780
+				               
+					
+   [眷屬綁定]
+   |
+   +---> doHouseHold (臨時會員與正式會員綁定)
+         |
+         +---> 驗證機制: 臨時會員等級必須為 000
+         +---> 渠道限制: 目標主卡號開頭必須符合 7708、EC、APP、TS 官方規範
+         +---> 執行動作: 合併兩端帳號，進行點數合併與眷屬關係綁定
+         +---> 回傳結果: 綁定後最新點數與卡片資訊
+				 SQL
+				 -- 1. 刪除衝突的正式會員資料
+				DELETE FROM LPJ_FILE WHERE LPJ01 = 'MEMBER_001';
+
+				-- 2. 確認臨時會員狀態已就緒 (需為 000)
+				UPDATE LPJ_FILE SET LPJ02 = '000', TA_LPJ04 = 'Y' WHERE LPJ01 = 'TEMP_001';
+
+				-- 3. 確認主卡號已符合前綴要求 (需符合 7708/EC/APP/TS)
+				UPDATE LPJ_FILE SET LPJ03 = '770800000' WHERE LPJ01 = 'A123456789';
+		 
+				POST
+				http://localhost:8096/Surrounding/api/app/Member/doHouseHold				   
+				JSON
+				{
+					"sTempMemberID": "TEMP_001",
+					"sID": "A123456789"
+				}
+									   
+
+   [聯絡資料更新]
+   |
+   +---> updateMemberContact (更新聯絡資料)
+         |
+         v 傳入參數 (皆為選填)
+           sMobile (更新手機號碼) ---> [符合正則] ---> 寫入資料庫
+           sEmail  (更新 Email)   ---> [符合格式] ---> 寫入資料庫
+           sAddr   (更新地址)     ---> [文字寫入] ---> 寫入資料庫
+		   PUT
+		   http://localhost:8096/Surrounding/api/app/Member/updMemberContact
+		   JSON
+		   {
+			"sMemberID": "A123456789",
+			"sMobile": "0912345678",
+			"sEmail": "test@example.com",
+			"sAddr": "台北市萬華區和平西路三段"
+		   }
+		   
+		   
+		   
+		   
+
+
+4. 參 · 驗證與架構規範 (Validation & Response Specs)
+
+   [Spring Validation 參數校驗]
+   |
+   +---> @NotBlank  ---> 攔截必填欄位保護 (姓名、身分證、手機等不可為空)
+   +---> @Email     ---> 攔截並執行 Email 格式驗證
+   +---> @Pattern   ---> 執行 Regex 手機格式驗證 (^09\d{8}$)
+   +---> @Size      ---> 限制生日長度必須精確為 8 碼
+
+   [統一回應封裝]
+   |
+   +---> MemberDTO.Response<T> ---> 系統標準化應答結構
+   |     |
+   |     +---> success() ---> 泛型靜態工廠方法 (快速回傳成功狀態與資料 Payload)
+   |
+   +---> 全域異常轉換機制 (Exception Handling)
+         |
+         v catch (Exception e)
+           將所有未預期錯誤交由 ResponseStatusException 處理
+           拋出標準 HTTP 417 EXPECTATION_FAILED (系統執行異常回傳)
+================================================================================
+
+================================================================================
+Part 1. Bonus-Member MS_Spring Cloud Stream 微服務非同步與 RPC 運作流程
+================================================================================
+
+1. /addPoint 手動加點流程圖 (事件驅動、非同步解耦)
+
+   前端 (POS / Web 端)
+   |
+   +---> (1) POST /addPoint (JSON/XML 請求)
+   v
+   bonus-service (紅利微服務)
+   |
+   +---> (2) 進入 Controller (確認參數格式、記錄結構化日誌 log.info)
+   |
+   +---> (3) 呼叫 bonusService.addPoint() [@Transactional]
+   |     |
+   |     +---> 驗證專櫃合法性 (validateCounter)
+   |     |     [不合法] ---> 拋出異常，中斷事務，回傳 HTTP 400
+   |     |
+   |     +---> 查詢本地 lrq_file (活動設定檔，動態取得贈點基數)
+   |     |
+   |     +---> 寫入本地 lsm_file (同步儲存點數流水帳明細)
+   |
+   +---> (4) 封裝點數異動資料至 PointChangedEvent (運用 Builder 模式)
+   |
+   +---> (5) 透過 StreamBridge 將事件非同步發送至訊息佇列
+   v
+   Kafka 訊息佇列 (MQ) ---> Topic: member-point-topic
+   |
+   +---> (6) 依據組態配置，非同步派送事件至監聽端
+         cloud:
+           stream:
+             kafka:
+               binder:
+                 brokers: localhost:9092
+             function:
+               definition: syncMemberPoints
+   v
+   member-service (會員微服務)
+   |
+   +---> (7) PointChangedListener 接收到點數異動事件
+   |     透過 @Bean syncMemberPoints() 監聽器觸發
+   |
+   +---> (8) 啟動本地事務 [@Transactional], 更新 lpj_file (會員主檔總點數)
+
+
+2. /getPointHistByMemberID 查詢點數歷史歷程流程圖 (資料聚合、RPC 直連)
+
+   前端 (POS / Web 端 / 後台系統)
+   |
+   +---> (1) POST /getPointHistByMemberID (帶入查詢區間參數)
+   v
+   member-service (會員微服務)
+   |
+   +---> (2) 進入 MemberService.getPointHistByMemberID() 
+   |         (Member 端無點數流水帳資料，扮演 RPC 發起方)
+   |
+   +---> (3) 透過 FeignClient (bonusServiceClient) 跨服務發起網路調用
+   v
+   bonus-service (紅利微服務)
+   |
+   +---> (4) 進入 BonusService.getPointHistByMemberID() 接收請求
+   |
+   +---> (5) 由於點數依卡號儲存，Bonus 須透過 memberServiceClient 反向 RPC 索取卡號清單
+   |         |---> 出發: HTTP GET /Surrounding/api/app/Member/{memberId}/card-numbers
+   v
+   member-service (會員微服務 - 內部 RPC 接口)
+   |
+   +---> (6) 執行本地查詢: 撈取 lpj_file 找到該會員 ID 綁定的所有動態卡號
+   |
+   +---> (7) 將 List<String> cardNos 回傳給 Bonus 微服務
+   v
+   bonus-service (紅利微服務)
+   |
+   +---> (8) 收到卡號清單，進入防禦性檢查機制：
+   |         |
+   |         +---> [RPC 失敗/逾時] ---> catch 區塊攔截異常，容錯回傳空列表
+   |         +---> [卡號清單為空]  ---> Java 層直接攔截，回傳空列表 (防止 Oracle IN 空集合報錯)
+   |
+   +---> (9) 通過檢查，執行本地 Native SQL 查詢 (運用 Java Text Blocks 技術)
+   |         |
+   |         +---> 條件過濾: WHERE lsm01 IN (:cardNos) AND lsm05 BETWEEN ...
+   |         +---> 跨表關聯: lsm_file LEFT JOIN lnt_file AND tqa_file
+   |         +---> 結果映射: 封裝為 List<LsmFile> 狀態資料並逐層回傳
+   v
+   前端端點 (呈現最終點數歷程明細大表)
+
+
+================================================================================
+Part 2. Member Module 核心功能與安全架構規範 (全面整合 POST / PUT 版)
+================================================================================
+
+1. 基礎路由與技術規格
+   
+   Base Path: /Surrounding/api/app/Member (RESTful JSON)
+   |
+   +---> 核心環境: Java 21 + Spring Boot 3.4.3
+   +---> 組件管理: @Slf4j 結構化日誌 + @RequiredArgsConstructor 建構子 DI 注入
+   +---> 校驗機制: @Validated 啟用控制器方法層級單一參數校驗
+
+
+2. 壹 · 會員查詢服務 (Member Inquiry Services)
+
+   [卡片查詢]
+   |
+   +---> GET /isExistLPK/{sMemberID} (確認 LPK 卡片是否存在)
+   |     |
+   |     v 查詢 lpk_file
+   |       傳入會員 ID，確認該會員在系統中是否存在
+   |       存在回傳 YN="Y" 碼，查無資料回傳 YN="N" 碼
+   |
+   +---> GET /getAllCardByMemberID/{sMemberID} (依會員 ID 查詢全部卡片)
+   |     |
+   |     v 查詢 LPJ_FILE (條件: lpj09='2')
+   |       獲取該會員名下所有狀態為「啟用」的卡片清單並回傳
+   |
+   +---> GET /getAllCardByID/{sID} (依身分證 ID 查詢全部卡片)
+   |     |
+   |     v 跨表查詢 lpk_file JOIN lpj_file
+   |       跨帳號搜尋，精確獲取該身分證字號名下的所有卡片
+   |
+   +---> GET /getMainCard/{sCardID} (查詢主卡資訊)
+         |
+         v 內部關聯查詢 (lpk01=lpj01 且 ta_lpj04='Y')
+           依據卡號查詢其對應的主卡姓名與主卡卡號
+
+   [點數查詢]
+   |
+   +---> GET /getPointByMemberID/{sMemberID} (依會員 ID 查詢點數餘額)
+   |     |
+   |     v 查詢 LPJ_FILE (ta_lpj04='Y')
+   |       獲取該會員目前累積點數 (lpj07)、累積消費金額與點數主卡等核心帳務欄位
+   |
+   +---> GET /getPointByID/{sID} (依身分證 ID 查詢點數餘額)
+         |
+         v 關聯查詢 lpk_file JOIN lpj_file
+           依據身分證字號查詢其名下主卡的點數與卡片狀態
+
+   [聯絡資訊查詢]
+   |
+   +---> GET /getMemberContact/{sMemberID} (依會員 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 lpk_file
+   |       獲取聯絡資料（底層包含去年消費加總與 VIP 等級判斷邏輯）
+   |
+   +---> GET /getMemberContactByID/{sID} (依身分證 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 lpk_file
+   |       依據身分證字號查詢該會員的聯絡資訊
+   |
+   +---> GET /getMemberContactByCardID/{sCardID} (依卡號查詢聯絡資訊)
+         |
+         v 查詢 lpk_file
+           依傳入卡號尋找對應的主卡，並查詢與導出其聯絡基本資料
+
+   [內部 RPC 直連端點 - 認人查卡]
+   |
+   +---> GET /{memberId}/card-numbers (依會員 ID 取得卡號清單)
+         |
+         v 專供內部 RPC
+           不對外公開。僅供紅利微服務 (Bonus Service) 等內部系統遠端直連，回傳純字串卡號清單
+
+
+3. 貳 · 會員管理服務 (Member Management Services)
+
+   [臨時會員建立]
+   |
+   +---> POST /addTempMember/{sCenter}/{sMemberID} (新增一般臨時會員)
+   |     |
+   |     +---> 安全防護: 預先執行 checkExistLPK 檢核，已存在則拒絕建立
+   |     +---> 資料處理: 需帶入中心代碼（sCenter），檢查會員 ID 是否重複，建立過渡期卡片與帳號
+   |
+   +---> POST /addRSTempMember/{sCenter}/{sMemberID} (新增 RS 臨時會員)
+         |
+         +---> 渠道限定: 專用於線下零售店鋪 (Retail Store) 渠道點位
+         +---> 資料處理: 需帶入中心代碼（sCenter），系統自動代入姓名欄位為「臨時會員」，卡片等級標記為 "TEMP"
+
+   [轉正式會員]
+   |
+   +---> POST /doFormal/{sTempMemberID} (臨時會員升級為正式會員)
+         |
+         +---> Step 1: 盤查臨時會員資格 (確認 lpj02 等級必須為 "000" 或 "TEMP")
+         +---> Step 2: 身分證唯一性衝突檢查 (若 sID 已被其他帳號佔用則拋出異常)
+         +---> Step 3: 安全檢核必填欄位 (姓名、身分證、生日、手機、地址、Email)
+         +---> Step 4: 系統自動校驗與自動化處理
+                       |
+                       +---> 生日格式強制驗證 YYYYMMDD (精確 8 碼限制)
+                       +---> 手機格式強制驗證 (符合 09xxxxxxxx 規範)
+                       +---> 性別自動化判斷: 依身分證第 2 碼判定 (1->男/lpk06='1'; 2->女/lpk06='0')
+   
+   [眷屬綁定]
+   |
+   +---> POST /doHouseHold/{sTempMemberID}/{sID} (臨時會員與正式會員眷屬綁定)
+         |
+         +---> 資格審查: 驗證發起端臨時會員等級必須為 "000"
+         +---> 目標審查: 取得主卡號，主卡號不可為 null
+         +---> 渠道限制: 目標主卡號前置碼必須符合 7708、EC、APP、TS 官方合法渠道
+         +---> 執行動作: 雙邊主鍵非空校驗 ---> 合併兩端帳號 ---> 轉移點數並綁定眷屬關係
+         +---> 回傳結果: 重新抓取並回傳綁定後最新點數與卡片資訊 (LpjFile)
+
+   [聯絡資料更新]
+   |
+   +---> PUT /updMemberContact/{sMemberID} (更新聯絡資料)
+         |
+         +---> 傳入 Body / Param (皆為選填保護)：
+         |     sMobile (更新手機號碼) ---> [符合正則校驗] ---> 寫入資料庫
+         |     sEmail  (更新 Email)   ---> [符合格式校驗] ---> 寫入資料庫
+         |     sAddr   (更新地址)     ---> [安全文字寫入] ---> 寫入資料庫
+         |
+         +---> 執行動作: 依據傳入參數，更新現有會員的手機、Email 與通訊地址
+
+
+4. 參 · 參數校驗與統一應答規範 (Validation & Exception Specs)
+
+   [Spring Validation 參數校驗門神]
+   |
+   +---> @NotBlank  ---> 攔截並阻斷必填 Null 或空字串參數 (姓名、身分證、手機等不可為空保護)
+   +---> @Email     ---> 攔截並自動校驗標準 Email 電子郵件格式
+   +---> @Pattern   ---> Regex 正則式匹配校驗 (手機號碼格式驗證: ^09\d{8}$)
+   +---> @Size      ---> 嚴格限制欄位長度邊界 (生日長度限制為 min=8, max=8 精確 8 碼)
+
+   [架構回應與異常封裝]
+   |
+   +---> MemberDTO.Response<T> (標準化外層應答結構)
+   |     |
+   |     +---> success(T data) ---> 泛型靜態工廠方法，快速封裝成功狀態與資料 Payload
+   |
+   +---> 全域異常處理與轉換 (RuntimeException Handling)
+         |
+         v 異常攔截機制 (catch block)
+           系統內部發生 Exception 錯誤時，一律由捕獲器進行結構化 log.error 記錄
+           透過 ResponseStatusException 將錯誤轉譯為標準 HTTP 狀態碼
+           統一回傳 HTTP 417 EXPECTATION_FAILED (系統執行預期外異常回傳) 給前端
+================================================================================
+
+================================================================================
+【Beyoung 會員 APP 微服務系統 ─ 模組架構與函式定義流程圖】
+適用環境：Java 21 / Spring Boot 3.4.3 / Spring Data JPA
+================================================================================
+
+[起點：APP 端 / 外部前端 HTTP 請求]
+      |
+      | 請求發送 (透過 GET / POST / PUT)
+      v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 1. 核心控制層：MemberController.java                                         │
+│                                                                              │
+│ 職責：                                                                       │
+│  - 宣告 RESTful 外部端點，全面整合 Spring Validation 進行輸入參數校驗。        │
+│  - 將敏感個資異動（如轉正式、綁定）由 GET 升級為 POST/PUT 機制，防範資安風險。  │
+└──────────────────────────────────────────────────────────────────────────────┘
+      |
+      |--- (A) 查詢點數歷程明細 (單一參數)
+      |    v GET /Surrounding/api/app/Member/getPointHistByMemberID/{sMemberID}
+      |    public MemberDTO.Response<List<LplFile>> getPointHistByMemberID(String sMemberID)
+      |    |
+      |    +---> [流程驅動] ───> (導向步驟 2-A)
+      |
+      |--- (B) 新增臨時會員
+      |    v POST /Surrounding/api/app/Member/addTempMember
+      |    public MemberDTO.Response<String> addTempMember(@RequestBody TempMemberRequest request)
+      |    |
+      |    +---> [流程驅動] ───> (導向步驟 2-B)
+      |
+      |--- (C) 其他核心業務端點定義
+      |    |-- GET /isExistLPK/{sMemberID}      -> checkExistLPK(String)
+      |    |-- POST /addRSTempMember            -> addRSTempMember(TempMemberRequest)
+      |    |-- PUT /updMemberContact            -> updMemberContact(UpdateContactRequest)
+      |    |-- GET /getAllCardByMemberID/{id}   -> getAllCardByMemberID(String)
+      |    |-- GET /getAllCardByID/{sID}        -> getAllCardByID(String)
+      |    |-- GET /getPointByMemberID/{id}     -> getPointByMemberID(String)
+      |    |-- GET /getPointByID/{sID}          -> getPointByID(String)
+      |    |-- POST /doHouseHold                -> doHouseHold(HouseHoldRequest)
+      |    |-- POST /doFormal                   -> doFormal(FormalMemberRequest)
+      |    |-- GET /getCardNumbersByMemberId    -> lpjFileRepository.findCardNosByLpj01(String)
+      |    |-- GET /getMemberContact/{id}       -> getMemberContact(String)
+      |    |-- GET /getMemberContactByID/{sID}  -> getMemberContactByID(String)
+      |    |-- GET /getMemberContactByCardID    -> getMemberContactByCardID(String)
+      |    |-- GET /getMainCard/{sCardID}       -> getMainCard(String)
+      |
+      v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 2. 業務邏輯服務層：MemberService.java                                        │
+│                                                                              │
+│ 解決痛點與核心機制：                                                         │
+│  - 實作「方法多載 (Overloading)」，完美弭平控制器與遠端 FeignClient 參數差。 │
+│  - 將 Feign 回傳之通用非同步集合，利用 Java Stream 機械轉譯為 LplFile 實體。  │
+│  - 保留底層進場商務控制邏輯，改用一級快取一致的 Entity 進行持久化儲存。       │
+└──────────────────────────────────────────────────────────────────────────────┘
+      |
+      |--- [處理 2-A：解決 1 個參數與 3 個參數的適配與轉譯問題]
+      |    |
+      |    v 【多載函式 A-1】由 Controller 直接調用
+      |    public List<LplFile> getPointHistByMemberID(String sMemberID)
+      |    |
+      |    v 內部自動補齊預設起訖日，轉向呼叫
+      |    this.getPointHistByMemberID(sMemberID, "", "");
+      |    |
+      |    v 【多載函式 A-2】負責與遠端微服務對接
+      |    public List<Map<String, Object>> getPointHistByMemberID(String sMemberID, String sStartDate, String sEndDate)
+      |    |
+      |    v 透過 Feign 協定送出網路封包
+      |    +---> bonusServiceClient.getPointHistByMemberID(Map<String, String> params)
+      |    |
+      |    v 將回傳之 List<Map> 透過 Stream API 進行 Data Mapping 
+      |    +---> [型態轉譯] ───> 封裝為系統實體 ───> (導向步驟 3-A)
+      |
+      |--- [處理 2-B：實體狀態持久化控制]
+      |    |
+      |    v 【直接操控實體函式】
+      |    public void addTempMemberDirectEntity(String sCenter, String sMemberID, String sCardID)
+      |    |
+      |    v 執行實體封裝與一級快取變更
+      |    +---> em.persist(LpkFile); 
+      |    +---> em.persist(LpjFile); ───> 屬性命名優化 ───> (導向步驟 3-B 與 3-C)
+      |
+      |--- [其他服務層商業邏輯函式定義]
+           |-- public MemberDTO.ExistResponse checkExistLPK(String sMemberID)
+           |-- public void addTempMember(String sCenter, String sMemberID)
+           |-- public void addRSTempMember(String sCenter, String sMemberID)
+           |-- public void updateMemberContact(String sMemberID, String sMobile, String sEmail, String sAddr)
+           |-- public List<LpjFile> getAllCardByMemberID(String sMemberID)
+           |-- public List<LpjFile> getAllCardByID(String sID)
+           |-- public LpjFile getPointByMemberID(String sMemberID)
+           |-- public LpjFile getPointByID(String sID)
+           |-- public LpjFile doHouseHold(String sTempMemberID, String sID)
+           |-- public void doFormal(String sTempMemberID, String sName, String sID, ...)
+           |-- public LpkFile getMemberContact(String sMemberID)
+           |-- public LpkFile getMemberContactByID(String sID)
+           |-- public LpkFile getMemberContactByCardID(String sCardID)
+           |-- public LpkFile getMainCard(String sCardID)
+           |-- public LpjFile getMemberByCardID(String cardID)
+           |-- public LpkFile getMemberByCardID2(String sCardID)
+           |-- public LpkFile getMemberByCardID3(String sCardID)
+           |-- public LpkFile getMemberByCardID4(String sCardID)
+           |-- public boolean is000(String sCardID)
+      |
+      v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 3. 基礎設施與數據持久層：Entity 模型定義                                     │
+│                                                                              │
+│ 欄位與結構調整重點：                                                         │
+│  - 調整時間格式為 LocalDateTime，確保時區與記憶體操作無落差。                │
+│  - 修正欄位屬性命名，如將大寫命名缺陷調整為 lpjpos，排除 Setter 未定義錯誤。   │
+└──────────────────────────────────────────────────────────────────────────────┘
+      |
+      |---> [3-A：點數歷史模型] ───> LplFile.java
+      |     |-- private String lpl01; // 會員ID
+      |     |-- private java.sql.Date lpl02; // 歷程日期
+      |     |-- private Integer lpl09; // 點數明細
+      |
+      |---> [3-B：會員基本擴充模型] ───> LpkFile.java
+      |     |-- private String lpk01; // 主鍵
+      |     |-- private String lpk02; // 狀態級別 (衍生修正)
+      |     |-- private String lpk04; // 會員姓名
+      |     |-- private String lpk10; // 系統代碼 (衍生修正)
+      |     |-- private String lpk13;
+      |     |-- private String lpkacti;
+      |     |-- private LocalDateTime lpkcrat; // 格式校正
+      |     |-- private String lpkoriu;
+      |     |-- private String lpkorig;
+      |     |-- private String lpkpos;
+      |     |-- private String lpkud02;
+      |     |-- private Integer lpkud08;
+      |     |-- private Integer lpkud09;
+      |     |-- private Integer lpkud10;
+      |     |-- private String lpk20;
+      |     |-- private String lpk21;
+      |     |-- private LocalDateTime taLpk04;
+      |     |-- private String taLpk05;
+      |     |-- private String taLpk06;
+      |
+      |---> [3-C：卡片點數明細模型] ───> LpjFile.java
+            |-- private String lpj01; // 複合主鍵
+            |-- private String lpj02; // 等級代碼
+            |-- private String lpj03; // 卡號
+            |-- private LocalDateTime lpj04; // 格式校正
+            |-- private Double lpj06;
+            |-- private Integer lpj07;
+            |-- private String lpj09; // 複合主鍵
+            |-- private Integer lpj12;
+            |-- private Integer lpj13;
+            |-- private Integer lpj14;
+            |-- private Integer lpj15;
+            |-- private String lpj16;
+            |-- private String lpj17;
+            |-- private LocalDateTime lpj18;
+            |-- private String lpj19;
+            |-- private String lpjpos; // 核心優化：更名為小寫以利 Lombok 產出 setLpjpos()
+            |-- private Integer taLpj01;
+            |-- private Integer taLpj02;
+            |-- private Integer taLpj03;
+            |-- private String taLpj04;
+
+      |
+      | 資料落庫變更確認 (Commit)
+      v
+[終點：資料庫實體交易完成]
+================================================================================

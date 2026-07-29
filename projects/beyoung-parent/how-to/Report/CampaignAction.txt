@@ -1,0 +1,29 @@
+## Campaign 活動管理系統
+
+1. 取得活動設定清單 API
+   - API: GET /Campaign/getCampaignSet[cite: 3]
+   - 說明: 查詢並回傳活動設定的清單與相關參數內容[cite: 3]
+
+2. 依編號取得活動設定 API
+   - API: GET /Campaign/getCampaignSetBySN[cite: 3]
+   - 說明: 根據指定的活動編號（sno）查詢該筆活動設定的詳細內容與星期限制[cite: 3]
+
+3. 儲存活動設定 API
+   - API: POST /Campaign/saveCampaignSet[cite: 3]
+   - 說明: 接收前端傳入的資料並儲存活動設定，同時記錄登入者的操作代號[cite: 3]
+
+4. 取得活動設定下拉選單 API
+   - API: GET /Campaign/getCampaignSetCombo[cite: 3]
+   - 說明: 取得符合當日星期條件且有效的活動清單，並組成下拉選單選項供前端使用[cite: 3]
+
+5. 取得活動兌換記錄 API
+   - API: GET /Campaign/getCampaign[cite: 3]
+   - 說明: 根據分頁與請求參數查詢活動兌換記錄明細，並回傳分頁格式的 JSON 資料[cite: 3]
+
+6. 儲存活動兌換記錄 API
+   - API: POST /Campaign/saveCampaign[cite: 3]
+   - 說明: 驗證會員資格、當日星期限制以及每日與每月兌換上限後，儲存活動兌換記錄[cite: 3]
+
+7. 取得活動統計資料 API
+   - API: GET /Campaign/getStatistics[cite: 3]
+   - 說明: 查詢各活動的兌換次數與加總統計數據，並以列表及圖表陣列格式回傳[cite: 3]

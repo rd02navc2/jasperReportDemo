@@ -1,0 +1,235 @@
+## 客製化贈點
+
+## 行銷專案動態金額門檻（dynamicThreshold）贈點系統 - 流程圖與測試計畫
+
+### 全鏈路業務邏輯純文字流程圖
+
+ [ 營運後台管理介面 ] (PUT /Marketing/updateProject)
+         |
+         |  1. 修改指定活動(如603)的 lrq03 欄位值
+	     v
+    ( MySQL 資料庫永久持久化：更新 LRQ_FILE.lrq03 )
+         |
+         |  2. 純代碼手動驅逐該專案舊快取
+         v
+    ( Redis 快取驅逐：bonus:project::603:603:廠別 )
+		 
+         v
+==================== 緩存更新完成 (前線結帳即時共享) ====================
+         
+ [ 前線 POS 結帳 / Kafka 訂單事件 ] (POST /Point/addPoint)
+         |
+         |  4. 傳入結帳請求 (帶有 orderNo 與 amount)
+         v
+ [ BonusController ]
+         |
+         |  5. 派發至核心規則引擎
+         v
+ [ BonusService.processOrderAndBonus() ]
+         |
+         |  6. 讀取 Redis 動態門檻 (若無設定則採用預設底線 50000)
+         v
+     [ 智慧分流條件判定 ]
+     是否有單號 (orderNo != null) 且 金額達標 (amount >= dynamicThreshold)？
+         |
+         +---> 是【滿足大額客製化門檻】
+         |        |
+         |        v
+         |     [ BonusService.addVipGiftPoint() ]
+         |        |
+         |        +---> 7. 數據庫層防重校驗 (existsByAccessId)
+         |        |        |
+         |        |        v 已存在則 [直接攔截 Return] (保障冪等性)
+         |        |
+         |        +---> 8. 寫入審計日誌表 (bonus_log) -> 產生 VIP_GIFT_ 字軌
+         |        |
+         |        +---> 9. 寫入流水帳表 (lsm_file) -> 綁定唯一識別碼
+         |        |
+         |        +---> 10. 封裝 PointResponseBean (塞入 500 點)
+         |                 |
+         |                 v 透過 StreamBridge 拋送
+         |             [ Kafka 通道: bonus-out-0 ] ---> (異步發送給會員微服務加總帳)
+         |
+         +---> 否【常規小額消費或手動補點】
+                  |
+                  v
+               [ BonusService.addPoint() ]
+                  |
+                  +---> 11. 執行常規 603 活動比例累點，不觸發 500 點高額加贈
+
+
+## 測試計畫
+
+### 路業務邏輯流程
+
+路徑 A：營運後台持久化變更活動門檻 (MySQL 落地)
+
+ [ 營運後台管理介面 ] (PUT /Surrounding/api/bonus/Marketing/updateProject)
+         |
+         |  1. 傳入要永久變更的活動內容 (JSON 帶有指定 lrq01/02 及新門檻 lrq03)
+         v
+ [ MarketingProjectController.updateProject() ]
+         |
+         |  2. 呼叫服務層進行數據落庫
+         v
+ [ MarketingProjectService.updateProject() ]
+         |
+         |  3. 執行 MySQL 持久化儲存 (寫入 LRQ_FILE.lrq03 欄位值，例如: 50000.0)
+         |  4. 精準清除該活動 Redis 快取 (bonus:project::lrq01:lrq02:廠別)
+				127.0.0.1:6379> EXISTS bonus:project::702:702:A101
+				(integer) 0
+				
+         v
+==================== 資料庫與專案快取同步完成 ====================
+
+
+路徑 B：前線 POS 結帳與 Kafka 異步事件智慧分流累點核心 (BigInteger 零誤差)
+
+ [ 外部請求傳入 ] 
+ (包含：POS手動補點 API 呼叫 或 監聽到 Kafka 訂單完成事件 order-completed-topic)
+         |
+         |  5. 發送結帳點數請求 (POST /Surrounding/api/bonus/Point/addPoint)
+         v
+ [ BonusController.addPoint() ]
+         |
+         |  6. 統一入口接收，指派給核心規則引擎
+         v
+ [ BonusService.processOrderAndBonus() ]
+         |
+         |  7. 進行安全查驗：呼叫 validateCounter() 校驗專櫃是否為黑名單
+         |  8. 【持久化撈取】動態讀取該活動專案之 lrq03 金額 (優先查快取，無則穿透至 MySQL)
+         |  9. 【精度防禦】將讀出的 lrq03 轉為 BigInteger dynamicThreshold (預設 50000)
+         v
+     +--------------------------------------------------------+
+     | 【決策閘道器分流判定】                               |
+     | 是否滿足 VIP 大額贈點條件？                             |
+     | 條件：有單號 (orderNo != null) 且 金額達標 (amount >= lrq03) |
+     +--------------------------------------------------------+
+         |
+         +---> 是 (符合大額客製化加贈條件)
+         |        |
+         |        v
+         |     [ BonusService.addVipGiftPoint() ]
+         |        |
+         |        |-- 10. 冪等性防重複校驗：檢查 existsByAccessId("VIP_GIFT_" + orderNo)
+         |        |       (若已存在則直接攔截 Return，保障財務不重複贈點)
+         |        |
+         |        |-- 11. 寫入審計日誌表 (bonus_log) -> 產生唯一字軌 access_id
+         |        |-- 12. 寫入系統流水帳 (lsm_file)  -> 記錄帳務明細
+         |        |
+         |        v
+         |     [ Kafka 通道: bonus-out-0 ] ---> (異步拋送 500 點加贈事件給 Member 微服務更新總帳)
+         |
+         +---> 否 (常規中小額消費、或不帶單號之手動補點)
+                  |
+                  v
+               [ BonusService.addPoint() ]
+                  |
+                  |-- 13. 依據該活動 (如603) 之設定值回退執行傳統常規累點
+                  |-- 14. 寫入系統資料庫，不觸發高額 500 點加贈機制
+
+
+### 活動專案永久變更門檻與大額滿額贈點成功閉環測試
+
+步驟 1：營運後台調整活動持久化門檻
+使用 Postman 呼叫行銷控制層 API，將 702 活動專案的門檻金額持久化修改為 50000 元;
+PUT
+http://localhost:8095/Surrounding/api/bonus/Marketing/updateProject
+JOSN
+{
+  "lrq01": "702",
+  "lrq02": "702",
+  "lrqplant": "A101",
+  "lrq03": 50000,
+  "lrqacti": "Y",
+  "lrq10": "2026-05-01",
+  "lrq11": "2026-06-03"
+}
+
+預期結果：回傳 HTTP 200 OK，回傳的實體中 `lrq03` 為 50000;
+檢視 MySQL：SELECT lrq03 FROM lrq_file WHERE lrq01='702' AND lrq02='702' AND lrqplant='A101'; 欄位值已變更為 50000;
+進入 Redis 執行 `AUTH <密碼>` 後，執行 `KEYS *702*` 應確認原專案快取已被精準強刷清除;
+
+步驟 2：【前線發送符合新門檻之結帳請求】
+    開啟 Kafka 監聽 `bonus-out-0`;隨後模擬一筆金額為 35000 元（已高於新設定的 30000 元門檻）的線上訂單;
+   *HTTP 方法：POST
+   *URL：http://localhost:8095/Surrounding/api/bonus/Point/addPoint
+   *Body (JSON)：
+      {
+        "center": "A101",
+        "counterId": "CT001",
+        "cardNo": "VIP888999",
+        "amount": 35000,
+        "orderNo": "ORD202606060001",
+        "point": 70,
+        "lrq01": "603",
+        "lrq02": "603"
+      }
+   *預期結果：回傳 HTTP 200 成功;系統 Log 顯示：`【規則引擎】金額達標！專案: 603-603 ... 執行加贈 500 點流程`;
+
+步驟 3：【數據審計與 Kafka 異步校驗】
+   *數據庫校驗：
+      執行 SQL：`SELECT*FROM bonus_log WHERE access_id = 'VIP_GIFT_ORD202606060001';`
+      預期結果：必須成功查到一筆加贈紀錄，且其 point 欄位值為 500;
+   *Kafka 事件校驗：
+      預期結果：`bonus-out-0` 頻道收到通知，事件體內的關聯單號為 "VIP_GIFT_ORD202606060001"、點數為 500;
+
+--------------------------------------------------------------------------------
+【情案二：大額贈點冪等性防重複消費贈點測試（Idempotent Case）】
+--------------------------------------------------------------------------------
+步驟 1：【模擬網路超時、重試發送相同請求】
+    維持現有設定;使用與【情案一】**完全相同**的 JSON 內容（訂單號維持 ORD202606060001），再次對 `/addPoint` 發送一次 POST 請求;
+   *預期結果：API 依然回傳 HTTP 200 成功（避免前端 POS 拋出中斷錯誤）;
+    
+步驟 2：【帳務防線查驗】
+   *數據庫校驗：
+      執行 SQL：`SELECT COUNT(1) FROM bonus_log WHERE access_id = 'VIP_GIFT_ORD202606060001';`
+      期結果：Count 數量必須為 1，絕對不得變成 2（確認成功被 `existsByAccessId` 冪等性機制攔截）;
+   *記錄檔校驗：
+      預期結果：Log 應印出 `[點數攔截]` 或直接被攔截 Return，未重複執行 `bonusLogRepository.save` 與 Kafka 發送;
+
+--------------------------------------------------------------------------------
+【情案三：未達綁定動態門檻退回常規累點測試（Fallback Case）】
+--------------------------------------------------------------------------------
+步驟 1：【發送未達標結帳請求】
+    目前 603 專案在 MySQL/快取 中的門檻為 30000 元;發送一筆交易金額僅為 12000 元的線上訂單;
+   *HTTP 方法：POST
+   *URL：http://localhost:8095/Surrounding/api/bonus/Point/addPoint
+   *Body (JSON)：
+      {
+        "center": "A101",
+        "counterId": "CT001",
+        "cardNo": "VIP888999",
+        "amount": 12000,
+        "orderNo": "ORD202606060002",
+        "point": 24,
+        "lrq01": "603",
+        "lrq02": "603"
+      }
+   *預期結果：回傳 HTTP 200 成功;
+
+步驟 2：【決策閘道分流校驗】
+   *數據庫校驗：
+      執行 SQL：`SELECT*FROM bonus_log WHERE access_id = 'VIP_GIFT_ORD202606060002';`
+      👉 預期結果：查無此資料（金額未達標，不給予大額加贈）;
+   *常規校驗：
+      👉 預期結果：系統自動導向 `addPoint` 常規流程，依活動 603 計算並寫入標準 LSM 流水帳（發放原有的 24 點）;Log 顯示：`【規則引擎】未達滿額加贈門檻，執行常規 603/603 累點邏輯`;
+
+--------------------------------------------------------------------------------
+【情案四：異常參數與專櫃黑名單防禦測試（Robustness Case）】
+--------------------------------------------------------------------------------
+步驟 1：【測試黑名單專櫃攔截】
+    傳入一個已被列入 `exclude_counter_file` 排除名單的專櫃代碼（例如: BLK99）;
+   *HTTP 方法：POST
+   *URL：http://localhost:8095/Surrounding/api/bonus/Point/addPoint
+   *Body (JSON)：
+      {
+        "center": "A101",
+        "counterId": "BLK99",
+        "cardNo": "VIP888999",
+        "amount": 55000,
+        "orderNo": "ORD202606060003"
+      }
+   *預期結果：系統精準阻斷交易，回傳 HTTP 400 Bad Request;
+                錯誤訊息提示包含：`此專櫃為排除專櫃`，全鏈路不執行任何資料庫寫入;
+================================================================================

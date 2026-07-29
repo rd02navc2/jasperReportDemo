@@ -1,0 +1,5 @@
+## BIMail 影城派報 Excel 匯出 API
+
+1. 影城業績分析報表 Excel 產生 API[cite: 7]
+   GET /BIMailReport/genBIMailReportCentry[cite: 7]
+   接收查詢條件並產生包含影城相關日營收、對比日期與分析數據的 Excel 報表檔案，並回傳檔案下載路徑[cite: 7]。

@@ -1,0 +1,77 @@
+server:
+  port: 8080
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: beyoung-gateway
+
+  # Java 21 虛擬執行緒
+  threads:
+    virtual:
+      enabled: true
+
+  # 資料庫連線設定
+  datasource:
+    url: jdbc:mysql://localhost:3306/gateway_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: "abcd@1234" 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      maximum-pool-size: 50 # 調大至 50，確保在高併發動態刷新路由時，不會發生連線等待超時
+      minimum-idle: 10      # 同步設定最小空閒數，維持基礎效能
+      connection-timeout: 5000 # 獲取連線的超時時間（5秒）
+      max-lifetime: 1800000    # 連線最長生命週期（30分鐘）
+
+  # JPA / Hibernate 設定
+  jpa:
+    hibernate:
+      ddl-auto: update # 第一次啟動會自動建立資料表
+    show-sql: true     # 控制台顯示 SQL 語句，方便開發偵錯
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  
+  security:
+    user:
+      name: gateway-admin
+      password: secret123  
+
+  cloud:
+    gateway:
+      x-forwarded:
+        trusted-proxies: 127.0.0.1, 192.168.0.0/16, 10.0.0.0/8
+
+      # 修正縮排：全域 CORS 跨域設定
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+            allowedHeaders: "*"
+            allowCredentials: true
+
+      routes:
+        
+
+# ================================================================
+# Actuator & Logging 設定 
+# ================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, circuitbreakers, gateway
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    io.github.resilience4j: DEBUG
+    com.beyoung.gateway: TRACE

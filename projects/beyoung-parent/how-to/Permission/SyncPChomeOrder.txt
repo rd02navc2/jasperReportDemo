@@ -1,0 +1,5 @@
+## SyncPChomeOrder PChome訂單資料同步系統
+
+1. PChome訂單資料同步 API
+   - API: GET /syncPChomeOrder[cite: 15]
+   - 說明: 執行 PChome 平台訂單資料同步作業，透過 `SyncPChomeOrderEntry` 呼叫 `doSync()`，串接 PChome 訂單與明細查詢 API，並透過 AES 解密處理買家與收件人個資，將訂單主檔、明細狀態、產品與收件人資訊寫入資料庫中[cite: 15]

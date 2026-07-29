@@ -1,0 +1,9 @@
+## SyncBIDept BI日部類業績分析系統
+
+1. BI日部類業績分析 API
+   - API: GET /syncBIDept[cite: 10]
+   - 說明: 執行 BI 日部類業績分析作業，透過 SyncBIDeptEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(0, sFromDate, sEndDate)` 進行日部類業績資料的刪除與重新儲存分析[cite: 10]
+
+2. BI備份日部類業績分析 API
+   - API: GET /syncBIDeptBackup[cite: 10]
+   - 說明: 執行 BI 備份日部類業績分析作業，透過 SyncBIDeptBackupEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(1, sFromDate, sEndDate)` 進行備份資料庫的日部類業績分析作業[cite: 10]

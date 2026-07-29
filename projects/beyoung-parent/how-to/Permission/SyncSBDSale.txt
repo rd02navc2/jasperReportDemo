@@ -1,0 +1,5 @@
+## SyncSBDSale銷售資料同步系統
+
+1. API: 執行SBD銷售資料同步作業
+GET /syncSBDSale
+執行SBD銷售資料同步作業，透過 `SyncSBDSaleEntry` 接受選填的起訖日期參數並呼叫 `doSync()`，串接外部來源資料庫同步 `TC_PSB_FILE` 與 `TC_PSA_FILE` 銷售相關資料，並將其寫入或更新至本地資料庫中

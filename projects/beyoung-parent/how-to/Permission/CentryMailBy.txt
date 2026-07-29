@@ -1,0 +1,9 @@
+## CentryMailBy 影城報表派報系統
+
+1. 影城預先派報作業 API
+   - API: GET /CentryMailByPre[cite: 17]
+   - 說明: 執行每日影城預先派報作業，透過 CentryMailByPreEntry 接收 sFromDate 參數並進行預同步處理[cite: 17]
+
+2. 影城派報作業 API
+   - API: GET /CentryMailBy[cite: 17]
+   - 說明: 執行每日影城派報作業，透過 CentryMailByRealEntry 接收 sFromDate 參數並進行即時同步與報表推播處理[cite: 17]

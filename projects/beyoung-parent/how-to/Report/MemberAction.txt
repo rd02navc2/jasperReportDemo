@@ -1,0 +1,49 @@
+## Member 會員管理系統
+
+1. 取得會員資料 API
+   - API: GET /Member/getMemberData[cite: 12]
+   - 說明: 依據請求的卡號或會員編號查詢對應的會員基本資料與各項點數統計，並以 JSON 格式回傳[cite: 12]
+
+2. 取得 VIP 室會員資料 API
+   - API: GET /Member/getMemberData4VipRoom[cite: 12]
+   - 說明: 針對 VIP 室進行卡號有效性驗證與查詢會員資料，並額外帶出預約記錄筆數及 VIP 身分識別[cite: 12]
+
+3. 取得 PD 會員資料 API
+   - API: GET /Member/getMemberData4PD[cite: 12]
+   - 說明: 驗證 7708 開頭之卡號有效性，並查詢會員詳細個人資訊與是否為 VIP 或黑卡身分[cite: 12]
+
+4. 取得活動會員資料 API
+   - API: GET /Member/getMember4Campaign[cite: 12]
+   - 說明: 查詢行銷活動相關的會員資料與兌換記錄計數，並回傳會員卡別等級與身分標示[cite: 12]
+
+5. 取得 VIP 資料清單 API
+   - API: GET /Member/getVipData[cite: 12]
+   - 說明: 查詢符合條件的 VIP 會員清單，包含去年與今年的消費金額與消費次數統計[cite: 12]
+
+6. 取得去年 VIP 明細 API
+   - API: GET /Member/getLYVipDtl[cite: 12]
+   - 說明: 查詢 VIP 會員去年的詳細交易記錄，包含交易日期、櫃位編號、櫃位名稱、發票號碼與金額[cite: 12]
+
+7. 取得今年 VIP 明細 API
+   - API: GET /Member/getTYVipDtl[cite: 12]
+   - 說明: 查詢 VIP 會員今年的詳細交易記錄，包含交易日期、櫃位編號、櫃位名稱、發票號碼與金額[cite: 12]
+
+8. 更新狀態 API
+   - API: GET /Member/updateStatus[cite: 12]
+   - 說明: 根據使用者代號更新會員狀態[cite: 12]
+
+9. 取得點數轉移記錄 API
+   - API: GET /Member/getPointTransfer[cite: 12]
+   - 說明: 分頁查詢會員卡片之間的點數轉移記錄與異動明細[cite: 12]
+
+10. 點數轉移 API
+    - API: GET /Member/transferPoint[cite: 12]
+    - 說明: 執行會員卡片間的點數轉移作業，並記錄操作人員資訊[cite: 12]
+
+11. 執行投注點數 API
+    - API: GET /Member/runBetPoint[cite: 12]
+    - 說明: 執行會員的投注點數計算或處理作業[cite: 12]
+
+12. 顯示投注點數日誌 API
+    - API: GET /Member/showBetPointLog[cite: 12]
+    - 說明: 查詢並回傳會員的投注點數日誌清單與點數明細[cite: 12]

@@ -1,0 +1,5 @@
+## SyncFtpTSMember 台新聯名卡會員資料同步系統
+
+1. 台新聯名卡會員資料同步 API
+   - API: GET /syncFtpTSMember[cite: 13]
+   - 說明: 執行台新聯名卡會員資料同步作業，透過 SyncFtpTSMemberEntry 呼叫 `doSync()` 進行 FTP 檔案下載、資料解析，並同步更新至會員相關資料表中[cite: 13]

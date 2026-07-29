@@ -1,0 +1,13 @@
+## StoreShipping 商店出貨與物流方式管理系統
+
+1. 取得Yahoo商店物流方式 API[cite: 14]
+GET /StoreShipping/getStoreShipping
+執行Echo服務驗證時間戳與ApiKey後，透過HMAC-SHA1簽章與SSL安全連線呼叫外部Yahoo物流方式清單，解析回傳的運送類型、費用類型與描述後回傳分頁JSON陣列[cite: 14]
+
+2. 取得樂天商店物流方式 API[cite: 14]
+GET /StoreShipping/getRakutenStoreShipping
+建立並回傳預設的樂天商店物流選項清單（包含郵局、全家店到店及各溫層與免運條件說明）[cite: 14]
+
+3. 取得Momo商店物流方式 API[cite: 14]
+POST /StoreShipping/getMomoStoreShipping
+透過SSL憑證的客戶端向Momo端點發送加密登入參數請求，將解密後的輸出物件進行啟用狀態過濾，組成物流編號與名稱清單後回傳[cite: 14]

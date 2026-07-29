@@ -1,0 +1,9 @@
+## StoreCategory 商店類別管理系統
+
+1. 取得商店類別資料 API[cite: 13]
+GET /StoreCategory/getStoreCategory
+執行Echo服務驗證後呼叫外部Yahoo商店類別API，透過HMAC-SHA1簽章驗證與SSL客戶端連線取得分類資料，解析路徑層級後回傳分頁JSON陣列結果[cite: 13]
+
+2. 取得Momo商店類別資料 API[cite: 13]
+POST /StoreCategory/getMomoStoreCategory
+透過SSL憑證與略過主機名稱驗證的客戶端，向Momo端點發送加密登入與參數請求，將解密後的輸出物件依照多層級分類（Level 1至Level 3）進行關聯對應與整理，組合為類別樹狀清單後回傳[cite: 13]

@@ -1,0 +1,9 @@
+## StorePayment 商店付款方式管理系統
+
+1. 取得Yahoo商店付款方式 API
+GET /StorePayment/getStorePayment
+執行Echo服務驗證時間戳與ApiKey後，透過HMAC-SHA1簽章與SSL安全連線呼叫外部Yahoo付款方式清單，解析回傳的支付類型資訊與預設啟動狀態後回傳分頁JSON陣列
+
+2. 取得Momo商店付款方式 API
+POST /StorePayment/getMomoStorePayment
+透過SSL憑證與略過主機名稱驗證的客戶端，向Momo端點發送加密登入參數請求，將解密後的輸出物件進行過濾（排除特定代碼並依啟用狀態判斷），對照常數對應表組成付款清單後回傳

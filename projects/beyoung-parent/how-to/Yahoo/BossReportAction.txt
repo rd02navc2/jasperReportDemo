@@ -1,0 +1,5 @@
+## BossReport 高階主管報表 API
+
+1. 取得高階會員紀錄 API[cite: 7]
+   GET /BossReport/getBossMember[cite: 7]
+   接收分頁與查詢條件，取得高階會員相關的掃描日期、會員編號、相關資訊、性別與年齡等紀錄清單，並回傳分頁資訊與執行狀態[cite: 7]。

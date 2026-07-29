@@ -1,0 +1,240 @@
+
+
+## 《JavaScript 深入淺出》
+
+* JavaScript 基本語法
+* 變數、型別
+* Function
+* Object
+* Array
+* Prototype
+* this
+* Closure
+* Promise
+* async/await
+* ES6+
+* DOM 操作
+
+
+
+
+
+##
+
+如果你的目標是 **快速成為 Vue 3 開發者**，那麼 **《JavaScript 深入淺出》+《Vue 3 無痛學習》** 是相當不錯的組合，但學習順序很重要。
+
+## 1. 《JavaScript 深入淺出》
+
+適合程度：⭐⭐⭐⭐⭐（初學～中階）
+
+這本書通常會涵蓋：
+
+* JavaScript 基本語法
+* 變數、型別
+* Function
+* Object
+* Array
+* Prototype
+* this
+* Closure
+* Promise
+* async/await
+* ES6+
+* DOM 操作
+
+### Vue3 真正需要精通的是
+
+除了基本語法，更要熟悉：
+
+```javascript
+const
+let
+Arrow Function =>
+Destructuring
+Spread (...)
+Rest (...)
+Template String
+Module import/export
+Promise
+async / await
+Map
+Set
+Optional Chaining ?.
+Nullish ??
+```
+
+例如
+
+```javascript
+const user = {
+  name: "David",
+  age: 52
+}
+
+const { name } = user
+
+console.log(name)
+```
+
+Vue3 幾乎每天都會寫到。
+
+---
+
+# 2. 《Vue3 無痛學習》
+
+適合程度：⭐⭐⭐⭐⭐
+
+通常會教：
+
+* Vue 基礎
+* Vite
+* Component
+* Props
+* Emit
+* Computed
+* Watch
+* Router
+* Pinia
+* Axios
+* API
+* Composition API
+
+例如
+
+```vue
+<script setup>
+import { ref } from 'vue'
+
+const count = ref(0)
+
+function add() {
+  count.value++
+}
+</script>
+
+<template>
+  <button @click="add">
+    {{ count }}
+  </button>
+</template>
+```
+
+這就是 Vue3 最基本寫法。
+
+---
+
+# 如果只看這兩本，可以找到工作嗎？
+
+答案：
+
+**可以，但還不夠。**
+
+企業目前大多還會要求：
+
+* Vue3
+* Vite
+* Pinia
+* Vue Router
+* Axios
+* REST API
+* JWT
+* Docker（加分）
+* Git
+* TypeScript（越來越常見）
+
+---
+
+# 建議增加的內容
+
+例如
+
+```
+Vue3
+│
+├── Composition API
+├── Pinia
+├── Router
+├── Axios
+├── Vite
+├── Fetch API
+├── JWT Login
+├── CRUD
+├── 表單驗證
+├── Upload
+└── Deploy
+```
+
+---
+
+# 如果你想應徵 Java + Vue 全端
+
+依你之前的技術背景（Java、Spring Boot、REST API），建議把前端學習重點放在：
+
+1. JavaScript ES6（約 2 週）
+2. Vue3 基礎（約 2 週）
+3. Vue Router（3 天）
+4. Pinia（3 天）
+5. Axios 串 Spring Boot API（1 週）
+6. 完成一個 CRUD 專案（2 週）
+7. 使用 Docker 部署（1 週）
+
+大約 **2 個月**，就能具備中小型企業常見的 Java + Vue 全端開發能力。
+
+---
+
+# 我推薦的學習路線
+
+如果以效率和實務為優先，可以依照這個順序：
+
+| 階段 | 學習內容                              | 重要性   |
+| -- | --------------------------------- | ----- |
+| ①  | JavaScript ES6（《JavaScript 深入淺出》） | ⭐⭐⭐⭐⭐ |
+| ②  | Vue3 Composition API（《Vue3 無痛學習》） | ⭐⭐⭐⭐⭐ |
+| ③  | Vue Router                        | ⭐⭐⭐⭐⭐ |
+| ④  | Pinia 狀態管理                        | ⭐⭐⭐⭐☆ |
+| ⑤  | Axios + REST API                  | ⭐⭐⭐⭐⭐ |
+| ⑥  | Vite 專案建置                         | ⭐⭐⭐⭐☆ |
+| ⑦  | TypeScript 基礎                     | ⭐⭐⭐⭐☆ |
+| ⑧  | Docker 部署                         | ⭐⭐⭐⭐☆ |
+| ⑨  | 完整實作一個 Vue3 + Spring Boot CRUD 專案 | ⭐⭐⭐⭐⭐ |
+
+以你已有的 Java/Spring Boot 開發經驗來看，前端最大的挑戰通常不是 JavaScript 語法，而是熟悉 Vue 的響應式思維（`ref`、`reactive`、`computed`、`watch`）以及元件化設計。當這些觀念建立起來後，將 Vue3 與 Spring Boot REST API 整合通常會上手得很快。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##第1章 Vue 框架介绍
+
+Vue 是一套用于构建用户界面的渐进式框架
+
+模板引擎大概是 Vue 里最主要、又最核心的一个能力。
+
+以前我们更新页面的内容，大概的流程是：监听操作 -> 获取数据变量 -> 使用数据拼接成 HTML 模板 -> 将 HTML 内容塞到页面对应的地方 -> 将 HTML 片段内需要监听的点击等事件进行绑定。
+
+这么复杂的逻辑，如今使用 Vue，就可以方便地在模板里用插值表达式{{}}、v-bind绑定变量来展示，同时配合v-if、v-for这些内置指令，就可以很方便地写出可读性和维护性都很不错的代码了。什么是插值表达式？什么是指令？这些我们会放在后面的章节里介绍。这里我们主要来介绍下 Vue 框架做了什么事情，这里先讲一下数据绑定。
+
+我们在 Vue 里渲染一块内容，一般会有以下流程：
+(1) 解析语法生成 AST。
+(2) 根据 AST 结果，完成 data 数据初始化。
+(3) 根据 AST 结果和 data 数据绑定情况，生成虚拟 DOM。
+(4) 将虚拟 DOM 生成真正的 DOM 插入到页面中，此时页面会被渲染。
+
+#1.1 解析语法生成 AST
+
+抽象语法树（Abstract Syntax Tree）也称为 AST 语法树，指的是源代码语法所对应的树状结构。也就是说，对于一种具体编程语言下的源代码，通过构建语法树的形式将源代码中的语句映射到树中的每一个节点上。
+
+其实我们的 DOM 结构树，也是 AST 的一种，把 HTML DOM 语法解析并生成最终的页面。而模板引擎中常用的，则是将模板语法解析，分别生成 HTML DOM，使用像 HTML 拼接这样的方式（在对应的位置绑定变量、指令解析获取拼接逻辑等等），同时配合事件的管理、虚拟 DOM 的设计，可以最大化地提升页面的性能。
+
+#1.1.1 捕获特定语法
+

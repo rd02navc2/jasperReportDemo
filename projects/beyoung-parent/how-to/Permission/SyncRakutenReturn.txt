@@ -1,0 +1,5 @@
+## syncRakutenReturn樂天退貨資料同步 API
+
+1. API: 同步樂天市場(beyondplaza)退貨資料
+GET /syncRakutenReturn
+同步樂天市場(beyondplaza)退貨資料，執行退貨資料同步作業，透過 `SyncRakutenReturnEntry` 呼叫 `doSync()`，串接樂天退貨/取消要求搜尋 API 取得退貨資料，並將其寫入或更新至本地資料庫中

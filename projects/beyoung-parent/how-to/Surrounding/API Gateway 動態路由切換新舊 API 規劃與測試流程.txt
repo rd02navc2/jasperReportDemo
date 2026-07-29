@@ -1,0 +1,147 @@
+## Spring Cloud Gateway 動態路由切換新舊 API 規劃與測試流程
+
+
+一, 架構設計與動態路由策略
+--------------------------------------------------------------------------------
+利用 Spring Cloud Gateway 結合 Actuator 功能與 MySQL 持久化機制,
+達成「秒級切換」新舊系統路由，無需重新啟動 Gateway;
+
+  Client / App
+       |
+       +---> (呼叫 /Surrounding/**)
+	   |
+       v
+  Spring Cloud Gateway 
+       |
+       +---> Actuator Admin 管理 API 接口 ---> [動態更新路由]
+       |                                              |
+       +---> MysqlRouteDefinitionRepository           v
+             (實作 Locator & Writer) ----------> MySQL DB (gateway_routes 表)
+       |
+       | (動態路由依 Order 權重轉發)
+       |
+       +---> Order: 10 ---> 新系統 (http://localhost:8095)
+       |
+       +---> Order: 20 ---> 舊系統 (http://localhost:8085)
+
+
+二, 實作步驟流程圖
+--------------------------------------------------------------------------------
+
+[步驟 1：實作管理 API 群]
+  開啟 Actuator 功能，提供管理端動態操作路由的 REST API 接口;
+  
+  GET  /admin/gateway/routes          ---> 列出所有目前生效的路由設定
+  GET  /admin/gateway/routes/{id}     ---> 查看指定 ID 路由的詳細參數
+  POST /admin/gateway/routes/{id}     ---> 動態新增一筆路由配置 (JSON 格式)
+  DELETE /admin/gateway/routes/{id}   ---> 動態刪除指定 ID 的路由配置
+  POST /admin/gateway/refresh         ---> 刷新 Gateway 容器緩存，使變更秒級生效
+  
+        |
+        |
+        v
+        
+[步驟 2：MySQL 持久化儲存實作]
+  預設的 InMemory 路由在重啟後會遺失，故需抽換為資料庫持久化儲存;
+  
+  定義 MySQL 路由實體類 (Entity) 
+  儲存 id, uri, order, predicates, filters 等欄位;
+        |
+        v
+  實作 MysqlRouteDefinitionRepository
+  繼承 RouteDefinitionRepository，並實作以下雙向核心功能：
+  - RouteDefinitionLocator  ---> 讀取：從 MySQL 撈取路由定義並轉換為 RouteDefinition
+  - RouteDefinitionWriter   ---> 寫入/刪除：實作 save() 與 delete() 同步回寫 MySQL
+        |
+        v
+  注入 Spring 容器
+  將自訂的 Repository 註冊為 @Component, 自動覆蓋原先的 InMemory 實作
+  
+        |
+        |
+        v
+
+[步驟 3：路由權重與 JSON 對照配置]
+  利用 Gateway 的 order 屬性（數值越小優先權越高）控制新舊系統切換;
+  
+  [新系統配置] id: new-surrounding     | Uri: http://localhost:8095 | Order: 10 (高優先)
+  [舊系統配置] id: legacy-surrounding  | Uri: http://localhost:8085 | Order: 20 (低優先)
+  
+  當需要完全切換至新系統：維持 Order 10 優先，或透過 DELETE 移除 legacy-surrounding;
+  當新系統異常需緊急回滾：透過 API 將新系統 metadata.enabled 設為 false，或直接 DELETE 路由並 refresh;
+
+
+三, 業務 API 功能測試與驗證流程 (以 Surrounding 子系統為例)
+--------------------------------------------------------------------------------
+透過 Gateway 轉發後, 依序測試特定櫃點「排除累積點數」之管理功能與核心計點業務：
+
+【專櫃排除管理功能測試】
+
+  1. 新增排除專櫃
+     發送 POST /api/bonus/Point/excludeCounter/add
+     ---> [MySQL 驗證] 查詢資料表, 確認狀態更新為 EC_ACTIVE = "Y"
+  
+  2. 查詢排除清單
+     發送 GET /api/bonus/Point/excludeCounter/list
+     ---> [MySQL 驗證] 確認回傳的排除清單中包含該專櫃代碼
+  
+  3. 移除排除專櫃
+     發送 POST /api/bonus/Point/excludeCounter/remove
+     ---> [MySQL 驗證] 查詢資料表, 確認狀態更新為 EC_ACTIVE = "N"
+
+        |
+        +---> (管理設定配置完成, 開始驗證核心計點 API)
+        |
+		v
+
+[核心計點業務 API 觸發測試]
+
+  情境：當專櫃 00003 已被設定為排除專櫃時
+  
+  1. 測試新使用點數 API
+     發送 POST /api/bonus/Point/usePoint2
+     ---> 預期回傳訊息："message": "此專櫃無法累積點數, 專櫃代碼：00003"
+     ---> 驗證結果：[ 成功 ]
+  
+  2. 測試新累計點數 API
+     發送 POST /api/bonus/Point/addPoint2
+     ---> 預期回傳訊息："message": "此專櫃無法累積點數, 專櫃代碼：00003"
+     ---> 驗證結果：[ 成功 ]
+
+[Actuator 事件與底層資料庫的互動流程]	 
+
+[前端 HTTP 請求]
+       |
+       +---> (1) POST /refresh 或 POST /routes/{id} (Netty 執行緒: nio-thread)
+       v
+ RouteManageController 處理器
+       |
+       +---> (2) 發送 RefreshRoutesEvent 事件 (Actuator 核心事件機制)
+       |
+       +---> (3) 呼叫 routeLocator.getRoutes() 強制觸發快取重構
+       |
+       |
+       +----------------------------------------+
+	   |										|
+       v (事件廣播驅動)                           v (響應式流訂閱)
+ CachingRoute Locator 監聽器              CachingRouteLocator.getRoutes() 重新拉取
+       |                                        |
+       +---> 清空舊的記憶體路由快取                +---> 偵測到快取失效，向底層訂閱
+       +---> 準備接收新快取                       |
+                                                v 	(切換至專屬線程池 jpaScheduler)
+                                          MysqlRouteDefinitionRepository
+                                                |
+                                                +---> 從 MySQL 撈取新舊系統路由 Entity
+                                                +---> 反序列化為 RouteDefinition 流
+                                                |
+                                                v (資料回流與原子交換)
+                                          CachingRoute Locator 記憶體快取
+                                                |
+                                                +---> 重新編譯 Predicates & Filters
+                                                +---> 秒級寫入快取，完成新舊 API 切換
+                                                |
+                                                v (4)
+                                          [Netty 執行緒收到回應]
+                                                |
+                                                v (5)
+                                          HTTP 200 OK (切換成功)

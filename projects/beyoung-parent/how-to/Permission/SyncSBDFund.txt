@@ -1,0 +1,5 @@
+## SBD基礎資料同步系統
+
+1. API: 執行SBD基礎資料同步作業
+GET /syncSBDFund
+執行SBD基礎資料同步作業，透過 `SyncSBDFundEntry` 呼叫 `doSync()`，串接外部來源資料庫同步 `IMA_FILE`、`IMK_FILE`、`IMZ_FILE` 以及 `OBA_FILE` 等相關基礎資料，並將其寫入或更新至本地資料庫中[cite: 19]

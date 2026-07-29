@@ -1,0 +1,5 @@
+## SyncMomoOrder Momo訂單資料同步系統
+
+1. Momo訂單資料同步 API
+   - API: GET /syncMomoOrder[cite: 15]
+   - 說明: 執行 Momo 平台訂單資料同步作業，透過 `SyncMomoOrderEntry` 呼叫 `doSync()`，串接 Momo API 查詢並解密訂單與配送資訊（含未結案資料同步機制），並將訂單主檔、明細狀態、產品及收件人資料寫入資料庫中[cite: 15]

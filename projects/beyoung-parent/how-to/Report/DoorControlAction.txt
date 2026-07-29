@@ -1,0 +1,13 @@
+## DoorControl 門禁管制系統
+
+1. 取得門禁解禁資料 API
+   - API: GET /DoorControl/getUnlimitData[cite: 7]
+   - 說明: 查詢並回傳所有門禁解禁或不受限制的使用者與相關資料清單[cite: 7]
+
+2. 新增門禁解禁資料 API
+   - API: POST /DoorControl/insertUnlimitData[cite: 7]
+   - 說明: 檢查會員主檔資料與現有解禁紀錄後，新增指定會員的門禁解禁（不受限制）資料[cite: 7]
+
+3. 刪除門禁解禁資料 API
+   - API: POST /DoorControl/deleteUnlimitData[cite: 7]
+   - 說明: 檢查會員與解禁紀錄是否存在後，刪除指定會員的門禁解禁資料[cite: 7]

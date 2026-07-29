@@ -1,0 +1,246 @@
+## 門禁系統
+
+1. 門禁驗證 API GET /rest/dc/DoorControl/enter/{sCenter}/{sCardNO}
+員工卡驗證會員卡驗證檢查是否有總辦進入權限回傳會員姓名記錄門禁進入資訊
+
+2. VIP室購買 API GET /rest/dc/VipRoomControl/purchase
+購買 VIP 室使用次數驗證會員資格建立消費紀錄
+0%
+3. VIP室進場 API GET /rest/dc/VipRoomControl/enter/{sCenter}/{sCardNO}
+VIP室進場驗證檢查剩餘次數建立進場紀錄
+0%
+4. VIP室離場 API GET /rest/dc/VipRoomControl/exit/{sCenter}/{sCardNO}
+VIP室離場更新使用紀錄
+0%
+5. VIP室退費 API GET /rest/dc/VipRoomControl/refund
+VIP室退費回補使用次數建立退費紀錄
+
+--
+1. 門禁驗證 API GET /rest/dc/DoorControl/enter/{sCenter}/{sCardNO}
+員工卡驗證會員卡驗證檢查是否有總辦進入權限回傳會員姓名記錄門禁進入資訊
+http://localhost:8095/Surrounding/rest/dc/DoorControl/enter/HQ01/9999
+
+-- 1. 在此連線視窗中，暫時關閉安全更新模式限制
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 執行刪除與重新寫入
+DELETE FROM EMPLOYEE WHERE CODE = '9999' OR EMPLOYEEID = 'EMP0001';
+
+INSERT INTO EMPLOYEE (
+    EMPLOYEEID, 
+    CODE, 
+    CNNAME, 
+    EMPLOYEESTATEID, 
+    IDCardNo,
+    JOBDATE
+) VALUES (
+    'EMP0001', 
+    '9999', 
+    '張小明', 
+    'EmployeeState1001', 
+    'A123459999',         
+    '2026-07-10'
+);
+
+-- 3. 測試完畢後，把安全模式重新打開（良好的資料庫維護習慣）
+SET SQL_SAFE_UPDATES = 1;
+
+2. VIP室購買 API GET /rest/dc/VipRoomControl/purchase
+購買 VIP 室使用次數驗證會員資格建立消費紀錄
+http://localhost:8095/Surrounding/rest/dc/VipRoomControl/purchase?center=HQ01&loginId=userA&cardId=cardVip2026&totalQty=1
+
+INSERT INTO lpk_file (lpk01, lpk03, lpk04) 
+VALUES ('vipMember001', 'cardVip2026', '林會員');
+
+測試情境 A 專用（今日全新進房）：
+
+-- 1. 暫時關閉安全更新限制
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 執行刪除
+DELETE FROM VIP_ROOM_LOG 
+WHERE user_id = 'vipMember001' 
+  AND transaction_date = DATE_FORMAT(NOW(), '%Y%m%d');
+
+-- 3. 恢復安全更新限制
+SET SQL_SAFE_UPDATES = 1;
+
+測試情境 B 專用（今日重複刷卡）：
+
+SET SQL_SAFE_UPDATES = 0;
+
+DELETE FROM VIP_ROOM_LOG WHERE user_id = 'vipMember001' AND transaction_date = DATE_FORMAT(NOW(), '%Y%m%d');
+
+INSERT INTO VIP_ROOM_LOG (
+    center, transaction_date, transaction_time, user_id, user_name, card_no, total_qty, access_id, refund_date
+) VALUES (
+    'HQ01', DATE_FORMAT(NOW(), '%Y%m%d'), '10:00:00', 'vipMember001', '林會員', 'cardVip2026', 1, 'userA', NULL
+);
+
+SET SQL_SAFE_UPDATES = 1;
+
+測試情境 C 專用（已退款後二次進房）：
+
+SET SQL_SAFE_UPDATES = 0;
+
+DELETE FROM VIP_ROOM_LOG WHERE user_id = 'vipMember001' AND transaction_date = DATE_FORMAT(NOW(), '%Y%m%d');
+
+INSERT INTO VIP_ROOM_LOG (
+    center, transaction_date, transaction_time, user_id, user_name, card_no, total_qty, access_id, refund_date
+) VALUES (
+    'HQ01', DATE_FORMAT(NOW(), '%Y%m%d'), '10:00:00', 'vipMember001', '林會員', 'cardVip2026', 1, 'userA', '2026-07-10'
+);
+
+SET SQL_SAFE_UPDATES = 1;
+
+--
+SET SQL_SAFE_UPDATES = 0;
+
+-- 1. 先清空測試卡號的舊資料，確保環境乾淨
+DELETE FROM lpk_file WHERE lpk03 = 'cardVip2026' OR lpk01 = 'vipMember001';
+DELETE FROM lpj_file WHERE lpj01 = 'vipMember001';
+
+-- 2. 塞入會員主檔 (lpk01 是會員代號，lpk03 是卡號)
+INSERT INTO lpk_file (lpk01, lpk03, lpk04, lpk18, lpkud02) 
+VALUES ('vipMember001', 'cardVip2026', '林會員', 'cardVip2026', '0');
+
+-- 3. 塞入對應的關聯檔 (lpj01 必須等於 lpk01，且滿足 lpj09='2' 與 ta_lpj04='Y')
+INSERT INTO lpj_file (lpj01, lpj03, lpj09, ta_lpj04) 
+VALUES ('vipMember001', 'cardVip2026', '2', 'Y');
+
+SET SQL_SAFE_UPDATES = 1;
+
+3. VIP室進場 API GET /rest/dc/VipRoomControl/enter/{sCenter}/{sCardNO}
+VIP室進場驗證檢查剩餘次數建立進場紀錄
+http://localhost:8095/Surrounding/rest/dc/VipRoomControl/enter/HQ01/cardVip2026
+
+--
+情境 A：測試「一般會員進房」（今日已購買/扣點）
+
+
+SET SQL_SAFE_UPDATES = 0;
+
+-- 1. 確保會員主檔有這張卡 (對齊前述 getMemberByCardID3 複雜查詢的 lpj09='2' 與 ta_lpj04='Y')
+DELETE FROM lpk_file WHERE lpk03 = 'cardVip2026' OR lpk01 = 'vipMember001';
+DELETE FROM lpj_file WHERE lpj01 = 'vipMember001';
+
+INSERT INTO lpk_file (lpk01, lpk03, lpk04, lpk18, lpkud02) 
+VALUES ('vipMember001', 'cardVip2026', '林進房', 'cardVip2026', '0');
+
+INSERT INTO lpj_file (lpj01, lpj03, lpj09, ta_lpj04) 
+VALUES ('vipMember001', 'cardVip2026', '2', 'Y');
+
+-- 2. 模擬該會員今日「已付費/已扣點過」的紀錄 (VIP_ROOM_LOG)
+DELETE FROM VIP_ROOM_LOG WHERE user_id = 'vipMember001';
+
+INSERT INTO VIP_ROOM_LOG (
+    center, transaction_date, transaction_time, user_id, card_no, 
+    enter_date, exit_date, refund_date, in_room
+) VALUES (
+    'HQ01', 
+    DATE_FORMAT(NOW(), '%Y%m%d'), -- 今日日期
+    '14:30:00', 
+    'vipMember001', 
+    'cardVip2026', 
+    NULL,   -- 尚未開門進入
+    NULL,   -- 尚未離開
+    NULL,   -- 關鍵：refund_date 必須為 NULL，否則會被視為退款不讓進
+    'N'     -- 初始狀態不在房內
+);
+
+SET SQL_SAFE_UPDATES = 1;
+
+--
+情境 B：測試「免扣點員工白名單」
+
+SET SQL_SAFE_UPDATES = 0;
+
+-- 1. 建立員工的卡號與會員主檔
+DELETE FROM lpk_file WHERE lpk03 = 'cardVip2026' OR lpk01 = 'vipMember001';
+DELETE FROM lpj_file WHERE lpj01 = 'vipMember001';
+
+INSERT INTO lpk_file (lpk01, lpk03, lpk04, lpk18, lpkud02) 
+VALUES ('vipMember001', 'cardVip2026', '張員工', 'cardVip2026', '0');
+
+INSERT INTO lpj_file (lpj01, lpj03, lpj09, ta_lpj04) 
+VALUES ('vipMember001', 'cardVip2026', '2', 'Y');
+
+-- 2. 將此會員塞入無限制白名單表
+DELETE FROM VIP_ROOM_UNLIMIT WHERE user_id = 'vipMember001';
+
+INSERT INTO VIP_ROOM_UNLIMIT (user_id) 
+VALUES ('vipMember001');
+
+SET SQL_SAFE_UPDATES = 1;
+
+4. VIP室離場 API GET /rest/dc/VipRoomControl/exit/{sCenter}/{sCardNO}
+VIP室離場更新使用紀錄
+http://localhost:8095/Surrounding/rest/dc/VipRoomControl/exit/HQ01/cardVip2026
+
+SET SQL_SAFE_UPDATES = 0;
+
+-- 1. 確保基礎會員主檔與關聯資料存在
+DELETE FROM lpk_file WHERE lpk03 = 'cardVip2026' OR lpk01 = 'vipMember001';
+DELETE FROM lpj_file WHERE lpj01 = 'vipMember001';
+
+INSERT INTO lpk_file (lpk01, lpk03, lpk04, lpk18, lpkud02) 
+VALUES ('vipMember001', 'cardVip2026', '林離場', 'cardVip2026', '0');
+
+INSERT INTO lpj_file (lpj01, lpj03, lpj09, ta_lpj04) 
+VALUES ('vipMember001', 'cardVip2026', '2', 'Y');
+
+-- 2. 模擬該會員「人在房內」的狀態 (VIP_ROOM_LOG)
+DELETE FROM VIP_ROOM_LOG WHERE user_id = 'vipMember001';
+
+INSERT INTO VIP_ROOM_LOG (
+    center, transaction_date, transaction_time, user_id, card_no, 
+    enter_date, exit_date, refund_date, in_room
+) VALUES (
+    'HQ01', 
+    DATE_FORMAT(NOW(), '%Y%m%d'), -- 今日日期
+    '15:00:00', 
+    'vipMember001', 
+    'cardVip2026', 
+    DATE_SUB(NOW(), INTERVAL 30 MINUTE), -- 假設 30 分鐘前已進房
+    NULL, -- 尚未離開
+    NULL, 
+    'Y'   -- 當前人在房內
+);
+
+SET SQL_SAFE_UPDATES = 1;
+
+5. VIP室退費 API GET /rest/dc/VipRoomControl/refund
+VIP室退費回補使用次數建立退費紀錄
+http://localhost:8095/Surrounding/rest/dc/VipRoomControl/refund?center=HQ01&loginId=userA&cardId=cardVip2026
+
+SET SQL_SAFE_UPDATES = 0;
+
+-- 1. 確保基礎會員主檔與關聯資料存在
+DELETE FROM lpk_file WHERE lpk03 = 'cardVip2026' OR lpk01 = 'vipMember001';
+DELETE FROM lpj_file WHERE lpj01 = 'vipMember001';
+
+INSERT INTO lpk_file (lpk01, lpk03, lpk04, lpk18, lpkud02) 
+VALUES ('vipMember001', 'cardVip2026', '林退款', 'cardVip2026', '0');
+
+INSERT INTO lpj_file (lpj01, lpj03, lpj09, ta_lpj04) 
+VALUES ('vipMember001', 'cardVip2026', '2', 'Y');
+
+-- 2. 模擬該會員今日「已付費扣點，但完全尚未進房」的狀態
+DELETE FROM VIP_ROOM_LOG WHERE user_id = 'vipMember001';
+
+INSERT INTO VIP_ROOM_LOG (
+    center, transaction_date, transaction_time, user_id, card_no, 
+    enter_date, exit_date, refund_date, in_room
+) VALUES (
+    'HQ01', 
+    DATE_FORMAT(NOW(), '%Y%m%d'), -- 今日日期
+    '15:30:00', 
+    'vipMember001', 
+    'cardVip2026', 
+    NULL, -- 關鍵防呆 1：必須為 NULL (代表尚未進房)
+    NULL, 
+    NULL, -- 關鍵防呆 2：必須為 NULL (代表尚未退款過)
+    'N'
+);
+
+SET SQL_SAFE_UPDATES = 1;

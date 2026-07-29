@@ -1,0 +1,232 @@
+## Bonus MS_點數時效設定
+
+## 核心異步歸零與審計落帳流程圖
+
+           [ 系統時間到達凌晨 00:01 ]
+                       |
+                       v
+       [ BonusExpiredCleanupTask 排程觸發 ]
+                       |
+                       v
+         步驟一：掃描 MySQL 撈取過期數據
+      ( 執行 BonusLogRepository.findExpiredPoints() )
+      SELECT * FROM bonus_sf.BONUS_LOG 
+      WHERE expiry_date < CURRENT_DATE AND point > 0
+                       |
+                       +---> [情況 A: 查無資料] ---> 結束排程 (Log 記錄: 未偵測到過期紀錄)
+                       |
+                       v [情況 B: 偵測到過期紀錄 (進入 for-loop 逐筆事務隔離處理)]
+         步驟二：開啟 Spring @Transactional 獨立事務
+                       |
+                       v
+         【步驟三：產生負值審計日誌與防重刷】
+         1. 扣減當前 Log 紀錄：將原本過期紀錄的 point 欄位覆蓋更新為 0 (防範重複扣點)
+         2. 安全檢查：抽取原紀錄 expiryDate，若為空則動態補足預設值, 確保 Builder 不出錯
+         3. 新增反向審計日誌：寫入 BONUS_LOG，point 設為負值 (-pointsToDeduct)
+                             access_id 標註為 "SYSTEM_CRON_JOB"
+                       |
+                       v
+         步驟四：分散式異步同步 (Kafka 事件廣播)
+         呼叫 bonusService.sendPointChangedEvent() 
+         ( 封裝 BonusDTO.Request 物件, 透過 StreamBridge 發送至 Kafka 通道 bonus-out-0 )
+                       |
+                       +---> [情況 1: Kafka 拋送成功] 
+                       |              |
+                       |              v
+                       |       [ 提交 Spring 本地事務 ] ---> MySQL 資料庫正式生效更新
+                       |
+                       +---> [情況 2: Kafka 拋送失敗 (!sendResult)] 
+                                      |
+                                      v
+                               [ 拋出 RuntimeException ] 
+                                      |
+                                      v
+                               [ 觸發 Transaction Rollback ] ---> 本地 MySQL 狀態完全回滾
+                       v
+           [ 下游 Member 微服務監聽讀取事件 ]
+                       |
+                       v
+         步驟五：下游會員日記帳同步與 T+1 雙向勾稽
+         1. 扣減該會員帳戶總點數
+         2. 寫入會員點數日記帳 (member_point_journal)
+         3. 將 EXPIRED_BILL_ID 寫入 source_bill_no 欄位，完成最終一致性對帳防線
+		 
+## Redis 測試驗證步驟（快取清除與防禦驗證）
+--------------------------------------------------------------------------------
+由於前線 POS 在執行加點時會查詢行銷活動專案 (LrqFile) 並將規則暫存於 Redis 中,
+為了驗證當排程將過期點數歸零,或營運人員動態調整活動效期時, 快取與排程不會發生時空衝突,
+請依循以下步驟進行測試驗證：
+
+1. 模擬快取環境建立
+   透過後台或 API 新增一筆即將過期的行銷專案規則（例如專案代碼 701, 客製代碼 603）;
+   使用前線 POS 任意發起一筆加點請求，迫使系統執行 marketingProjectService.getValidProject,
+   此時活動規則將會成功寫入 Redis;
+   驗證指令：
+   redis-cli > KEYS *marketing*
+   redis-cli > GET "marketing:project:701:603:A101"
+   
+透過後台或 API 新增一筆即將過期的行銷專案規則（例如專案代碼 702, 客製代碼 702）
+  http://localhost:8095/Surrounding/api/bonus/Marketing/addProject 
+
+JSON
+
+{
+  "lrq01": "702", 
+  "lrq02": "˙702",
+  "lrqplant": "A101",
+  "lrq03": 200,
+  "lrqacti": "Y",
+  "lrq10": "2026-05-01",
+  "lrq11": "2026-05-31"
+}
+
+1780562457.182336 [0 172.19.0.1:38594] "DEL" "bonus:project::702:702:A101"
+   
+   
+
+2. 模擬活動到期變更
+   發送 POST 請求至 /Surrounding/api/bonus/Marketing/addExpiryDate 修改該專案效期，
+   將結束日期（lrq11）修改為「昨天」（模擬活動已結束);
+   
+   http://localhost:8095/Surrounding/api/bonus/Marketing/updateProject
+   
+  {
+  "lrq01": "702",
+  "lrq02": "702",
+  "lrqplant": "A101",
+  "lrq03": 200,
+  "lrqacti": "Y",
+  "lrq10": "2026-05-01",
+  "lrq11": "2026-06-03"
+  }
+
+3. 驗證 Redis 快取失效（Cache Evict）機制
+   檢查 MarketingProjectService.updateProject 是否成功觸發 @CacheEvict 或手動清除;
+   驗證指令：
+   redis-cli > EXISTS "marketing:project:702:702:A101"
+   (預期回傳值應為 0，代表快取已被精準抹除, 前線 POS 下一筆交易將被迫穿透至 MySQL 讀取最新狀態)
+   
+   docker exec -it 0b40d1eaddf50c55e586a7111ac8244e628be61f296d5be7bd06e2391ab510b0 redis-cli
+
+4. 驗證過期防禦攔截
+   此時持該活動專案代碼再次發起 POS 加點請求;
+   驗證結果：
+   系統應精準拋出 IllegalStateException 或 IllegalArgumentException（訊息: 活動時效不符政策）;
+   前台 POS 應正確收到 400 Bad Request, 且資料庫不應產生 any 新的加點 BONUS_LOG;
+   
+   
+   http://localhost:8095/Surrounding/api/bonus/Point/addPoint
+   
+   持該活動專案代碼再次發起 POS 加點請求
+   
+  {
+  "lrq01": "702",
+  "lrq02": "702",
+  "center": "A101",
+  "counterId": "C001",
+  "counterName": "台北萬華專櫃",
+  "loginId": "POS_USER_01",
+  "createUserId": "POS_USER_01",
+  "cardNo": "CARD_TEST_702",
+  "point": 100,
+  "invoice": "INV20260604001"
+	}
+
+## MySQL 測試驗證步驟（排程單元測試與落帳審計）
+--------------------------------------------------------------------------------
+在測試環境尚未完全 Ready,無法在凌晨 00:01 守候測試的情況下，
+請利用以下調整與 SQL 指令進行排程的白箱測試：
+
+1. 修改測試排程頻率
+   將 Java 程式碼中的 Cron 註解暫時調整為每 30 秒執行一次：
+   // @Scheduled(cron = "0 1 0 * * ?") // 生產環境凌晨執行
+   @Scheduled(cron = "0/30 * * * * ?")  // 測試環境每 30 秒執行一次
+   
+   BonusExpiredCleanupTask.java
+   
+   
+
+2. 製造 MySQL 測試過期數據
+   在 bonus_sf.BONUS_LOG 表中，手動插入或修改一筆已經到期且點數大於 0 的假資料：
+   INSERT INTO bonus_sf.BONUS_LOG (center, counter_id, card_no, point, access_date, expiry_date, access_id)
+   VALUES ('A101', 'C001', 'CARD_TEST_999', 500, NOW(), '2026-05-31', 'POS_USER');
+
+3. 驗證排程自動撈取與處理
+   啟動 Spring Boot 應用程式，觀察主控台（Console）日誌：
+   Log 應印出 ---> "【排程啟動】啟動凌晨點數過期失效歸零作業..."
+   Log 應印出 ---> "偵測到已過期且需歸零的紀錄共 1 筆，開始執行批次自動扣減..."
+   Log 應印出 ---> "會員 [CARD_TEST_999] 的 500 點過期點數已成功扣減歸零"
+   
+---
+[2m2026-06-04T18:01:01.158+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mo.a.k.c.t.i.KafkaMetricsCollector       [0;39m [2m:[0;39m initializing Kafka metrics collector
+[2m2026-06-04T18:01:01.201+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mo.a.kafka.common.utils.AppInfoParser    [0;39m [2m:[0;39m Kafka version: 3.8.1
+[2m2026-06-04T18:01:01.202+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mo.a.kafka.common.utils.AppInfoParser    [0;39m [2m:[0;39m Kafka commitId: 70d6ff42debf7e17
+[2m2026-06-04T18:01:01.202+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mo.a.kafka.common.utils.AppInfoParser    [0;39m [2m:[0;39m Kafka startTimeMs: 1780567261201
+[2m2026-06-04T18:01:01.225+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [ad | producer-1] [0;39m[36morg.apache.kafka.clients.Metadata       [0;39m [2m:[0;39m [Producer clientId=producer-1] Cluster ID: tIBr3ym2TPuIZ8BopA--eA
+[2m2026-06-04T18:01:01.268+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mo.s.c.s.m.DirectWithAttributesChannel   [0;39m [2m:[0;39m Channel 'beyoung-bonus.bonus-out-0' has 1 subscriber(s).
+[2m2026-06-04T18:01:01.352+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mc.b.bonus.application.BonusService      [0;39m [2m:[0;39m 【Bonus服務】過期歸零 Kafka 事件已成功廣播發送;
+Hibernate: select bl1_0.id,bl1_0.access_date,bl1_0.access_id,bl1_0.card_no,bl1_0.center,bl1_0.counter_id,bl1_0.expiry_date,bl1_0.point,bl1_0.user_id,bl1_0.user_name from bonus_log bl1_0 where bl1_0.id=?
+Hibernate: update bonus_log set access_date=?,access_id=?,card_no=?,center=?,counter_id=?,expiry_date=?,point=?,user_id=?,user_name=? where id=?
+[2m2026-06-04T18:01:01.407+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mc.b.b.schedule.BonusExpiredCleanupTask  [0;39m [2m:[0;39m 會員 [CARD_TEST_999] 的 500 點過期點數已完成審計落帳與 Kafka 事件同步廣播;
+[2m2026-06-04T18:01:01.410+08:00[0;39m [32m INFO[0;39m [35m11436[0;39m [2m--- [beyoung-bonus] [  scheduling-25] [0;39m[36mc.b.b.schedule.BonusExpiredCleanupTask  [0;39m [2m:[0;39m 【排程結束】成功完成今日點數失效歸零批次作業;
+   
+
+4. 驗證資料庫落帳結果
+   執行 SQL 檢查數據是否正確達到審計同步與歸零：
+   
+   -- 驗證 A：原本的過期紀錄點數是否已經成功被安全更新為 0 (防重複扣點)
+   SELECT point FROM bonus_sf.BONUS_LOG WHERE card_no = 'CARD_TEST_999' AND access_id = 'POS_USER';
+   (預期結果 point = 0)
+   
+   -- 驗證 B：是否成功產生一筆 SYSTEM_CRON_JOB 的反向扣減沖帳審計紀錄
+   SELECT point, access_id, expiry_date FROM bonus_sf.BONUS_LOG 
+   WHERE card_no = 'CARD_TEST_999' AND access_id = 'SYSTEM_CRON_JOB';
+   (預期結果 point = -500)
+   
+---
+-- 1. 強行結束當前工具的事務快取
+COMMIT;
+
+-- 2. 查出該會員的所有點數異動歷史，看 point 有沒有被歸零與反向扣減
+SELECT id, access_date, access_id, point, expiry_date 
+FROM bonus_sf.BONUS_LOG 
+WHERE card_no = 'CARD_TEST_999'
+ORDER BY id DESC;
+
+'16', '2026-06-04 10:01:00.019830', 'SYSTEM_CRON_JOB', '-500', '2026-05-31'
+'15', '2026-06-04 18:00:32.000000', 'POS_USER', '0', '2026-05-31'
+
+
+
+5. 驗證分散式最終一致性（T+1 半夜自動對帳）
+   當下游 Member 微服務也模擬接收 Kafka 事件落庫後，執行跨庫對撞 SQL 驗證兩邊欄位完全對齊：
+   SELECT 
+       b.id AS bonus_log_id,
+       b.card_no,
+       b.point AS bonus_point,
+       m.source_bill_no,
+       m.changed_point AS member_point
+   FROM bonus_sf.BONUS_LOG b
+   LEFT JOIN member_sf.member_point_journal m   //dc- 沒有member_sf.member_point_journal!
+       ON CONCAT('EXPIRED_BILL_', b.id) = m.source_bill_no
+   WHERE b.access_id = 'SYSTEM_CRON_JOB' AND b.card_no = 'CARD_TEST_999';
+   (預期結果：兩邊單號完全對撞契合，且 bonus_point = -500, member_point = -500，無 any 漏單與不一致)
+   
+---
+資料庫直接發動這一道「不求人自體對撞 SQL」：SQLSELECT 
+    b_orig.card_no AS 會員卡號,
+    b_orig.id AS 原始過期紀錄ID,
+    b_orig.access_id AS 原始來源,  -- 'POS_USER'
+    b_orig.point AS 原始過期燃料狀態, -- 已經被更新為 0
+    
+    b_cron.id AS 沖銷審計紀錄ID,
+    b_cron.access_id AS 沖銷執行者, -- 'SYSTEM_CRON_JOB'
+    b_cron.point AS 反向審計點數   -- 完美的 -500
+FROM bonus_sf.bonus_log b_orig
+-- 關鍵修改：拿原始紀錄的 ID (15) 去對撞由排程新建立,綁定單號為 'EXPIRED_BILL_15' 的審計紀錄
+LEFT JOIN bonus_sf.bonus_log b_cron 
+    ON CONCAT('EXPIRED_BILL_', b_orig.id) = b_cron.access_id
+WHERE b_orig.access_id = 'POS_USER' 
+  AND b_orig.card_no = 'CARD_TEST_999';
+
+點數的生命週期完完全全在 bonus_sf 自主控管, 不需要跨庫跟其他龐大的主檔系統藕斷絲連;審計線索百分之百完備：ID 15 變 0（防未來重複扣），ID 16 立 -500（供財務隨時稽核), 完全在同一張 bonus_log 裡實現了雙分錄的對帳;

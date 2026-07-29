@@ -1,0 +1,13 @@
+## PunchReport 打卡報表管理系統
+
+1. 取得下班打卡異常 API
+   - API: GET /PunchReport/getOffPunch[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並處理並回傳下班打卡相關的異常清單[cite: 8]
+
+2. 取得未配對打卡 API
+   - API: GET /PunchReport/getUnpairPunch[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並處理並回傳未完整配對的打卡清單[cite: 8]
+
+3. 取得加班紀錄 API
+   - API: GET /PunchReport/getOvertime[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並計算與回傳加班相關的詳細清單[cite: 8]

@@ -1,0 +1,379 @@
+## Bonus MS_addPoint_累點功能
+
+## 營運後台動態設置（CRUD）
+
+    [ 營運人員於後台管理介面 ]
+    ( 執行新增或變更活動專案請求 )
+                |
+                v
+    [ MarketingProjectController ] 
+    ( POST /addProject 或 PUT /updateProject )
+    ( 路由: /Surrounding/api/bonus/Marketing/addProject )
+                |
+                v
+    [ MarketingProjectService ] (開啟 Spring @Transactional 事務)
+                |
+                + ---> 1. 執行 lrqFileRepository.save()
+                |         MySQL 執行: insert into lrq_file ... 
+                |         或是 select 舊資料後進行欄位 Null Check 防禦修改
+                |
+                v
+    [ 事務成功提交 (Transaction Commit) ]
+                |
+                v
+    [ 發動 AOP @CacheEvict 快取清除 ]
+                |
+                v
+    [ Redis 伺服器 ] 
+    執行指令: DEL bonus:project::603:603:Test 
+    ( 成果：舊記憶或空快取徹底抹除，確保前線 POS 下一秒交易時穿透同步最新資料 )
+
+
+## 前線 POS 現場補點與事件驅動（高並發查詢,防弊,跨服務對帳）
+
+    [ 前線 POS 戳 API ]                或         [ 訂單系統發送 ORDER_COMPLETED 事件 ]
+    ( POST /addPoint )
+                |                                                 |
+                +-----------------------+-------------------------+
+                                        |
+                                        v
+                           [ BonusController.addPoint() ]
+                           ( 路由: /Surrounding/api/bonus/Point/addPoint )
+                           ( 執行防呆向下相容機制：若 lrq01/02 為空，自動 fallback 填入 "603"-"603" )
+                                        |
+                                        v
+                           [ BonusService.addPoint() ] (核心業務與防弊層：開啟事務)
+                                        |
+                                        v
+                           [ 檢查 Redis 內存快取空間 ] (Key: bonus:project::603:603:Test)
+                                        |
+                +-----------------------+-----------------------+
+                |                                               |
+         (快取命中 Hit)                                  (快取失效 Miss)
+                |                                               |
+                v                                               v
+     [ 讀取內存專案設定 ]                             [ 穿透至 MySQL 查詢 LRQ_FILE ]
+       ( 耗時 < 1ms )                         ( SELECT ... FROM lrq_file WHERE ... AND lrqacti='Y' )
+                |                                               |
+                |                                               v
+                |                                     [ 將最新規則回填 Redis 快取 ]
+                |                                     ( Redis 執行: SET bonus:project::603... )
+                |                                               |
+                +-----------------------+-----------------------+
+                                        |
+                                        v
+                          【 Java 記憶體死線與安全閥攔截 】
+                           1. 檢核今日是否在有效檔期內？ (between lrq10 and lrq11)
+                           2. 檢核補點是否超限？ (if dPoint > lrq03)
+                                        |
+                                        v
+                          【 寫入本地不可篡改流水帳 】
+                           1. save(BonusLog) 記錄審計日誌
+                           2. save(LsmFile) 落實交易台帳 -> 產生唯一單號 LSM03 (Correlation ID)
+                           MySQL 執行: insert into lsm_file ...
+                                        |
+                                        v
+                          【 打包事件並指定關聯單號 】
+                           建構 PointChangedEvent (將 lsmFile.getLsm03() 綁定為交易關聯鍵)
+                                        |
+                                        v
+                          【 Kafka 傳播 (bonus-out-0) 】
+                           透過 StreamBridge 異步發送至主題 (member-point-topic)
+                                        |
+                                        v
+                          [ 下游 Member 微服務監聽接收 ] ---> 寫入會員變更日記帳 (同時寫入單號)
+                                        |
+                                        v
+                        【 T+1 半夜自動對帳清算（LEFT JOIN 對撞） 】
+                        ( 成果：秒級揪出分散式系統漏單，100% 確保全通路最終一致性 )
+
+## MySQL 與 Redis 測試觀測步驟
+
+
+步驟一：準備動態即時觀測環境
+----------------------------------------------------------------------------------------
+1. 打開第一個終端機，登入 Redis 容器並啟動即時監聽流 (MONITOR)：
+   docker exec -it bonus-redis-container redis-cli -a BeyoungBonusPass2026
+   127.0.0.1:6379> MONITOR
+   (視窗進入卡住狀態，代表成功開始監聽所有 Redis 流量)
+
+2. 打開第二個終端機，連入 MySQL 準備隨時驗證實體落庫狀況：
+   mysql -u root -p -D bonus_sf
+
+
+步驟二：測試「新增專案 (POST)驗證
+----------------------------------------------------------------------------------------
+1. 使用 Postman 戳 [POST] http://localhost:8095/api/projects/addProject
+   Body 帶入 JSON:
+   {
+       "lrq01": "701",
+       "lrq02": "603",
+       "lrqplant": "A101",
+       "lrq03": 200,
+       "lrqacti": "Y",
+       "lrq10": "2026-06-01",
+       "lrq11": "2026-06-30"
+   }
+
+2. [MySQL 驗證]：在 MySQL 終端機下 SQL 指令，必須能查到該筆剛落盤的活動：
+   SELECT * FROM LRQ_FILE WHERE LRQ01='701' AND LRQ02='603' AND LRQPLANT='A101';
+   (預期結果：成功吐出 1 row 資料，證明 MySQL 持久化成功)
+
+3. [Redis 驗證]：檢查第一個 MONITOR 視窗，在 MySQL 成功 Commit 後，必須噴出驅逐指令：
+   "DEL" "bonus:project::701:603:A101"
+   (目的：抹除前線 POS 因為提早試探而留在 Redis 中的 Optional.empty 空快取)
+
+
+步驟三：測試「更新專案 (PUT)」驗證
+----------------------------------------------------------------------------------------
+1. 使用 Postman 戳 [PUT] http://localhost:8095/api/projects/updateProject
+   將上限金額從 200 改為 500;Body 帶入 JSON:
+   {
+       "lrq01": "701",
+       "lrq02": "603",
+       "lrqplant": "A101",
+       "lrq03": 500
+   }
+
+2. [MySQL 驗證]：在 MySQL 終端機再次查詢，驗證數值是否已被動態防禦修改，日期有無被 null 覆蓋：
+   SELECT LRQ03, LRQ10, LRQ11 FROM LRQ_FILE WHERE LRQ01='701';
+   (預期結果：LRQ03 變更為 500，且開始與結束日期依然完好保留，證明 Null Check 欄位防禦奏效)
+
+3. [Redis 驗證]：回頭看 MONITOR 監聽視窗，在資料庫更新成功的剎那，必須再次精準打擊：
+   "DEL" "bonus:project::701:603:A101"
+   (目的：幹掉前線正在使用的 200 點舊記憶，強迫前線下一秒穿透 DB 載入最新的 500 點限制)
+   
+
+PS C:\WINDOWS\system32>  docker exec -it bonus-redis-container redis-cli -a BeyoungBonusPass2026
+Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.
+127.0.0.1:6379> MONITOR
+OK
+1780547313.522667 [0 172.19.0.1:38556] "HELLO" "3" "AUTH" "(redacted)" "(redacted)"
+1780547313.556752 [0 172.19.0.1:38556] "CLIENT" "SETINFO" "lib-name" "Lettuce"
+1780547313.556818 [0 172.19.0.1:38556] "CLIENT" "SETINFO" "lib-ver" "6.4.2.RELEASE/f4dfb40"
+1780547313.586338 [0 172.19.0.1:38560] "HELLO" "3" "AUTH" "(redacted)" "(redacted)"
+1780547313.589664 [0 172.19.0.1:38560] "CLIENT" "SETINFO" "lib-name" "Lettuce"
+1780547313.589675 [0 172.19.0.1:38560] "CLIENT" "SETINFO" "lib-ver" "6.4.2.RELEASE/f4dfb40"
+1780547313.606032 [0 172.19.0.1:38574] "HELLO" "3" "AUTH" "(redacted)" "(redacted)"
+1780547313.616533 [0 172.19.0.1:38574] "CLIENT" "SETINFO" "lib-name" "Lettuce"
+1780547313.616546 [0 172.19.0.1:38574] "CLIENT" "SETINFO" "lib-ver" "6.4.2.RELEASE/f4dfb40"
+1780547313.637255 [0 172.19.0.1:38586] "HELLO" "3" "AUTH" "(redacted)" "(redacted)"
+1780547313.652261 [0 172.19.0.1:38586] "CLIENT" "SETINFO" "lib-name" "Lettuce"
+1780547313.652274 [0 172.19.0.1:38586] "CLIENT" "SETINFO" "lib-ver" "6.4.2.RELEASE/f4dfb40"
+1780547313.666402 [0 172.19.0.1:38594] "HELLO" "3" "AUTH" "(redacted)" "(redacted)"
+1780547313.669697 [0 172.19.0.1:38594] "CLIENT" "SETINFO" "lib-name" "Lettuce"
+1780547313.669711 [0 172.19.0.1:38594] "CLIENT" "SETINFO" "lib-ver" "6.4.2.RELEASE/f4dfb40"
+1780547313.749462 [0 172.19.0.1:38594] "DEL" "bonus:project::701:603:A101"
+
+[ 前線 POS 補點請求進來 ]
+              |
+              v
+    步驟一：翻看 Redis 記憶---> 發現一片空白！(這在技術上叫 快取命中失敗 Cache Miss)
+              |
+              v
+    步驟二：破門穿透到 MySQL---> 撈取後台剛改好的最新實體數據（上限 500 點）
+              |
+              v
+    步驟三：帳務判斷與回填  ---> POS 順利以 500 點政策放行，並把新規則同步
+                                   「SET」回 Redis，變成全新的正確記憶
+
+---
+http://localhost:8095/Surrounding/api/bonus/Point/addPoint
+
+{
+    "lrq01": "701",
+    "lrq02": "603",
+    "center": "A101",
+    "counterId": "C999",
+    "counterName": "測試 addPoint API",
+    "loginId": "01001504",
+    "createUserId": "1504",
+    "cardNo": "01001504",
+    "point": 99,
+    "invoice": "T999999999"
+}
+
+2026-06-04T12:42:52.743+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [omcat-handler-3] [0;39m[36mo.a.k.c.t.i.KafkaMetricsCollector       [0;39m [2m:[0;39m initializing Kafka metrics collector
+[2m2026-06-04T12:42:52.778+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [omcat-handler-3] [0;39m[36mo.a.kafka.common.utils.AppInfoParser    [0;39m [2m:[0;39m Kafka version: 3.8.1
+[2m2026-06-04T12:42:52.779+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [omcat-handler-3] [0;39m[36mo.a.kafka.common.utils.AppInfoParser    [0;39m [2m:[0;39m Kafka commitId: 70d6ff42debf7e17
+[2m2026-06-04T12:42:52.779+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [omcat-handler-3] [0;39m[36mo.a.kafka.common.utils.AppInfoParser    [0;39m [2m:[0;39m Kafka startTimeMs: 1780548172778
+[2m2026-06-04T12:42:52.793+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [ad | producer-1] [0;39m[36morg.apache.kafka.clients.Metadata       [0;39m [2m:[0;39m [Producer clientId=producer-1] Cluster ID: tIBr3ym2TPuIZ8BopA--eA
+[2m2026-06-04T12:42:52.819+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [omcat-handler-3] [0;39m[36mo.s.c.s.m.DirectWithAttributesChannel   [0;39m [2m:[0;39m Channel 'beyoung-bonus.bonus-out-0' has 1 subscriber(s).
+[2m2026-06-04T12:42:52.868+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [omcat-handler-3] [0;39m[36mc.b.bonus.application.BonusService      [0;39m [2m:[0;39m 【Bonus服務】addPoint 處理完畢，已成功發送非同步同步事件;
+Hibernate: insert into lsm_file (lsm04,lsm05,lsm06,lsm08,lsm09,lsm10,lsm11,lsm12,lsm13,lsm15,lsmlegal,lsmplant,lsmstore,ta_lsm01,ta_lsm02,ta_lsm03,ta_lsm04,ta_lsm05,ta_lsm06,ta_lsm07,ta_lsm08,ta_lsm12,ta_lsm13,lsm01,lsm02,lsm03) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+
+
+
+前線 POS 補點交易（addPoint）與快取穿透/回填對照圖
+
+
+    [ 前線 POS 機 / 舊系統客戶端 ]
+    ( 發送 JSON 或 XML 補點請求，例如：卡號 01001504,點數 99 )
+                |
+                v
+    [ BonusController.addPoint() ]
+    ( 執行防呆向下相容機制：若 lrq01/02 為空，強制 fallback 自動填入 "603"-"603" )
+                |
+                v
+    [ BonusService.addPoint() ] ( 核心業務與防弊層：具備 @Transactional 事務 )
+                |
+                v
+    步驟一：翻看 Redis 快取記憶空間 ( 計算鍵值字串: bonus:project::603:603:Test )
+                |
+                + ---> [ 快取命中 (Cache Hit) ] ---> 2. 拿到規則，直接進行額度檢核（極速放行）
+                |
+                v 
+       [ 快取失效 (Cache Miss) / 空值或無快取 ]
+                |
+                v
+    步驟二：破門穿透至 MySQL 資料庫 
+    ( 執行 SQL: SELECT ... FROM LRQ_FILE WHERE LRQ01='603' AND LRQ02='603' AND LRQPLANT='Test' )
+                |
+                + ---> [ 查無此活動規則 / 檔期不符 / 已被關閉 ] 
+                |         |
+                |         v
+                |      【政策攔截核心】
+                |      拋出 IllegalArgumentException -> Controller 轉發 400 Bad Request
+                |      ( 終止交易，MySQL 帳務全數回滾 )
+                |
+                v
+       [ MySQL 成功查到綠燈啟用活動 ]
+                |
+                v
+    步驟三：回填 Redis 與落帳
+                |
+                + ---> 1. 將活動規則同步「SET」回 Redis 快取，解除未來的穿透壓力
+                |
+                + ---> 2. 寫入實體交易流水表 【LSM_FILE】
+                |
+                v
+    [ 交易成功提交 (Commit) ] ---> 拋送 Kafka 異步事件 ---> 回傳前端 <Response><code>0</code></Response>
+
+
+## 各項目核心程式碼與註解快速對照
+
+1. Controller 防呆與向下相容層：
+   -------------------------------------------------------------------------------------
+   @PostMapping(value = "/addPoint", consumes = MediaType.APPLICATION_JSON_VALUE)
+   public BonusDTO.Response<Void> addPoint(@RequestBody BonusDTO.Request requestBody) {
+       // 舊前端沒傳 lrq01 或 lrq02 時的防禦性預設值
+       String finalLrq01 = (requestBody.getLrq01() != null && !requestBody.getLrq01().isEmpty()) ? requestBody.getLrq01() : "603";
+       String finalLrq02 = (requestBody.getLrq02() != null && !requestBody.getLrq02().isEmpty()) ? requestBody.getLrq02() : "603";
+
+       log.info("Bonus：addPoint : sCenter -> {}, 專案活動 -> [{}-{}]", requestBody.getCenter(), finalLrq01, finalLrq02);
+       
+       bonusService.addPoint(requestBody.getCenter(), requestBody.getCounterId(), requestBody.getCardNo(), finalLrq01, finalLrq02, requestBody.getPoint());
+       return BonusDTO.Response.success(null);
+   }
+
+2. DTO 欄位映射結構：
+   -------------------------------------------------------------------------------------
+   public static class Request {
+       @JsonProperty("lrq01") private String lrq01; // 活動案號
+       @JsonProperty("lrq02") private String lrq02; // 客製代號
+       @JsonProperty("center") private String center; // 營運據點 (對應 lrqplant)
+       @JsonProperty("cardNo") private String cardNo; // 會員卡號
+       @JsonProperty("point")  private Integer point; // 交易點數
+   }
+
+
+
+## 實戰驗證指南：MySQL 與 Redis 測試觀測步驟
+
+
+步驟一：準備測試通行證（建立活動規則）
+----------------------------------------------------------------------------------------
+1. 因為前線預設帶入 603-603 與 Test，先戳後台 API 建立該規則，確保不會被政策攔截：
+   [POST] http://localhost:8095/api/projects/addProject
+   JSON Body:
+   {
+       "lrq01": "603",
+       "lrq02": "603",
+       "lrqplant": "Test",
+       "lrq03": 500,
+       "lrqacti": "Y",
+       "lrq10": "2026-06-01",
+       "lrq11": "2026-06-30"
+   }
+
+
+步驟二：打開 Redis MONITOR 監聽
+----------------------------------------------------------------------------------------
+1. 在第一個終端機啟動即時流監聽：
+   docker exec -it bonus-redis-container redis-cli -a BeyoungBonusPass2026
+   127.0.0.1:6379> MONITOR
+
+
+步驟三：模擬前線交易（觸發快取穿透與回填)
+----------------------------------------------------------------------------------------
+1. 使用 Postman 發送點數拋送：
+   [POST] http://localhost:8095/Surrounding/api/bonus/Point/addPoint
+   JSON Body:
+	{
+		"lrq01": "",
+		"lrq02": "",
+		"counterId": "C999",
+		"counterName": "測試 addPoint API",
+		"center": "Test",
+		"loginId": "01001504",
+		"createUserId": "1504",
+		"cardNo": "01001504",
+		"point": 99,
+		"invoice": "T999999999"
+	}
+
+2. [第一波 Redis MONITOR 觀測點]：
+   在 Postman 送出的瞬間，MONITOR 必須顯示前線正在試探快取：
+   "GET" "bonus:project::603:603:Test"
+
+3. [MySQL 驗證]：
+   因為上網查不到快取，穿透去 MySQL 查驗通過;接著檢查交易流水表，點數必須被安全寫入：
+   SELECT * FROM LSM_FILE WHERE LMS_CARD_NO='01001504' AND LMS_POINT=99;
+   (預期結果：成功查到落帳紀錄)
+
+4. [第二波 Redis MONITOR 觀測點]：
+   MySQL 成功放行後，Service 會自動執行回填動作，此時 MONITOR 視窗必須噴出：
+   "SET" "bonus:project::603:603:Test" "{\"lrq01\":\"603\",\"lrq02\":\"603\"...}"
+   (目的：下一次再有卡片進來 Test 櫃位加點，直接從 Redis 吐答案，MySQL 壓力歸零)
+
+
+---
+http://localhost:8095/Surrounding/api/bonus/Marketing/addProject
+
+{
+    "lrq01": "603",
+    "lrq02": "603",
+    "lrqplant": "Test",
+    "lrq03": 500,
+    "lrqacti": "Y",
+    "lrq10": "2026-06-01",
+    "lrq11": "2026-06-30"
+}
+
+2026-06-04T13:09:12.075+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [mcat-handler-14] [0;39m[36mc.b.b.api.MarketingProjectController    [0;39m [2m:[0;39m 【API 接收】收到後台 [新增] 活動規則請求: 603-603-Test
+[2m2026-06-04T13:09:12.076+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [mcat-handler-14] [0;39m[36mc.b.b.a.MarketingProjectService         [0;39m [2m:[0;39m 【營運後台】準備新增活動專案規則 -> 603:603:Test
+Hibernate: select count(*) from lrq_file lf1_0 where lf1_0.lrq01=? and lf1_0.lrq02=? and lf1_0.lrqplant=?
+Hibernate: select lf1_0.lrq01,lf1_0.lrq02,lf1_0.lrqplant,lf1_0.lrq03,lf1_0.lrq10,lf1_0.lrq11,lf1_0.lrqacti from lrq_file lf1_0 where (lf1_0.lrq01,lf1_0.lrq02,lf1_0.lrqplant) in ((?,?,?))
+[2m2026-06-04T13:09:12.091+08:00[0;39m [32m INFO[0;39m [35m12004[0;39m [2m--- [beyoung-bonus] [mcat-handler-14] [0;39m[36mc.b.b.a.MarketingProjectService         [0;39m [2m:[0;39m 【快取強刷防線】MySQL 寫入完成！手動驅逐 Redis Key: [bonus:project::603:603:Test], 是否成功驅逐: false
+Hibernate: insert into lrq_file (lrq03,lrq10,lrq11,lrqacti,lrq01,lrq02,lrqplant) values (?,?,?,?,?,?,?)
+
+http://localhost:8095/Surrounding/api/bonus/Point/addPoint
+
+{
+    "lrq01": "",
+    "lrq02": "",
+    "counterId": "C999",
+    "counterName": "測試 addPoint API",
+    "center": "Test",
+    "loginId": "01001504",
+    "createUserId": "1504",
+    "cardNo": "01001504",
+    "point": 99,
+    "invoice": "T999999999"
+}
+
+1780548731.680878 [0 172.19.0.1:38594] "DEL" "bonus:project::701:603:A101"
+1780548934.233759 [0 172.19.0.1:38594] "DEL" "bonus:project::701:603:A101"
+1780549752.089961 [0 172.19.0.1:38594] "DEL" "bonus:project::603:603:Test"
+
