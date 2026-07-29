@@ -1,0 +1,49 @@
+## ITRequest 資訊需求系統
+
+1. 取得統計資訊 API
+   - API: GET /ITRequest/getStatistic[cite: 10]
+   - 說明: 根據請求參數與登入資訊分頁查詢各項維護與 POS 相關的統計數據清單[cite: 10]
+
+2. 依登入編號取得員工資訊 API
+   - API: GET /ITRequest/getEmployeeByLoginID[cite: 10]
+   - 說明: 查詢當前登入使用者的員工詳細資料、直屬主管資訊以及是否具備資訊人員身分[cite: 10]
+
+3. 儲存資訊需求單 API
+   - API: GET /ITRequest/saveITRequest[cite: 10]
+   - 說明: 儲存使用者的資訊需求單、處理相關附件檔案並發送通知信件給部門主管[cite: 10]
+
+4. 取得資訊需求單清單 API
+   - API: GET /ITRequest/getITRequest[cite: 10]
+   - 說明: 依分頁與查詢條件取得資訊需求單清單，並包含狀態名稱與附件狀態等資訊[cite: 10]
+
+5. 依單號取得資訊需求單明細 API
+   - API: GET /ITRequest/getITRequestByNo[cite: 10]
+   - 說明: 根據指定的的需求單號查詢詳細的申請內容、簽核歷程、POS 設定與維護備註[cite: 10]
+
+6. 駁回資訊需求單 API
+   - API: GET /ITRequest/doReturn[cite: 10]
+   - 說明: 主管或資訊人員將指定的資訊需求單進行退回處理，記錄退回原因並發送通知信[cite: 10]
+
+7. 核准資訊需求單 API
+   - API: GET /ITRequest/doApprove[cite: 10]
+   - 說明: 執行資訊需求單的各階段簽核與確認，並依據處理結果發送對應的郵件或 Line 訊息通知[cite: 10]
+
+8. 儲存資訊備註 API
+   - API: GET /ITRequest/saveITMemo[cite: 10]
+   - 說明: 儲存資訊人員針對需求單填寫的維護備註與相關附件檔案[cite: 10]
+
+9. 取得資訊郵件設定 API
+   - API: GET /ITRequest/getITMail[cite: 10]
+   - 說明: 查詢系統設定的 IT 確認與接收信件群組收件者清單[cite: 10]
+
+10. 儲存資訊郵件設定 API
+    - API: GET /ITRequest/saveITMail[cite: 10]
+    - 說明: 更新並儲存系統的 IT 確認與接收郵件群組設定[cite: 10]
+
+11. 上傳檔案 (主檔) API
+    - API: GET /ITRequest/uploadImage[cite: 10]
+    - 說明: 接收 multipart 檔案上傳請求，將上傳的檔案暫存至指定目錄並回傳檔名[cite: 10]
+
+12. 上傳檔案 (副檔) API
+    - API: GET /ITRequest/uploadImage1[cite: 10]
+    - 說明: 接收第二個 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳相關路徑與檔名[cite: 10]

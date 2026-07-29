@@ -1,0 +1,110 @@
+## AWS 中文入门开发教学 - 课程介绍 p.01
+
+https://www.youtube.com/watch?v=G0hvLDTmXig
+
+
+
+--
+AWS 中文入门开发教学 - 课程介绍 p.01
+
+https://www.youtube.com/watch?v=G0hvLDTmXig
+
+
+# AWS 學習路線圖
+
+## 前言
+
+Amazon Web Services (AWS) 是全球最全面且廣泛採用的雲端平台，提供超過 200 種功能完善的服務，涵蓋運算、儲存、資料庫、網路、分析、機器學習、人工智慧、物聯網、安全等領域。學習 AWS 不僅能讓您掌握雲端技術的基礎，更能為您的職業生涯開啟無限可能，無論是開發人員、系統管理員、資料科學家還是企業架構師，都能在 AWS 生態系中找到適合自己的發展路徑。
+
+## AWS 免費方案：您的雲端入門起點
+
+AWS 提供「免費方案」，讓新客戶能夠免費體驗多項 AWS 產品與服務，是您探索雲端世界的絕佳起點。此方案通常包含以下優惠：
+
+- **新客戶抵用金**：註冊後可獲得一定金額的抵用金，並在探索主要 AWS 服務時，可能獲得額外抵用金。
+
+- **指定服務免費用量**：針對特定服務提供免費使用額度，例如 Amazon EC2、Amazon S3、Amazon RDS 等，讓您在一定限制內無需支付費用即可進行實驗和學習。
+
+- **免費試用期**：部分服務提供最長達 6 個月的免費試用期。
+
+透過免費方案，您可以在不產生費用的情況下，對 AWS 服務進行測試和學習，直到您選擇付費方案以擴展營運或工作負載超出抵用金閾值為止。
+
+## 核心 AWS 服務概覽
+
+以下是 AWS 免費方案中提及的一些核心服務，也是您學習 AWS 時應重點關注的基礎：
+
+| 服務名稱 | 類別 | 簡要說明 |
+| --- | --- | --- |
+| **Amazon EC2** | 運算 | 雲端中可調規模的運算容量，提供虛擬伺服器，讓您能夠部署應用程式和執行工作負載。 |
+| **Amazon S3** | 儲存 | 安全、耐用且可擴展的物件儲存基礎設施，適用於儲存和擷取任意數量的資料。 |
+| **Amazon RDS** | 資料庫 | 適用於 MySQL、PostgreSQL、MariaDB、Oracle 或 SQL Server 的受管關聯式資料庫服務，簡化資料庫的設定、操作和擴展。 |
+| **Amazon DynamoDB** | 資料庫 | 無伺服器、NoSQL、完全受管的資料庫，在任何規模下均具有少於 10 毫秒的效能，適用於需要高可用性和可擴展性的應用程式。 |
+| **AWS Lambda** | 運算 | 執行程式碼而無需考慮伺服器或叢集，是一種無伺服器運算服務，讓您能夠執行程式碼以回應事件。 |
+| **Amazon SageMaker AI** | AI/ML | 適用於每個資料科學家和開發人員的機器學習服務，提供建置、訓練和部署機器學習模型所需的工具和基礎設施。 |
+| **Amazon Bedrock** | AI | 使用基礎模型建置和擴充生成式 AI 應用程式的最簡單方法，提供多種基礎模型供您選擇。 |
+| **Amazon Bedrock AgentCore** | Agentic AI | 使用任何架構和模型，大規模安全地建置、部署和操作高效的代理程式，無需基礎架構管理。此服務通常為付費方案獨家。 |
+
+## AWS 學習路徑與認證
+
+AWS 認證旨在驗證您在 AWS 雲端中的技術技能和專業知識。AWS 提供了多個級別和專業領域的認證，以滿足不同職位和經驗水平的需求。建議的學習路徑通常從基礎級開始，逐步深入到助理級、專業級和專家級認證。
+
+### 1. 基礎級認證 (Foundational)
+
+- **AWS Certified Cloud Practitioner**：此認證旨在驗證您對 AWS 雲端的基本概念、價值主張、安全性和經濟效益的理解。適合任何希望了解 AWS 雲端的人員，無需技術背景。
+
+### 2. 助理級認證 (Associate)
+
+- **AWS Certified Solutions Architect – Associate**：此認證驗證您在 AWS 上設計和部署可擴展、高可用性、容錯和成本效益系統的能力。建議具備至少一年的 AWS 實踐經驗。
+
+- **AWS Certified Developer – Associate**：此認證驗證您在 AWS 上開發和維護應用程式的能力。建議具備至少一年的 AWS 開發經驗。
+
+- **AWS Certified SysOps Administrator – Associate**：此認證驗證您在 AWS 上部署、管理和操作系統的能力。建議具備至少一年的 AWS 系統操作經驗。
+
+### 3. 專業級認證 (Professional)
+
+- **AWS Certified Solutions Architect – Professional**：此認證驗證您在 AWS 上設計和部署動態可擴展、高可用性、容錯和成本效益應用程式的能力。建議具備兩年或以上在 AWS 上設計和部署分散式系統的綜合經驗。
+
+- **AWS Certified DevOps Engineer – Professional**：此認證驗證您在 AWS 上實施和管理持續交付系統以及自動化流程的能力。建議具備兩年或以上在 AWS 上操作、管理和開發的經驗。
+
+### 4. 專家級認證 (Specialty)
+
+專家級認證專注於特定技術領域，例如網路、安全、資料庫、機器學習等。這些認證要求在特定領域有深入的專業知識和經驗。
+
+- **AWS Certified Advanced Networking – Specialty**
+
+- **AWS Certified Security – Specialty**
+
+- **AWS Certified Database – Specialty**
+
+- **AWS Certified Machine Learning – Specialty**
+
+- **AWS Certified Data Analytics – Specialty**
+
+- **AWS Certified SAP on AWS – Specialty**
+
+### 微型認證 (Micro-credentials)
+
+AWS 微型認證旨在透過即時評估，驗證您在佈建的 AWS 環境中實作雲端運算技能的能力。它們補充了傳統認證，證明您在特定 AWS 解決方案的辨識、故障排除和實作方面的實際能力。
+
+## 學習資源
+
+- **AWS Training and Certification 官方網站**：提供豐富的數位培訓、課堂課程、影片、白皮書和認證指南 [1]。
+
+- **AWS Skill Builder**：AWS 官方的數位學習中心，提供數百種免費的數位課程、學習計畫和實驗室，幫助您提升 AWS 技能 [2]。
+
+- **AWS 官方文件**：所有 AWS 服務都提供詳細的官方文件，是學習和參考的最佳來源。
+
+- **社群與論壇**：參與 AWS 社群、Reddit 論壇 (如 r/aws, r/AWSCertifications) 可以獲得經驗分享和問題解答 [3] [4]。
+
+## 結論
+
+AWS 學習是一個持續的旅程。從了解基礎概念開始，利用免費方案進行實踐，逐步深入核心服務，並根據您的職業目標選擇合適的認證路徑。結合官方資源和社群力量，您將能夠有效地掌握 AWS 雲端技術，並在不斷發展的雲端領域中取得成功。
+
+## 參考資料
+
+[1]: https://aws.amazon.com/training/ "AWS Training and Certification."
+
+[2]: https://aws.amazon.com/tw/certification/ "AWS Certification."
+
+[3]: https://www.reddit.com/r/aws/comments/7ozcex/understanding_the_aws_training_roadmap/?tl=zh-hans "了解AWS 培训路线图: r/aws."
+
+[4]: https://www.reddit.com/r/AWSCertifications/comments/1hzpfqu/help_deciding_aws_certs_path/?tl=zh-hant "幫助決定AWS 認證路徑: r/AWSCertifications."

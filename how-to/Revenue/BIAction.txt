@@ -1,0 +1,21 @@
+## BIAction API 說明
+
+1. 銷售綜合分析 API
+GET /BI/getSaleAnalysis
+Retrieves general sale analysis data, calculates budget achievements, month/year accumulations, and year-over-year growth for departments and specific stores (like Sushi and Uniqlo).[cite: 10]
+
+2. 銷售記錄分析 API
+GET /BI/getSaleRecordAnalysis
+Analyzes sales records alongside customer counts and accumulations on a monthly and yearly basis, factoring in contrast/historical data.[cite: 10]
+
+3. 毛利分析 API
+GET /BI/getGrossProfit
+Computes gross profits, accumulation totals, and gross profit ratios for current versus last year periods.[cite: 10]
+
+4. 櫃位銷售分析 API
+GET /BI/getSaleCounterAnalysis
+Performs a detailed counter-level sale and budget analysis over a specific date range, handling user group permissions (Administrators, UserAdmin, GrossfitAdmin) and comparative date ranges.[cite: 10]
+
+5. 年度報表分析 API
+GET /BI/getAnnual
+Gathers annual or monthly report data (revenue, gross profit, gross profit rates) and compares them against last year's records (ly_revenue, ly_grossfit, etc.).[cite: 10]

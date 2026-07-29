@@ -1,0 +1,17 @@
+## Supplier 供應商管理系統
+
+1. 查詢供應商清單 API[cite: 14]
+   * **URL**: `POST /Supplier/getSupplier`[cite: 14]
+   * **功能說明**: 讀取請求中的JSON與分頁參數，透過供應商服務取得符合條件的供應商清單，並將公司代碼、名稱、地址與電子郵件包裝成JSON陣列回傳[cite: 14]。
+
+2. 依ID查詢供應商資料 API[cite: 14]
+   * **URL**: `POST /Supplier/getSupplierByID`[cite: 14]
+   * **功能說明**: 根據傳入的公司代碼查詢單一供應商的詳細資訊（包含代碼、名稱、兩組電話、地址與信箱），並設定狀態為成功後回傳[cite: 14]。
+
+3. 儲存供應商資料 API[cite: 14]
+   * **URL**: `POST /Supplier/saveSupplier`[cite: 14]
+   * **功能說明**: 接收前端傳入的JSON資料交由供應商服務進行儲存或更新，若發生例外則記錄錯誤日誌並回傳失敗訊息與原因[cite: 14]。
+
+4. 刪除供應商資料 API[cite: 14]
+   * **URL**: `POST /Supplier/deleteSupplier`[cite: 14]
+   * **功能說明**: 根據傳入的參數執行供應商刪除作業，成功時回傳成功標記，失敗時則攔截例外並回傳錯誤訊息[cite: 14]。

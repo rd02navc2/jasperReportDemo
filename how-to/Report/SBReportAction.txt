@@ -1,0 +1,9 @@
+## SBReport 接駁車報表管理系統
+
+1. 取得接駁車計數統計 API
+   - API: GET /SBReport/getSBCounter[cite: 9]
+   - 說明: 查詢並分頁回傳接駁車的上下車人次統計與總筆數等資訊[cite: 9]
+
+2. 取得接駁車會員詳細資料 API
+   - API: GET /SBReport/getSBMember[cite: 9]
+   - 說明: 透過會員卡號與查詢條件取得接駁車會員的詳細資料、乘車次數、性別及年齡等清單[cite: 9]

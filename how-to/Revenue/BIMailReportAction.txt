@@ -1,0 +1,13 @@
+## BIMail 郵件報表 Excel 匯出 API
+
+1. 樓層業績分析報表 Excel 產生 API
+   GET /BIMailReport/genMailFloorAnalysisExcel
+   接收查詢條件並產生包含各樓層日營收、對比日期、預算資料與相關分析數據的 Excel 報表檔案，並回傳檔案下載路徑。
+
+2. 營業部門業績分析報表 Excel 產生 API
+   GET /BIMailReport/genMailSalesAnalysisExcel
+   接收查詢條件並產生包含各營業單位日營收、對比日期、預算資料與相關分析數據的 Excel 報表檔案，並回傳檔案下載路徑。
+
+3. 部類業績分析報表 Excel 產生 API
+   GET /BIMailReport/genMailDeptAnalysisExcel
+   接收查詢條件並產生包含各部門與樓層日營收、對比日期、預算資料與相關分析數據的 Excel 報表檔案，並回傳檔案下載路徑。

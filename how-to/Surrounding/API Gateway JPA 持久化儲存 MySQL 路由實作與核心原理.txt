@@ -1,0 +1,88 @@
+## Spring Cloud Gateway 持久化儲存：自訂 MySQL 路由實作與核心原理
+
+一, 核心抽換機制與依賴注入 (DI) 架構
+--------------------------------------------------------------------------------
+網關預設使用 InMemory 儲存區，重啟後路由會消失;透過自訂元件並宣告為 @Component,
+Spring 會自動將其實作替換進 Controller 的 RouteDefinitionWriter 中, 達成持久化;
+
+  [ 預設行為 ] InMemoryRouteDefinitionRepository (重啟即消失)
+                    |
+                    v (抽換為持久化儲存)
+  [ 自訂元件 ] @Component MysqlRouteDefinitionRepository
+                    |
+                    +---> 實作 RouteDefinitionRepository 介面
+                    |     (整合了讀取 Locator 與寫入 Writer 兩大核心功能)
+                    |
+                    v (底層引入 Spring Data JPA 功能)
+  [ 資料存取 ] @Repository GatewayRouteRepository ---> MySQL DB (持久化儲存)
+
+
+二, 系統依賴關係與資料流向圖
+--------------------------------------------------------------------------------
+
+  RouteManageController (管理端)
+       |
+       | 透過 @Autowired 注入 (自動識別自訂組件)
+       v
+  private RouteDefinitionWriter routeDefinitionWriter;
+       |
+       | (呼叫 3. 新增/更新路由 API 時)
+       +---> routeDefinitionWriter.save(Mono.just(definition))
+       |
+       v [ 執行實作類別：MysqlRouteDefinitionRepository ]
+  
+  MysqlRouteDefinitionRepository
+       |
+       | 透過 @Autowired 注入 JPA
+       v
+  private GatewayRouteRepository jpaRepository;
+       |
+       +---> 轉譯 RouteDefinition 為 Entity 物件
+       +---> 呼叫 jpaRepository.save(entity)
+       |
+       v (最終資料流向)
+  MySQL 資料表 (持久化儲存，重啟不遺失)
+
+
+三, 核心組件職責說明 (為什麼需要 Locator 與 Writer？)
+--------------------------------------------------------------------------------
+
+  1. RouteDefinitionLocator (讀取者)
+     功能：告訴 Gateway 路由現在長什麼樣子;
+     觸發點：網關啟動時，或接收到 /refresh 刷新事件時;
+     
+     [多來源特性] 網關會同時向以下管道收集並彙整路由定義：
+     ├──> PropertiesRouteDefinitionLocator ---> 讀取 application.yml 配置;
+     ├──> DiscoveryClientRouteDefinitionLocator -> 讀取註冊中心 (Nacos/Eureka);
+     └──> 你自定義的 Locator 實作 ------------- ---> 從 MySQL 資料庫讀取;
+     
+        |
+        | (讀寫分離，各司其職)
+        v
+        
+  2. RouteDefinitionWriter (寫入者)
+     功能：告訴 Gateway 如何動態新增或刪除路由;
+     觸發點：系統運行中 (Runtime), 管理員想要無重啟切換新舊系統時;
+     
+     核心方法：
+     ├──> save(Mono<RouteDefinition>)   ---> 把新路由定義透過 JPA 存入 MySQL;
+     └──> delete(Mono<String> routeId)  ---> 將指定的舊路由自 MySQL 中移除;
+
+
+四, 目前規劃動態寫入之新舊系統 Route 設定對照
+--------------------------------------------------------------------------------
+當調用 API 寫入時, 傳入的 JSON 格式資料流與路由屬性：
+
+  [ 請求流入 ] ---> POST /admin/gateway/routes/{id}
+                        |
+                        +---> 寫入 id: "new-surrounding"
+                        |     ├──> Uri: http://localhost:8095
+                        |     ├──> Predicates: Path=/Surrounding/**
+                        |     ├──> Filters: PreserveHostHeader
+                        |     └──> Order: 10 (高優先權，新系統網關轉發);
+                        |
+                        +---> 寫入 id: "legacy-surrounding"
+                              ├──> Uri: http://localhost:8085
+                              ├──> Predicates: Path=/Surrounding/**
+                              ├──> Filters: PreserveHostHeader
+                              └──> Order: 20 (低優先權，舊系統備援或待切換);

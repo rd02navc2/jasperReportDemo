@@ -1,0 +1,9 @@
+## Report 報表與檔案下載系統
+
+1. 產生廠商工時明細表Excel API
+POST /Report/genWebSignExcel
+依據登入狀態與請求參數（包含搜尋公司代碼與銷售日期）取得簽核資料，動態生成Excel報表並回傳下載路徑與成功狀態[cite: 11]
+
+2. 檔案下載 API
+GET /Report/download
+根據傳入的檔案路徑讀取檔案內容，自動設定MIME類型與UTF-8編碼標頭以提供使用者進行附件下載[cite: 11]

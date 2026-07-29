@@ -1,0 +1,13 @@
+## Card 卡片點數設定系統
+
+1. 取得卡片點數設定清單 API
+   - API: GET /Card/getCard[cite: 4]
+   - 說明: 根據前端請求參數與分頁資訊查詢卡片點數設定清單，並回傳 JSON 格式資料[cite: 4]
+
+2. 依編號取得卡片點數設定 API
+   - API: GET /Card/getCardByID[cite: 4]
+   - 說明: 根據指定的卡片代號與序號查詢卡片點數的詳細設定內容[cite: 4]
+
+3. 儲存卡片點數設定 API
+   - API: POST /Card/saveCard[cite: 4]
+   - 說明: 接收前端傳入的資料並進行卡片點數設定的儲存與更新，同時記錄登入者的操作代號[cite: 4]

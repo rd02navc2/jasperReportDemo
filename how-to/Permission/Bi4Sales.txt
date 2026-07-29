@@ -1,0 +1,5 @@
+Bi4Sales 銷售業績與報表系統
+
+    銷售快報同步 API
+    GET /rest/bi4Sales
+    觸發每日打烊業績快報同步作業，支援選填起始日期 (sFromDate) 參數，計算樓層與各項業績數據，轉換為PNG圖檔並透過LINE Webhook與郵件進行發送

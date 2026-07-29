@@ -1,0 +1,148 @@
+Revenue Project 收益管理系統 API
+
+## BIAction API 說明
+
+1. 銷售綜合分析 API
+GET /BI/getSaleAnalysis
+Retrieves general sale analysis data, calculates budget achievements, month/year accumulations, and year-over-year growth for departments and specific stores (like Sushi and Uniqlo).[cite: 10]
+
+2. 銷售記錄分析 API
+GET /BI/getSaleRecordAnalysis
+Analyzes sales records alongside customer counts and accumulations on a monthly and yearly basis, factoring in contrast/historical data.[cite: 10]
+
+3. 毛利分析 API
+GET /BI/getGrossProfit
+Computes gross profits, accumulation totals, and gross profit ratios for current versus last year periods.[cite: 10]
+
+4. 櫃位銷售分析 API
+GET /BI/getSaleCounterAnalysis
+Performs a detailed counter-level sale and budget analysis over a specific date range, handling user group permissions (Administrators, UserAdmin, GrossfitAdmin) and comparative date ranges.[cite: 10]
+
+5. 年度報表分析 API
+GET /BI/getAnnual
+Gathers annual or monthly report data (revenue, gross profit, gross profit rates) and compares them against last year's records (ly_revenue, ly_grossfit, etc.).[cite: 10]
+
+## BICheck 檢核系統 API
+
+1. 銷售資料檢核 API
+POST /BICheck/checkSales
+接收銷售起始日期參數，呼叫 biCheckService 檢核相關銷售檔案清單，並回傳詳細的銷售資料與發票號碼資訊[cite: 10]
+
+2. 櫃位資料檢核 API
+POST /BICheck/checkCounter
+接收銷售起訖日期與搜尋樓層參數，整合預算資料與櫃位資料比對檢核，回傳異常或符合條件的櫃位及預算明細清單[cite: 10]
+
+## BIMail 郵件報表分析 API
+
+1. 樓層分析資料取得 API
+GET /BIMail/getMailFloorAnalysis
+接收查詢條件並取得各樓層的日營收、月累積、年累積、毛利、來客數及與去年同期對比之分析資料，同時支援壽司櫃位及特定櫃位預算對比處理
+
+2. 業務分析資料取得 API
+GET /BIMail/getMailSalesAnalysis
+接收查詢條件並取得各業務單位的日營收、月累積、年累積、毛利、來客數及預算達成率之分析資料，並支援各項特殊櫃位金額合併計算
+
+3. 部門分析資料取得 API
+GET /BIMail/getMailDeptAnalysis
+接收查詢條件並取得各部門與樓層的日營收、月累積、年累積、毛利、來客數與對比分析資料，並自動按樓層進行群組小計處理
+
+## BIMail 世紀奧櫃分析 API
+
+1. 世紀奧櫃分析資料取得 API
+   GET /BIMailCentry/getMailCentryAnalysis
+   接收查詢條件並取得世紀奧櫃相關的日營收、去年同期日營收、日成長率、日來客數、日客單價，以及月累積、年累積之營收、來客數與對比分析資料，並計算各項總計與同期比較結果。
+   
+## BIMail 郵件報表 Excel 匯出 API
+
+1. 樓層業績分析報表 Excel 產生 API
+   GET /BIMailReport/genMailFloorAnalysisExcel
+   接收查詢條件並產生包含各樓層日營收、對比日期、預算資料與相關分析數據的 Excel 報表檔案，並回傳檔案下載路徑。
+
+2. 營業部門業績分析報表 Excel 產生 API
+   GET /BIMailReport/genMailSalesAnalysisExcel
+   接收查詢條件並產生包含各營業單位日營收、對比日期、預算資料與相關分析數據的 Excel 報表檔案，並回傳檔案下載路徑。
+
+3. 部類業績分析報表 Excel 產生 API
+   GET /BIMailReport/genMailDeptAnalysisExcel
+   接收查詢條件並產生包含各部門與樓層日營收、對比日期、預算資料與相關分析數據的 Excel 報表檔案，並回傳檔案下載路徑。
+   
+## BIMail 影城派報 Excel 匯出 API
+
+1. 影城業績分析報表 Excel 產生 API[cite: 7]
+   GET /BIMailReport/genBIMailReportCentry[cite: 7]
+   接收查詢條件並產生包含影城相關日營收、對比日期與分析數據的 Excel 報表檔案，並回傳檔案下載路徑[cite: 7]。
+   
+## BI 報表 Excel 匯出與下載 API
+
+1. 樓層部類業績分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genSaleAnalysisExcel[cite: 8]
+   接收查詢條件並產生包含部門與樓層預算及銷售分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+2. 交易筆單價分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genSaleRecordAnalysisExcel[cite: 8]
+   接收查詢條件並產生包含交易筆數與單價分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+3. 毛利狀況分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genGrossProfitExcel[cite: 8]
+   接收查詢條件並產生包含毛利狀況分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+4. 各櫃業績分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genSaleCounterAnalysisExcel[cite: 8]
+   檢查使用者群組權限，接收查詢條件及對比日期，並產生包含各櫃業績、預算與對比分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+5. 報表檔案下載 API[cite: 8]
+   GET /BIReport/download[cite: 8]
+   透過傳入的檔案名稱參數讀取並下載對應的報表檔案，自動判斷 MIME 類型並支援 UTF-8 編碼檔名[cite: 8]。
+   
+## BISet 業務對比設定 API
+
+1. 取得所有對比日期資料 API
+   GET /BISet/getAllContrast
+   取得系統中所有的對比日期資料清單，並將報表日期回傳。
+
+2. 依年月取得對比日期資料 API
+   GET /BISet/getContrastByYM
+   接收查詢條件，取得指定年月的對比日期詳細資料，包含報表日期、星期、對比日期、對比星期、存取人員及存取時間。
+
+3. 儲存對比日期資料 API
+   GET /BISet/saveContrast
+   從 Request 取得登入資訊與 JSON 資料陣列，執行對比資料的儲存或更新作業，並回傳執行結果。
+   
+## Budget 預算與業績維護 API
+
+1. 取得達成 100% 專櫃資料 API
+   GET /Budget/getReach100Counter
+   接收查詢條件，取得符合條件的達成 100% 專櫃清單，包含樓層、部門、專櫃代號與名稱、組織名稱、起訖日期、毛利率及備註。
+
+2. 新增達成 100% 專櫃資料 API
+   GET /Budget/addReach100Counter
+   檢核合約檔中是否存在指定專櫃資料，若存在則新增達成 100% 專櫃設定，並回傳新增成功的專櫃相關欄位與狀態。
+
+3. 刪除達成 100% 專櫃資料 API
+   GET /Budget/delReach100Counter
+   檢核指定專櫃資料是否存在，若存在則依據起訖日期與專櫃代號執行刪除作業。
+
+4. 取得所有其他銷售資料 API
+   GET /Budget/getAllOtherSale
+   接收查詢條件，取得所有其他銷售資料清單，包含序號、銷售名稱、銷售日期、銷售金額與備註。
+
+5. 新增其他銷售資料 API
+   GET /Budget/addOtherSale
+   接收傳入參數新增其他銷售資料，並回傳產生的序號與成功狀態。
+
+6. 刪除其他銷售資料 API
+   GET /Budget/delOtherSale
+   依據傳入的序號參數刪除對應的其他銷售資料。
+
+7. 取得銷售更新資料 API
+   GET /Budget/getSaleUpdate
+   接收查詢條件，取得銷售更新與調整資料清單，包含樓層、部門、專櫃代號、名稱、組織、銷售日期、新舊更新金額差異及新毛利。
+
+8. 新增銷售更新資料 API
+   GET /Budget/addSaleUpdate
+   檢核合約檔專櫃資料後新增銷售更新紀錄，並回傳更新後的金額與毛利相關欄位與狀態。
+
+9. 刪除銷售更新資料 API
+   GET /Budget/delSaleUpdate
+   檢核銷售更新資料是否存在，若存在則依據銷售日期與專櫃代號執行刪除作業。
+   

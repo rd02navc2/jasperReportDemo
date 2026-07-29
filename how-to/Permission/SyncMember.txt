@@ -1,0 +1,5 @@
+## SyncMember 會員資料同步系統
+
+1. 會員資料同步 API
+   - API: GET /syncMember[cite: 15]
+   - 說明: 執行會員資料同步作業，透過 `SyncMemberEntry` 呼叫 `doSync()` 清空並重新將來源資料庫 (`O1`) 中的 `LPK_FILE` 與 `LPJ_FILE` 會員相關資料同步寫入目標資料庫 (`TOPPROD`) 中[cite: 15]

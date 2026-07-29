@@ -1,0 +1,228 @@
+Permission 專案 權限管理系統 API
+
+## Bi4Sales 銷售業績與報表系統
+
+    銷售快報同步 API
+    GET /rest/bi4Sales
+    觸發每日打烊業績快報同步作業，支援選填起始日期 (sFromDate) 參數，計算樓層與各項業績數據，轉換為PNG圖檔並透過LINE Webhook與郵件進行發送
+	
+	
+## BiMailBy001 同步系統
+
+1. 預同步作業 API
+   - API: GET /biMailBy001Pre
+   - 說明: 執行預同步作業，由 BiMailBy001PreEntry 進行處理
+
+2. 即時同步作業 API
+   - API: GET /biMailBy001Real
+   - 說明: 執行即時同步作業，由 BiMailBy001RealEntry 進行處理
+
+3. 備份同步作業 API
+   - API: GET /biMailBy001Backup
+   - 說明: 執行備份同步作業，由 BiMailBy001BackupEntry 進行處理
+   
+## CentryMailBy 影城報表派報系統
+
+1. 影城預先派報作業 API
+   - API: GET /CentryMailByPre[cite: 17]
+   - 說明: 執行每日影城預先派報作業，透過 CentryMailByPreEntry 接收 sFromDate 參數並進行預同步處理[cite: 17]
+
+2. 影城派報作業 API
+   - API: GET /CentryMailBy[cite: 17]
+   - 說明: 執行每日影城派報作業，透過 CentryMailByRealEntry 接收 sFromDate 參數並進行即時同步與報表推播處理[cite: 17]
+
+## CheckBudgetDone 預算檢查系統
+
+1. 每月月底預算匯入櫃位檢查 API
+   - API: GET /checkBudgetDone[cite: 17]
+   - 說明: 執行每月月底預算匯入櫃位檢查作業，透過 CheckBudgetDoneEntry 呼叫 doSync() 進行檢核與通知處理[cite: 17]
+   
+## CompYahooProduct Yahoo商品主檔系統
+
+1. Yahoo商品主檔比對 API
+   - API: GET /compYahooProduct[cite: 17]
+   - 說明: 執行 Yahoo 商品主檔資料比對與同步作業，透過 SyncYahooProductEntry 呼叫 doSync() 取得 Yahoo 商店分類與商品列表進行比對和儲存[cite: 17]
+   
+## InformAsset 資產盤點系統
+
+1. 檢查尚未進行盤點確認人員 API
+   - API: GET /informAsset
+   - 說明: 執行檢查尚未進行資產盤點確認之人員作業，透過 InformAssetEntry 呼叫 doSync() 檢查盤點狀態、抓取未確認人員與主管信箱並發送提醒通知
+   
+## MailTask 郵件處理系統
+
+1. 檢查郵件與排程發送 API
+   - API: GET /checkMail[cite: 8]
+   - 說明: 執行郵件檢查與排程發送作業，透過 MailTaskEntry 呼叫 doCheck() 查詢 `schedule_email` 中狀態為 0 的待發送郵件，並透過 HTML 格式進行寄送與狀態更新[cite: 8]
+   
+## SyncAD AD網域同步系統
+
+1. AD資料同步 API
+   - API: GET /syncAD[cite: 9]
+   - 說明: 執行網域 Active Directory 使用者資料同步作業，透過 SyncADEntry 呼叫 doSync() 取得 AD 使用者清單並更新至系統暫存與正式資料表中[cite: 9]
+   
+## SyncAppCounter 會員註冊統計系統
+
+1. 會員註冊統計資料同步 API
+   - API: GET /syncAppCounter[cite: 9]
+   - 說明: 執行會員註冊與 TS 相關統計資料的同步作業，透過 SyncAppCounterEntry 呼叫 doSync() 讀取外部來源資料並寫入至 `TOPPROD.APP_COUNTER` 及 `TOPPROD.TS_COUNTER` 資料表中[cite: 9]
+   
+## SyncBICounter BI日櫃位業績分析系統
+
+1. BI日櫃位業績分析 API
+   - API: GET /syncBICounter[cite: 10]
+   - 說明: 執行 BI 日櫃位業績分析作業，透過 SyncBICounterEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(0, sFromDate, sEndDate)` 進行日櫃位業績資料的刪除與重新儲存分析[cite: 10]
+
+2. BI備份日櫃位業績分析 API
+   - API: GET /syncBICounterBackup[cite: 10]
+   - 說明: 執行 BI 備份日櫃位業績分析作業，透過 SyncBICounterBackupEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(1, sFromDate, sEndDate)` 進行備份資料庫的日櫃位業績分析作業[cite: 10]
+   
+## SyncBIDept BI日部類業績分析系統
+
+1. BI日部類業績分析 API
+   - API: GET /syncBIDept[cite: 10]
+   - 說明: 執行 BI 日部類業績分析作業，透過 SyncBIDeptEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(0, sFromDate, sEndDate)` 進行日部類業績資料的刪除與重新儲存分析[cite: 10]
+
+2. BI備份日部類業績分析 API
+   - API: GET /syncBIDeptBackup[cite: 10]
+   - 說明: 執行 BI 備份日部類業績分析作業，透過 SyncBIDeptBackupEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(1, sFromDate, sEndDate)` 進行備份資料庫的日部類業績分析作業[cite: 10]
+   
+## SyncBIFloor BI日樓層業績分析系統
+
+1. BI日樓層業績分析 API
+   - API: GET /syncBIFloor[cite: 11]
+   - 說明: 執行 BI 日樓層業績分析作業，透過 SyncBIFloorEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(0, sFromDate, sEndDate)` 進行日樓層業績資料的刪除與重新儲存分析[cite: 11]
+
+2. BI備份日樓層業績分析 API
+   - API: GET /syncBIFloorBackup[cite: 11]
+   - 說明: 執行 BI 備份日樓層業績分析作業，透過 SyncBIFloorBackupEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(1, sFromDate, sEndDate)` 進行備份資料庫的日樓層業績分析作業[cite: 11]
+   
+## SyncBISales BI日營業部門業績分析系統
+
+1. BI日營業部門業績分析 API
+   - API: GET /syncBISales[cite: 12]
+   - 說明: 執行 BI 日營業部門業績分析作業，透過 SyncBISalesEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(0, sFromDate, sEndDate)` 進行日營業部門業績資料的刪除與重新儲存分析[cite: 12]
+
+2. BI備份日營業部門業績分析 API
+   - API: GET /syncBISalesBackup[cite: 12]
+   - 說明: 執行 BI 備份日營業部門業績分析作業，透過 SyncBISalesBackupEntry 接收 `sFromDate` 與 `sEndDate` 參數，並呼叫 `doSync(1, sFromDate, sEndDate)` 進行備份資料庫的日營業部門業績分析作業[cite: 12]
+   
+## SyncFtpTSMember 台新聯名卡會員資料同步系統
+
+1. 台新聯名卡會員資料同步 API
+   - API: GET /syncFtpTSMember[cite: 13]
+   - 說明: 執行台新聯名卡會員資料同步作業，透過 SyncFtpTSMemberEntry 呼叫 `doSync()` 進行 FTP 檔案下載、資料解析，並同步更新至會員相關資料表中[cite: 13]
+   
+## SyncMain2Yahoo 同步商品資料至Yahoo系統
+
+1. 同步商品資料至Yahoo API
+   - API: GET /syncMain2Yahoo[cite: 14]
+   - 說明: 執行同步商品資料至Yahoo作業，透過 SyncMain2YahooEntry 呼叫 `doSync()` 讀取產品主檔資料，並透過 RESTful API 與 HmacSHA1 加密機制將資料同步更新至 Yahoo 平台中[cite: 14]
+   
+## SyncMember 會員資料同步系統
+
+1. 會員資料同步 API
+   - API: GET /syncMember[cite: 15]
+   - 說明: 執行會員資料同步作業，透過 `SyncMemberEntry` 呼叫 `doSync()` 清空並重新將來源資料庫 (`O1`) 中的 `LPK_FILE` 與 `LPJ_FILE` 會員相關資料同步寫入目標資料庫 (`TOPPROD`) 中[cite: 15]
+   
+## SyncMomoOrder Momo訂單資料同步系統
+
+1. Momo訂單資料同步 API
+   - API: GET /syncMomoOrder[cite: 15]
+   - 說明: 執行 Momo 平台訂單資料同步作業，透過 `SyncMomoOrderEntry` 呼叫 `doSync()`，串接 Momo API 查詢並解密訂單與配送資訊（含未結案資料同步機制），並將訂單主檔、明細狀態、產品及收件人資料寫入資料庫中[cite: 15]
+   
+## SyncMomoReturn Momo退貨資料同步系統
+
+1. Momo退貨資料同步 API
+   - API: GET /syncMomoReturn[cite: 15]
+   - 說明: 執行 Momo 平台退貨資料同步作業，透過 `SyncMomoReturnEntry` 呼叫 `doSync()`，串接 Momo 退貨查詢 API（`/v2/Order/ReturnQuery`）進行 AES 解密與處理，並將退貨明細及取件資訊寫入或更新至資料庫中[cite: 15]
+   
+## SyncPChomeOrder PChome訂單資料同步系統
+
+1. PChome訂單資料同步 API
+   - API: GET /syncPChomeOrder[cite: 15]
+   - 說明: 執行 PChome 平台訂單資料同步作業，透過 `SyncPChomeOrderEntry` 呼叫 `doSync()`，串接 PChome 訂單與明細查詢 API，並透過 AES 解密處理買家與收件人個資，將訂單主檔、明細狀態、產品與收件人資訊寫入資料庫中[cite: 15]
+   
+## SyncPChomeReturn PChome退貨資料同步系統
+
+1. PChome退貨資料同步 API
+   - API: GET /syncPChomeReturn[cite: 15]
+   - 說明: 執行 PChome 平台退貨資料同步作業，透過 `SyncPChomeReturnEntry` 呼叫 `doSync()`，串接 PChome 退貨與明細查詢 API，並透過 AES 解密處理退貨聯絡人的個資，將退貨明細與相關狀態寫入或更新至資料庫中[cite: 15]
+   
+## SyncRakutenInv 樂天庫存資料同步系統
+
+1. 樂天庫存資料同步 API
+   - API: GET /syncRakutenInv[cite: 15]
+   - 說明: 執行樂天平台庫存資料同步作業，透過 `SyncRakutenOrderEntry` 呼叫 `doSync()`，串接樂天庫存查詢 API 取得指定 SKU 的數量，並將庫存資料更新至資料庫中[cite: 15]
+   
+   
+## Rakuten樂天訂單同步 API
+
+1. API: 同步樂天市場(beyondplaza)訂單資料 
+GET /syncRakutenOrder
+同步樂天市場(beyondplaza)訂單資料，自動抓取近兩日訂單並寫入或更新至本地資料庫，同時處理未結案訂單狀態與物流費分攤
+
+## syncRakutenReturn樂天退貨資料同步 API
+
+1. API: 同步樂天市場(beyondplaza)退貨資料
+GET /syncRakutenReturn
+同步樂天市場(beyondplaza)退貨資料，執行退貨資料同步作業，透過 `SyncRakutenReturnEntry` 呼叫 `doSync()`，串接樂天退貨/取消要求搜尋 API 取得退貨資料，並將其寫入或更新至本地資料庫中
+
+## SBD基礎資料同步系統
+
+1. API: 執行SBD基礎資料同步作業
+GET /syncSBDFund
+執行SBD基礎資料同步作業，透過 `SyncSBDFundEntry` 呼叫 `doSync()`，串接外部來源資料庫同步 `IMA_FILE`、`IMK_FILE`、`IMZ_FILE` 以及 `OBA_FILE` 等相關基礎資料，並將其寫入或更新至本地資料庫中[cite: 19]
+
+## SyncSBDSale銷售資料同步系統
+
+1. API: 執行SBD銷售資料同步作業
+GET /syncSBDSale
+執行SBD銷售資料同步作業，透過 `SyncSBDSaleEntry` 接受選填的起訖日期參數並呼叫 `doSync()`，串接外部來源資料庫同步 `TC_PSB_FILE` 與 `TC_PSA_FILE` 銷售相關資料，並將其寫入或更新至本地資料庫中
+
+
+## TS SyncTSPoint 點數補點作業系統
+
+1. API: 執行TS點數補點作業
+GET /syncTSPoint
+執行TS點數補點作業，透過 `SyncTSPointEntry` 接受選填的起訖日期參數 (`sStartDate`, `sEndDate`) 並呼叫 `doSync()`，串接外部來源資料庫同步與計算點數相關資料，並將其寫入或更新至本地資料庫中
+
+## Yahoo基本資料同步系統
+
+1. API: 執行Yahoo基本資料同步作業
+GET /syncYahooBasic
+執行Yahoo基本資料同步作業，透過 `SyncYahooBasicEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 同步退貨原因列表 (`ReturnReasonList`) 與商品異常原因列表 (`ProductAbnormalReasonList`)，並將資料寫入或更新至本地資料庫中[cite: 7]
+   
+
+SyncYahooNonPayment ## Yahoo未付款資料同步系統
+
+1. API: 執行Yahoo未付款資料同步作業
+GET /syncYahooNonPayment
+執行Yahoo未付款資料同步作業，透過 `SyncYahooNonPaymentEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢未付款交易清單 (`QueryNonPayment`)，並將交易、訂單與產品明細資料寫入或更新至本地資料庫中[cite: 8]
+
+
+SyncYahooOrder ## Yahoo訂單資料同步系統
+
+1. API: 執行Yahoo訂單資料同步作業
+GET /syncYahooOrder
+執行Yahoo訂單資料同步作業，透過 `SyncYahooOrderEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢訂單與交易資料，並將相關訂單主檔、收件人、日期狀態、產品明細與庫存資料寫入或更新至本地資料庫中[cite: 8]
+
+
+SyncYahooProduct ## Yahoo商品主檔同步系統
+
+1. API: 執行Yahoo商品主檔同步作業
+GET /syncYahooProduct
+執行Yahoo商品主檔同步作業，透過 `SyncYahooProductEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢商品主檔、分類及規格等相關資料，並將資料寫入或更新至本地資料庫中[cite: 9]。
+
+SyncYahooReturn ## Yahoo退貨/退貨異常資料同步系統
+
+1. API: 執行Yahoo退貨/退貨異常資料同步作業[cite: 9]
+   - `GET /syncYahooReturn`[cite: 9]
+   - 執行Yahoo退貨及退貨異常資料同步作業，透過 `SyncYahooReturnEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢指定區間內的退貨、退貨異常清單與詳細資料，並將相關退貨主檔、異常明細及狀態寫入或更新至本地資料庫中[cite: 9]。
+   
+
+SyncYahooReturnAb ## Yahoo退貨異常資料同步系統
+
+1. API: 執行Yahoo退貨異常資料同步作業[cite: 9]
+   - `GET /syncYahooReturnAb`[cite: 9]
+   - 執行Yahoo退貨異常資料同步作業，透過 `SyncYahooReturnAbEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢指定區間內的退貨異常清單與詳細資訊，並將相關退貨主檔、異常明細及狀態寫入或更新至本地資料庫中[cite: 9]。

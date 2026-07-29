@@ -1,0 +1,17 @@
+## MallCategory 商城類別管理 API
+
+1. 取得 Yahoo 商城類別 API[cite: 10]
+   GET /MallCategory/getMallCategory[cite: 10]
+   * 透過共用服務檢查狀態，使用 API 金鑰、時間戳記與類別編號進行加密簽章（HmacSHA1）後向 Yahoo 端點發送請求，取得並回傳 Yahoo 商城類別清單與執行狀態[cite: 10]。
+
+2. 取得 Rakuten 樂天商城類別 API[cite: 10]
+   * GET /MallCategory/getRKTMallCategory[cite: 10]
+   * 接收層級與類別編號參數，透過授權憑證向樂天商城端點查詢分類資料，並回傳對應的類別編號與名稱清單[cite: 10]。
+
+3. 取得 PChome 商城類別 API[cite: 10]
+   * GET /MallCategory/getPCMallCategory[cite: 10]
+   * 依據傳入的層級與類別編號參數，向 PChome 商店街端點發送請求，取得並回傳指定供應商的商城分類節點資訊[cite: 10]。
+
+4. 取得 Momo 商城類別 API[cite: 10]
+   * GET /MallCategory/getMomoMallCategory[cite: 10]
+   * 透過系統屬性進行登入驗證與 AES 解密，向 Momo 商城端點查詢各層級的類別資料，並回傳分類清單與執行狀態[cite: 10]。

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 API 開發總控台 · 整合計畫</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+        
+        /* 容器與版面 */
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; padding: 20px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 2rem; color: var(--primary); margin-bottom: 8px; }
+        
+        /* 儀表板卡片 */
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .card h3 { font-size: 0.9rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+        .card .value { font-size: 2rem; font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+        
+        /* 進度條樣式 */
+        .progress-control { grid-column: 1 / -1; display: flex; align-items: center; gap: 20px; background: var(--primary); color: white; padding: 20px; border-radius: 10px; }
+        .progress-control label { font-weight: bold; white-space: nowrap; }
+        .progress-control input[type="number"] { padding: 8px; border-radius: 4px; border: none; width: 80px; font-size: 1rem; }
+        .progress-bar-outer { flex-grow: 1; height: 20px; background: rgba(255,255,255,0.3); border-radius: 10px; overflow: hidden; position: relative; }
+        .progress-bar-inner { height: 100%; background: var(--success); width: 0%; transition: width 0.3s ease; }
+        .progress-text { position: absolute; right: 10px; top: 0; line-height: 20px; font-size: 0.8rem; font-weight: bold; color: white; }
+
+        /* 行事曆/甘特圖樣式 */
+        .timeline-container { background: var(--card-bg); border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid var(--border); }
+        .timeline-header { display: grid; grid-template-columns: 200px repeat(12, 1fr); background: #f9fafb; border-bottom: 1px solid var(--border); font-weight: bold; color: var(--text-light); }
+        .timeline-header > div { padding: 10px; text-align: center; border-right: 1px solid var(--border); font-size: 0.9rem; }
+        .timeline-header > div:first-child { text-align: left; padding-left: 20px; border-right: none; }
+        
+        .timeline-row { display: grid; grid-template-columns: 200px repeat(12, 1fr); border-bottom: 1px solid var(--border); align-items: center; transition: background 0.2s; }
+        .timeline-row:hover { background: #f9fafb; }
+        .timeline-row:last-child { border-bottom: none; }
+        
+        .project-name { padding: 15px 20px; font-weight: 600; color: var(--primary); border-right: 1px solid var(--border); background: #fff; font-size: 0.95rem; display: flex; justify-content: space-between; }
+        .project-name span { color: var(--text-light); font-weight: normal; font-size: 0.8rem; }
+        
+        .timeline-cell { height: 40px; border-right: 1px solid var(--border); position: relative; cursor: pointer; }
+        .timeline-cell:last-child { border-right: none; }
+        
+        /* 專案條 */
+        .bar { position: absolute; top: 8px; bottom: 8px; left: 2px; right: 2px; border-radius: 4px; opacity: 0.8; transition: transform 0.2s; }
+        .bar:hover { opacity: 1; transform: scaleY(1.1); z-index: 2; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .bar::after { content: attr(title); position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; pointer-events: none; }
+
+        /* 顏色區分 */
+        .bg-revenue { background: #3b82f6; } /* Blue */
+        .bg-yahoo { background: #8b5cf6; }   /* Purple */
+        .bg-permission { background: #ec4899; } /* Pink */
+        .bg-report { background: #10b981; }   /* Green */
+
+        @media print {
+            .progress-control { display: none; }
+            .timeline-cell { border: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📅 2026 年度 API 開發總控台</h1>
+        <p>整合 Revenue, Yahoo, Permission, Report 四大專案進度</p>
+    </div>
+
+    <!-- 儀表板 -->
+    <div class="dashboard">
+        <div class="card">
+            <h3>總 API 數量</h3>
+            <div class="value" id="totalApis">0</div>
+        </div>
+        <div class="card">
+            <h3>預估總工時</h3>
+            <div class="value" id="totalDays">0 <span style="font-size:0.5em">天</span></div>
+        </div>
+        <div class="card">
+            <h3>涵蓋專案數</h3>
+            <div class="value">4</div>
+        </div>
+        
+        <!-- 進度調整區 -->
+        <div class="progress-control">
+            <label for="completedInput">已完成 API 數：</label>
+            <input type="number" id="completedInput" value="0" min="0">
+            <div class="progress-bar-outer">
+                <div class="progress-bar-inner" id="progressBar"></div>
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 整合行事曆 -->
+    <div class="timeline-container">
+        <div class="timeline-header">
+            <div>專案名稱 / 時間軸</div>
+            <!-- 2026 月份 -->
+            <div>8月</div><div>9月</div><div>10月</div><div>11月</div><div>12月</div>
+            <div>1月</div><div>2月</div><div>3月</div><div>4月</div><div>5月</div>
+            <div>6月</div><div>7月</div>
+        </div>
+        <div id="timelineBody">
+            <!-- JS 動態插入 -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 資料來源 (來自上傳的四份文件) ---
+    const projects = [
+        {
+            id: 'report',
+            name: 'Report 專案',
+            desc: '報表管理系統',
+            start: '2026-08-17',
+            days: 40,
+            apis: 159,
+            color: 'bg-report'
+        },
+        {
+            id: 'permission',
+            name: 'Permission 專案',
+            desc: '權限管理系統',
+            start: '2026-10-12',
+            days: 10,
+            apis: 39,
+            color: 'bg-permission'
+        },
+        {
+            id: 'revenue',
+            name: 'Revenue 專案',
+            desc: '收益管理系統',
+            start: '2026-11-02',
+            days: 9,
+            apis: 32,
+            color: 'bg-revenue'
+        },
+        {
+            id: 'yahoo',
+            name: 'Yahoo 專案',
+            desc: '第三方API管理',
+            start: '2026-11-16',
+            days: 16,
+            apis: 62,
+            color: 'bg-yahoo'
+        }
+    ];
+
+    // --- 初始化計算 ---
+    const timelineBody = document.getElementById('timelineBody');
+    const totalApisEl = document.getElementById('totalApis');
+    const totalDaysEl = document.getElementById('totalDays');
+    const completedInput = document.getElementById('completedInput');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    let totalApis = 0;
+    let totalDays = 0;
+
+    // 計算總數並渲染時間軸
+    projects.forEach(proj => {
+        totalApis += proj.apis;
+        totalDays += proj.days;
+
+        // 計算結束日期
+        const startDate = new Date(proj.start);
+        const endDate = new Date(startDate);
+        // 簡單估算：工作天 + 週末 (粗略轉為日曆天)
+        const calendarDays = Math.ceil(proj.days * 1.4); 
+        endDate.setDate(startDate.getDate() + calendarDays);
+
+        // 渲染 Row
+        const row = document.createElement('div');
+        row.className = 'timeline-row';
+        
+        // 左側資訊
+        const nameCol = document.createElement('div');
+        nameCol.className = 'project-name';
+        nameCol.innerHTML = `${proj.name} <span>${proj.desc} (${proj.apis} APIs)</span>`;
+        row.appendChild(nameCol);
+
+        // 12 個月份格子
+        for (let m = 7; m < 19; m++) { // 8月(索引7) 到 次年7月(索引18)
+            const cell = document.createElement('div');
+            cell.className = 'timeline-cell';
+            
+            // 判斷專案條是否落在這個月
+            const monthStart = new Date(2026, m, 1);
+            const monthEnd = new Date(2026, m + 1, 0); // 下個月第0天 = 當月最後一天
+
+            // 如果專案跨越這個月
+            if (startDate <= monthEnd && endDate >= monthStart) {
+                const bar = document.createElement('div');
+                bar.className = `bar ${proj.color}`;
+                bar.title = `${proj.name}: ${proj.days}工作天`;
+                
+                // 計算位置百分比 (簡易算法)
+                const monthDays = monthEnd.getDate();
+                const startDay = Math.max(1, startDate.getDate());
+                const endDay = Math.min(monthDays, endDate.getDate());
+                
+                // 如果是跨月，需要更精確的計算，這裡做簡易視覺化
+                let leftPct = 0;
+                let widthPct = 100;
+
+                if (startDate.getMonth() === m && endDate.getMonth() === m) {
+                    // 同一個月內
+                    leftPct = ((startDay - 1) / monthDays) * 100;
+                    widthPct = ((endDay - startDay + 1) / monthDays) * 100;
+                } else if (startDate.getMonth() === m) {
+                    // 開始月
+                    leftPct = ((startDay - 1) / monthDays) * 100;
+                    widthPct = ((monthDays - startDay + 1) / monthDays) * 100;
+                } else if (endDate.getMonth() === m) {
+                    // 結束月
+                    leftPct = 0;
+                    widthPct = (endDay / monthDays) * 100;
+                } else if (startDate < monthStart && endDate > monthEnd) {
+                    // 中間整月
+                    leftPct = 0;
+                    widthPct = 100;
+                }
+
+                bar.style.left = `${leftPct}%`;
+                bar.style.width = `${widthPct}%`;
+                cell.appendChild(bar);
+            }
+            row.appendChild(cell);
+        }
+        timelineBody.appendChild(row);
+    });
+
+    // 更新總計
+    totalApisEl.textContent = totalApis;
+    totalDaysEl.innerHTML = `${totalDays} <span style="font-size:0.5em">天</span>`;
+    completedInput.max = totalApis;
+
+    // --- 進度條邏輯 ---
+    function updateProgress() {
+        const val = parseInt(completedInput.value) || 0;
+        const percent = Math.min(100, Math.round((val / totalApis) * 100));
+        progressBar.style.width = `${percent}%`;
+        progressText.textContent = `${percent}%`;
+        
+        // 顏色變化
+        if (percent < 30) progressBar.style.background = '#ef4444'; // Red
+        else if (percent < 70) progressBar.style.background = '#f59e0b'; // Orange
+        else progressBar.style.background = '#10b981'; // Green
+    }
+
+    completedInput.addEventListener('input', updateProgress);
+    // 初始化一次
+    updateProgress();
+
+</script>
+
+</body>
+</html>

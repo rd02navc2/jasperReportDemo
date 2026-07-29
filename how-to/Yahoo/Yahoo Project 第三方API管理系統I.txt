@@ -1,0 +1,309 @@
+Yahoo Project 第三方API管理系統
+
+## BossReport 高階主管報表 API
+
+1. 取得高階會員紀錄 API[cite: 7]
+   GET /BossReport/getBossMember[cite: 7]
+   接收分頁與查詢條件，取得高階會員相關的掃描日期、會員編號、相關資訊、性別與年齡等紀錄清單，並回傳分頁資訊與執行狀態[cite: 7]。
+   
+## Chicken 銷售資料管理 API
+
+1. 取得銷售資料 API[cite: 8]
+   GET /Chicken/getSaleData[cite: 8]
+   接收分頁與查詢條件，取得銷售資料清單，包含銷售日期、星期、客戶數、餐飲收入、建立日期與更新日期，並回傳分頁資訊與執行狀態[cite: 8]。
+
+2. 儲存銷售資料 API[cite: 8]
+   GET /Chicken/saveSaleData[cite: 8]
+   接收傳入的銷售日期、客戶數與餐飲收入參數，執行銷售資料的儲存或更新作業，並回傳執行狀態[cite: 8]。
+   
+## Finance 財務管理 API
+
+1. 取得訂單資料 API[cite: 8]
+   GET /Finance/getOrder[cite: 8]
+   取得使用者的公司代號，依照不同平台（Yahoo、Rakuten、PChome）計算不同的起訖日期區間，查詢並回傳訂單明細與成本價格資料[cite: 8]。
+
+2. 取得運費資料 API[cite: 8]
+   GET /Finance/getShippingFee[cite: 8]
+   依據平台類型與公司代號計算日期區間，查詢並回傳相關運費與訂單明細資料[cite: 8]。
+
+3. 取得退貨資料 API[cite: 8]
+   GET /Finance/getReturn[cite: 8]
+   依據平台條件取得指定區間內的退貨訂單資料，並回傳退貨建立日、退貨代號、退貨扣款日及成本價等欄位[cite: 8]。
+
+4. 取得退貨運費資料 API[cite: 8]
+   GET /Finance/getReturnFee[cite: 8]
+   針對 Yahoo 與 PChome 平台計算退貨相關的運費與明細資料，並依條件回傳對應的退貨運費金額[cite: 8]。
+   
+## Keyin 鍵入銷售資料管理 API
+
+1. 取得銷售資料 API[cite: 9]
+   GET /Keyin/getSaleData[cite: 9]
+   接收分頁與查詢條件，取得銷售資料清單，包含銷售日期、星期、預算編號、收入、客戶數、建立日期與更新日期，並回傳分頁資訊與執行狀態[cite: 9]。
+
+2. 儲存銷售資料 API[cite: 9]
+   GET /Keyin/saveSaleData[cite: 9]
+   接收傳入的銷售日期、平台、預算編號、收入與客戶數參數，執行銷售資料的儲存或更新作業，並回傳執行狀態[cite: 9]。
+   
+## MallCategory 商城類別管理 API
+
+1. 取得 Yahoo 商城類別 API[cite: 10]
+   GET /MallCategory/getMallCategory[cite: 10]
+   * 透過共用服務檢查狀態，使用 API 金鑰、時間戳記與類別編號進行加密簽章（HmacSHA1）後向 Yahoo 端點發送請求，取得並回傳 Yahoo 商城類別清單與執行狀態[cite: 10]。
+
+2. 取得 Rakuten 樂天商城類別 API[cite: 10]
+   * GET /MallCategory/getRKTMallCategory[cite: 10]
+   * 接收層級與類別編號參數，透過授權憑證向樂天商城端點查詢分類資料，並回傳對應的類別編號與名稱清單[cite: 10]。
+
+3. 取得 PChome 商城類別 API[cite: 10]
+   * GET /MallCategory/getPCMallCategory[cite: 10]
+   * 依據傳入的層級與類別編號參數，向 PChome 商店街端點發送請求，取得並回傳指定供應商的商城分類節點資訊[cite: 10]。
+
+4. 取得 Momo 商城類別 API[cite: 10]
+   * GET /MallCategory/getMomoMallCategory[cite: 10]
+   * 透過系統屬性進行登入驗證與 AES 解密，向 Momo 商城端點查詢各層級的類別資料，並回傳分類清單與執行狀態[cite: 10]。
+   
+## MallCategory 商城類別管理 API
+
+1. 取得 Yahoo 商城類別 API[cite: 10]
+   GET /MallCategory/getMallCategory[cite: 10]
+   * 透過共用服務檢查狀態，使用 API 金鑰、時間戳記與類別編號進行加密簽章（HmacSHA1）後向 Yahoo 端點發送請求，取得並回傳 Yahoo 商城類別清單與執行狀態[cite: 10]。
+
+2. 取得 Rakuten 樂天商城類別 API[cite: 10]
+   * GET /MallCategory/getRKTMallCategory[cite: 10]
+   * 接收層級與類別編號參數，透過授權憑證向樂天商城端點查詢分類資料，並回傳對應的類別編號與名稱清單[cite: 10]。
+
+3. 取得 PChome 商城類別 API[cite: 10]
+   * GET /MallCategory/getPCMallCategory[cite: 10]
+   * 依據傳入的層級與類別編號參數，向 PChome 商店街端點發送請求，取得並回傳指定供應商的商城分類節點資訊[cite: 10]。
+
+4. 取得 Momo 商城類別 API[cite: 10]
+   * GET /MallCategory/getMomoMallCategory[cite: 10]
+   * 透過系統屬性進行登入驗證與 AES 解密，向 Momo 商城端點查詢各層級的類別資料，並回傳分類清單與執行狀態[cite: 10]。
+   
+## NameBase 名字與身分資料管理 API
+
+1. 取得使用者名稱紀錄 API[cite: 10]
+   * GET /NameBase/record[cite: 10]
+   * 接收前端傳入的會員卡號參數，透過客戶端與系統設定的網址向遠端服務發送 GET 請求，並依據回應的狀態碼與訊息回傳使用者名稱或錯誤訊息[cite: 10]。
+   
+## Order 訂單管理 API
+
+1. 取得未付款訂單資料 API[cite: 10]
+   * GET /Order/getNonPayment[cite: 10]
+   * 取得使用者的公司代號，依據傳入的查詢條件取得未付款訂單清單，包含公司代號、交易序號、付款方式、買家姓名、訂單編號、訂單日期、銷售類型、商品代號、品名、數量、小計、訂單狀態描述與成本價格等資訊[cite: 10]。
+
+2. 取得樂天未付款訂單資料 API[cite: 10]
+   * GET /Order/getRakutenNonPayment[cite: 10]
+   * 取得使用者的公司代號，針對樂天平台依查詢條件取得未付款訂單清單，並回傳轉帳日期作為訂單日期、自訂主商品代號及固定為「未付款」的狀態描述等欄位[cite: 10]。
+
+3. 取得訂單主檔資料 API[cite: 10]
+   * GET /Order/getOrder[cite: 10]
+   * 接收平台、銷售起訖日期、狀態代號及搜尋條件，取得符合條件的訂單清單，包含買家與收件人姓名、交易序號、運費計算處理、發票資訊與各項日期與成本等資訊[cite: 10]。
+
+4. 取得訂單詳細資料 API[cite: 10]
+   * GET /Order/getOrderDetail[cite: 10]
+   * 依據傳入參數查詢訂單主檔、收件人資訊、狀態日期及產品明細清單，並回傳買家電話、付款方式、收件人地址、商品規格與運送型態等完整明細與執行狀態[cite: 10]。
+   
+## POSUpgrade POS 系統版更管理 API
+
+1. 儲存 POS 版更申請 API[cite: 11]
+   * POST /POSUpgrade/savePOSUpgrade[cite: 11]
+   * 接收前端傳入的版更申請資料，執行儲存、複製相關上傳檔案（暫存區至正式區），並自動排程發送版更申請通知信件給相關人員[cite: 11]。
+
+2. 上傳 POS 版更相關檔案 API[cite: 11]
+   * POST /POSUpgrade/uploadImage[cite: 11]
+   * 檢查使用者登入狀態，解析多部分表單內容（Multipart），將上傳的檔案儲存至系統設定的暫存目錄（POSUpgradeTemp），並回傳檔案目錄與檔名[cite: 11]。
+
+3. 取得 POS 版更清單 API[cite: 11]
+   * GET /POSUpgrade/getPOSUpgrade[cite: 11]
+   * 根據分頁、排序及查詢條件取得 POS 版更申請清單，包含公司代號、狀態、狀態名稱、版本編號、申請日期、申請人資訊、說明、是否為 POS 相關與附件狀態等資訊[cite: 11]。
+
+4. 依編號取得 POS 版更詳細資料 API[cite: 11]
+   * GET /POSUpgrade/getPOSUpgradeByNo[cite: 11]
+   * 依據傳入的公司代號與版本編號查詢單筆版更的詳細記錄，包含確認人員、退回資訊、完成日期、備忘錄及檔案路徑等完整內容[cite: 11]。
+
+5. 執行 POS 版更審核/核准 API[cite: 11]
+   * POST /POSUpgrade/doApprove[cite: 11]
+   * 處理版更的接收、確認完成或上版作業，並根據狀態自動寄送通知信件或透過 Line 傳送更版完成訊息[cite: 11]。
+
+6. 儲存 IT 版更備忘錄 API[cite: 11]
+   * POST /POSUpgrade/saveITMemo[cite: 11]
+   * 依據公司代號與版本編號更新並儲存 IT 相關的備忘錄（it_memo）內容[cite: 11]。
+
+7. 執行 POS 版更退回 API[cite: 11]
+   * POST /POSUpgrade/doReturn[cite: 11]
+   * 處理版更申請的退回作業，更新狀態並寄送退回原因通知信件給申請人[cite: 11]。
+   
+## Product 產品管理系統
+
+1. 產品批次動作 API
+POST /Product/submit
+處理批次動作如ApproveOn、Off、ReOn及Delete，依據指定平台更新產品狀態
+
+2. 查詢產品列表 API
+GET /Product/getProduct
+取得分頁產品清單，支援DataTables與jqGrid參數，回傳市場價、售價、成本、庫存及佣金率
+
+3. 新增產品 API
+POST /Product/saveProduct
+驗證產品名稱長度、描述、公司是否存在及平台格式，儲存新產品並發送通知郵件
+
+4. 更新產品 API
+POST /Product/saveUpdProduct
+修改現有產品細節，若更新核心財務欄位或名稱會處理平台狀態變更並儲存歷史快照
+
+5. 上傳產品圖片 API
+POST /Product/uploadImage
+處理多部分檔案上傳，限制檔案大小在1MB以內並儲存至指定供應商目錄
+
+6. 依ID查詢產品 API
+GET /Product/getProductById
+根據主產品ID與公司代碼取得詳細規格、類別對應及多平台狀態
+
+## ProductUpload 產品上傳與價格管理系統
+
+1. 修改價格 API
+POST /ProductUpload/changePrice
+接收JSON請求驗證使用者登入狀態與公司代碼，執行一般產品價格更新邏輯並回傳處理結果
+
+2. PChome產品變價與下架處理 API
+POST /ProductUpload/changePrice_PChome
+解析PChome變價資料，針對有效狀態產品自動執行離線下架後更新價格資料庫
+
+3. 上傳Excel檔案處理 API
+POST /ProductUpload/uploadExcel
+檢查使用者登入與multipart內容，驗證供應商編號後將上傳的Excel變價檔案儲存並解析匯入產品清單與明細
+
+## Report 報表與檔案下載系統
+
+1. 產生廠商工時明細表Excel API
+POST /Report/genWebSignExcel
+依據登入狀態與請求參數（包含搜尋公司代碼與銷售日期）取得簽核資料，動態生成Excel報表並回傳下載路徑與成功狀態[cite: 11]
+
+2. 檔案下載 API
+GET /Report/download
+根據傳入的檔案路徑讀取檔案內容，自動設定MIME類型與UTF-8編碼標頭以提供使用者進行附件下載[cite: 11]
+
+## Return 退貨管理系統
+
+1. 查詢退貨資料 API[cite: 12]
+GET /Return/getReturn
+依據指定平台、公司代碼、銷售日期區間與訂單編號取得退貨明細清單，並針對不同平台格式化商品名稱與退貨狀態後回傳[cite: 12]
+
+2. 查詢異常退貨資料 API[cite: 12]
+GET /Return/getReturnAb
+根據登入公司代碼與銷售日期區間取得退貨異常明細清單，格式化相關退貨與異常原因後回傳[cite: 12]
+
+3. 處理退貨審核與狀態同步 API[cite: 12]
+POST /Return/submit
+接收選擇的退貨資料與動作指令（Yes同意或No不同意），執行對應的退貨審核處理並同步交易狀態[cite: 12]
+
+## Shipping 出貨與物流管理系統
+
+1. 取得物流供應商清單 API[cite: 13]
+POST /Shipping/getShippingSupplier
+根據傳入的平台參數（如PChome提供預設物流選項或一般平台查詢資料庫清單）動態產生並回傳HTML下拉選單內容[cite: 13]
+
+2. 查詢出貨訂單資料 API[cite: 13]
+POST /Shipping/getShipping
+依據登入公司代碼與平台、銷售日期區間取得訂單主檔清單，格式化物流代碼、交易編號、買家與收件人資訊及明細金額後回傳[cite: 13]
+
+3. 確認出貨與狀態更新 API[cite: 13]
+POST /Shipping/confirm
+接收選擇的出貨資料，依不同平台（Yahoo、Rakuten、PChome）執行對應的宅配確認、串接外部簽章API、更新物流單號與扣減產品庫存[cite: 13]
+
+4. 查詢撿貨出貨清單 API[cite: 13]
+POST /Shipping/getShipping4Pick
+根據登入公司代碼與銷售日期區間取得撿貨出貨的產品明細，並依規格判斷對應的庫存數量後回傳[cite: 13]
+   
+## StoreCategory 商店類別管理系統
+
+1. 取得商店類別資料 API[cite: 13]
+GET /StoreCategory/getStoreCategory
+執行Echo服務驗證後呼叫外部Yahoo商店類別API，透過HMAC-SHA1簽章驗證與SSL客戶端連線取得分類資料，解析路徑層級後回傳分頁JSON陣列結果[cite: 13]
+
+2. 取得Momo商店類別資料 API[cite: 13]
+POST /StoreCategory/getMomoStoreCategory
+透過SSL憑證與略過主機名稱驗證的客戶端，向Momo端點發送加密登入與參數請求，將解密後的輸出物件依照多層級分類（Level 1至Level 3）進行關聯對應與整理，組合為類別樹狀清單後回傳[cite: 13]
+
+## StorePayment 商店付款方式管理系統
+
+1. 取得Yahoo商店付款方式 API
+GET /StorePayment/getStorePayment
+執行Echo服務驗證時間戳與ApiKey後，透過HMAC-SHA1簽章與SSL安全連線呼叫外部Yahoo付款方式清單，解析回傳的支付類型資訊與預設啟動狀態後回傳分頁JSON陣列
+
+2. 取得Momo商店付款方式 API
+POST /StorePayment/getMomoStorePayment
+透過SSL憑證與略過主機名稱驗證的客戶端，向Momo端點發送加密登入參數請求，將解密後的輸出物件進行過濾（排除特定代碼並依啟用狀態判斷），對照常數對應表組成付款清單後回傳
+
+## StoreShipping 商店出貨與物流方式管理系統
+
+1. 取得Yahoo商店物流方式 API[cite: 14]
+GET /StoreShipping/getStoreShipping
+執行Echo服務驗證時間戳與ApiKey後，透過HMAC-SHA1簽章與SSL安全連線呼叫外部Yahoo物流方式清單，解析回傳的運送類型、費用類型與描述後回傳分頁JSON陣列[cite: 14]
+
+2. 取得樂天商店物流方式 API[cite: 14]
+GET /StoreShipping/getRakutenStoreShipping
+建立並回傳預設的樂天商店物流選項清單（包含郵局、全家店到店及各溫層與免運條件說明）[cite: 14]
+
+3. 取得Momo商店物流方式 API[cite: 14]
+POST /StoreShipping/getMomoStoreShipping
+透過SSL憑證的客戶端向Momo端點發送加密登入參數請求，將解密後的輸出物件進行啟用狀態過濾，組成物流編號與名稱清單後回傳[cite: 14]
+
+## Supplier 供應商管理系統
+
+1. 查詢供應商清單 API[cite: 14]
+   * **URL**: `POST /Supplier/getSupplier`[cite: 14]
+   * **功能說明**: 讀取請求中的JSON與分頁參數，透過供應商服務取得符合條件的供應商清單，並將公司代碼、名稱、地址與電子郵件包裝成JSON陣列回傳[cite: 14]。
+
+2. 依ID查詢供應商資料 API[cite: 14]
+   * **URL**: `POST /Supplier/getSupplierByID`[cite: 14]
+   * **功能說明**: 根據傳入的公司代碼查詢單一供應商的詳細資訊（包含代碼、名稱、兩組電話、地址與信箱），並設定狀態為成功後回傳[cite: 14]。
+
+3. 儲存供應商資料 API[cite: 14]
+   * **URL**: `POST /Supplier/saveSupplier`[cite: 14]
+   * **功能說明**: 接收前端傳入的JSON資料交由供應商服務進行儲存或更新，若發生例外則記錄錯誤日誌並回傳失敗訊息與原因[cite: 14]。
+
+4. 刪除供應商資料 API[cite: 14]
+   * **URL**: `POST /Supplier/deleteSupplier`[cite: 14]
+   * **功能說明**: 根據傳入的參數執行供應商刪除作業，成功時回傳成功標記，失敗時則攔截例外並回傳錯誤訊息[cite: 14]。
+   
+## Sushi 壽司銷售與上傳管理系統
+
+1. 查詢銷售資料 API[cite: 14]
+   * **URL**: `POST /Sushi/getSaleData`[cite: 14]
+   * **功能說明**: 讀取分頁參數與JSON查詢條件，透過壽司服務取得符合筆數與銷售上傳資料清單，將日期格式化、星期對照對應、顧客數與餐飲收入（fmb_income）包裝為分頁JSON物件回傳；若發生例外則記錄錯誤並回傳失敗訊息[cite: 14]。
+
+2. 儲存銷售資料 API[cite: 14]
+   * **URL**: `POST /Sushi/saveSaleData`[cite: 14]
+   * **功能說明**: 接收前端傳入包含銷售日期、顧客數與餐飲收入的JSON資料，交由壽司服務進行儲存作業，成功時回傳成功標記，失敗時則攔截例外並回傳錯誤訊息[cite: 14]。
+   
+## Theater 影城銷售與上傳管理系統
+
+1. 查詢銷售資料 API[cite: 14]
+   * **URL**: `POST /Theater/getSaleData`[cite: 14]
+   * **功能說明**: 讀取分頁參數與JSON查詢條件，透過影城服務取得符合筆數與世紀上傳資料清單，將日期格式化、星期對照對應、顧客數、票務收入（ticket_income）、餐飲收入（fmb_income）及總收入（total_income = ticket_income + fmb_income）包裝為分頁JSON物件回傳；若發生例外則記錄錯誤並回傳失敗訊息[cite: 14]。
+
+2. 儲存銷售資料 API[cite: 14]
+   * **URL**: `POST /Theater/saveSaleData`[cite: 14]
+   * **功能說明**: 接收前端傳入包含銷售日期、顧客數、票務收入與餐飲收入的JSON資料，交由影城服務進行儲存作業（傳入系統屬性與日誌記錄），成功時回傳成功標記，失敗時則攔截例外並回傳錯誤訊息[cite: 14]。
+   
+## Uniqlo 銷售與上傳管理系統
+
+1. 查詢銷售資料 API[cite: 14]
+   * **URL**: `POST /Uniqlo/getSaleData`[cite: 14]
+   * **功能說明**: 讀取分頁參數與JSON查詢條件，透過Uniqlo服務取得符合筆數與上傳資料清單，將日期格式化、星期對照對應、顧客數與餐飲收入（fmb_income）包裝為分頁JSON物件回傳；若發生例外則記錄錯誤並回傳失敗訊息[cite: 14]。
+
+2. 儲存銷售資料 API[cite: 14]
+   * **URL**: `POST /Uniqlo/saveSaleData`[cite: 14]
+   * **功能說明**: 接收前端傳入包含銷售日期、顧客數與餐飲收入的JSON資料，交由Uniqlo服務進行儲存作業，成功時回傳成功標記，失敗時則攔截例外並回傳錯誤訊息[cite: 14]。
+   
+## WebSign 網頁簽到管理系統
+
+1. 取得簽到資料 API[cite: 14]
+   * **URL**: `POST /WebSign/getSignData`[cite: 14]
+   * **功能說明**: 從 Session 取得目前登入使用者的公司編號，讀取請求中的JSON查詢條件（包含搜尋公司代碼與銷售起始日期），透過網頁簽到服務取得簽到清單，將公司代碼、名稱、簽到時間、簽到退時間、總時數、總分鐘數、存取代碼與名稱及服務結束時間格式化後包裝為JSON陣列回傳；成功時寫入Info日誌，失敗時記錄錯誤[cite: 14]。
+
+2. 執行簽到 API[cite: 14]
+   * **URL**: `POST /WebSign/sign`[cite: 14]
+   * **功能說明**: 取得當前登入使用者的公司編號與登入代碼，接收前端傳入的職務搜尋與服務結束時間，透過網頁簽到服務執行簽到作業（傳入日誌與系統屬性），成功時回傳成功標記，若發生例外則攔截並回傳錯誤訊息與失敗標記[cite: 14]。

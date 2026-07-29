@@ -1,0 +1,588 @@
+## 電商
+
+1. 發票號碼查詢 API
+POST /rest/ec/Invoice/getInvoiceNO
+查詢指定月份發票號碼資訊取得發票號碼範圍取得A、B版發票號碼與隨機碼用於電商交易發票配置
+0%
+2. 會員身分查詢 API
+GET /rest/ec/Member/getMemberByID/{sID}
+根據身分證號查詢會員資訊取得會員聯絡方式驗證會員身分用於會員識別與驗證
+0%
+3. 臨時會員新增 API
+POST /rest/ec/Member/addTempMember
+建立臨時會員帳號驗證會員不重複初始化會員資料用於新會員註冊前置
+0%
+4. 會員資訊更新 API
+POST /rest/ec/Member/updMemberByID
+更新會員聯絡方式修改手機、郵件、地址驗證會員身分存在更新會員檔案
+0%
+5. 會員點數查詢 API
+GET /rest/ec/Member/getPointByID/{sID}
+根據身分證號查詢點數餘額取得會員點數資訊回傳主卡資訊用於點數管理
+0%
+6. 會員點數歷史查詢 API
+GET /rest/ec/Member/getPointHistByID/{sID}
+查詢會員點數變動歷史支援時間範圍篩選取得加減點明細用於點數查詢與統計
+0%
+7. 會員點數處理 API
+POST /rest/ec/Member/processPoint
+執行會員點數扣款整合ERP系統扣點驗證點數足額記錄點數變動支援消費金額與點數掛鉤
+0%
+8. 會員戶籍登記 API
+POST /rest/ec/Member/doHouseHold
+執行臨時會員戶籍登記合併臨時卡與正式卡驗證卡片有效性檢查主卡條件同步會員資訊與點數
+0%
+9. 正式會員申請 API
+POST /rest/ec/Member/doFormal
+臨時會員轉正式會員驗證會員狀態為"000"建立正式會員紀錄初始化會員完整資訊
+0%
+10. 兌換規則查詢 API
+GET /rest/ec/Redeem/getRule
+查詢點數兌換比率規則取得兌換標準用於點數消費計算
+0%
+11. 財政部發票驗證 API
+POST /rest/ec/MF/verifyLP
+驗證財政部電子發票接收發票驗證回調整合台新支付系統記錄驗證結果更新訂單狀態
+
+--
+
+1. 發票號碼查詢 API POST /rest/ec/Invoice/getInvoiceNO
+查詢指定月份發票號碼資訊取得發票號碼範圍取得A、B版發票號碼與隨機碼用於電商交易發票配置
+http://localhost:8095/Surrounding/rest/ec/getInvoiceNO
+
+{
+    "center": "TW01",
+    "posId": "POS001",
+    "month": "202607"
+}
+
+--
+
+INSERT INTO TC_LRI_FILE (
+    TC_LRI01, TC_LRI02, TC_LRI03, TC_LRIPLANT, 
+    TC_LRI04, TC_LRI05, TC_LRI06, TC_LRIACTI
+) VALUES (
+    'INV-202607-001', -- TC_LRI01 (主鍵)
+    '001',            -- TC_LRI02 (主鍵)
+    1.0,              -- TC_LRI03 (主鍵)
+    'TW01',           -- TC_LRIPLANT (主鍵，對應 center)
+    'POS001',         -- TC_LRI04 (對應 posId)
+    '202607',         -- TC_LRI05 (對應 month)
+    NOW(),            -- TC_LRI06
+    'Y'               -- TC_LRIACTI
+);
+
+INSERT INTO TC_LRJ_FILE (
+    TC_LRJ01, TC_LRJ02, TC_LRJ09, TC_LRJPLANT, 
+    TC_LRJ03, TC_LRJ04, TC_LRJACTI
+) VALUES (
+    'INV-202607-001', -- TC_LRJ01 (主鍵，關聯單頭)
+    '001',            -- TC_LRJ02 (主鍵)
+    'SEQ01',          -- TC_LRJ09 (主鍵)
+    'TW01',           -- TC_LRJPLANT (主鍵)
+    1000.0,           -- TC_LRJ03
+    50.0,             -- TC_LRJ04
+    'Y'               -- TC_LRJACTI
+);
+
+2. 會員身分查詢 API GET /rest/ec/Member/getMemberByID/{sID}
+根據身分證號查詢會員資訊取得會員聯絡方式驗證會員身分用於會員識別與驗證
+http://localhost:8095/Surrounding/rest/ec/Member/getMemberByID/MEMBER_999
+
+INSERT INTO lpk_file (lpk01, lpk02, lpk03, lpk04, lpkud02)  
+VALUES ('MEMBER_KEY_999', 'A02', 'MEMBER_999', '張小明', '62');
+
+INSERT INTO lpj_file (lpj03, lpj01, lpj12, lpj15, ta_lpj01, ta_lpj02, ta_lpj03, lpj09, ta_lpj04) 
+VALUES ('LPJ_PK_999', 'MEMBER_KEY_999', 12.5, 500.0, 100.0, 200.0, 300.0, '2', 'Y');
+
+-- 1. 確保舊的髒資料不會影響，先刪除這兩個測試主鍵（如果有的話）
+DELETE FROM lpk_file WHERE lpk01 = 'TEST_KEY_2026';
+DELETE FROM lpj_file WHERE lpj03 = 'TEST_LPJ_PK_2026';
+
+-- 2. 新增 LPK_FILE (會員基本檔)
+INSERT INTO lpk_file (lpk01, lpk02, lpk03, lpk04, lpkud02)  
+VALUES (
+    'TEST_KEY_2026', -- 唯一主鍵 lpk01
+    'A02', 
+    'MEMBER_999',    -- 這是等一下 Postman 網址要帶入的 id
+    '測試張小明', 
+    '62'             -- 讓 VIP_LEVEL 變成 1
+);
+
+-- 3. 新增 LPJ_FILE (會員擴充檔)
+INSERT INTO lpj_file (
+    lpj03,           -- 唯一主鍵
+    lpj01,           -- 必須對應上面 lpk01 的 'TEST_KEY_2026'
+    lpj12, 
+    lpj15,
+    ta_lpj01, 
+    ta_lpj02, 
+    ta_lpj03, 
+    lpj09,           -- 必須是 '2'
+    ta_lpj04         -- 必須是 'Y'
+) 
+VALUES (
+    'TEST_LPJ_PK_2026', 
+    'TEST_KEY_2026', 
+    12.5, 
+    500.0, 
+    100.0, 
+    200.0, 
+    300.0, 
+    '2', 
+    'Y'
+);
+
+3. 臨時會員新增 API POST /rest/ec/Member/addTempMember
+建立臨時會員帳號驗證會員不重複初始化會員資料用於新會員註冊前置
+http://localhost:8095/Surrounding/rest/ec/Member/addTempMember
+
+{
+    "center": "TAIPEI",
+    "cardNo": "TEMP_CARD_2026_001"
+}
+
+--
+
+SET SQL_SAFE_UPDATES = 0; -- 暫時關閉安全模式
+
+DELETE FROM lpj_file WHERE lpj01 = 'TEMP_CARD_2026_001' OR lpj03 = 'TEMP_CARD_2026_001';
+
+SET SQL_SAFE_UPDATES = 1; -- 重新開啟安全模式
+
+
+4. 會員資訊更新 API POST /rest/ec/Member/updMemberByID
+更新會員聯絡方式修改手機、郵件、地址驗證會員身分存在更新會員檔案
+http://localhost:8095/Surrounding/rest/ec/Member/updMemberByID
+
+{
+    "id": "TEMP_CARD_2026_001",
+    "mobile": "0912345678",
+    "email": "test@example.com",
+    "addr": "台北市萬華區和平西路"
+}
+
+5. 會員點數查詢 API GET /rest/ec/Member/getPointByID/{sID}
+根據身分證號查詢點數餘額取得會員點數資訊回傳主卡資訊用於點數管理
+http://localhost:8095/Surrounding/rest/ec/Member/getPointByID/TEMP_CARD_2026_001
+
+-- 1. 暫時關閉安全更新模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 執行更新
+UPDATE lpj_file 
+SET lpj02 = 'EC', lpj09 = '2', ta_lpj04 = 'Y', lpj07 = 100, lpj12 = 50.0 
+WHERE lpj01 = 'TEMP_CARD_2026_001';
+
+-- 3. 重新打開安全更新模式 (良好的資料庫操作習慣)
+SET SQL_SAFE_UPDATES = 1;
+
+
+6. 會員點數歷史查詢 API GET /rest/ec/Member/getPointHistByID/{sID}
+查詢會員點數變動歷史支援時間範圍篩選取得加減點明細用於點數查詢與統計
+http://localhost:8095/Surrounding/rest/ec/Member/getPointHistByID/TEMP_CARD_2026_001?startDate=2026-01-01&endDate=2026-12-31
+
+INSERT INTO lsm_file (lsmstore, lsm01, lsm02, lsm03, lsm04, lsm05, ta_lsm02, ta_lsm04)  
+VALUES ('ST001', 'TEMP_CARD_2026_001', '2', '001', 10, '2026-07-12', 'EC', '0001');
+
+-- 1. 暫時關閉安全更新模式
+-- 插入點數歷史明細紀錄 (LSM_FILE)
+-- lsm01 必須對應上面子查詢查出來的 lpj03 ('TEMP_CARD_2026_001')
+-- lsm02 必須在 ('2','5','7','8','9','B') 範圍內
+-- lsm04 (點數) 不能為 0
+-- lsm05 是交易日期，必須落在你 Postman 帶入的區間內
+INSERT INTO lsm_file (lsmstore, lsm01, lsm02, lsm04, lsm05, ta_lsm02, ta_lsm04) 
+VALUES ('ST001', 'TEMP_CARD_2026_001', '2', 10, '2026-07-12', 'EC', '0001');
+
+-- 1. 補齊 lpk_file (會員/卡片主檔)
+-- 確保 lpk03 就是你 Postman 傳入的 'TEMP_CARD_2026_001'
+-- 這裡我們假設卡號/關聯鍵 lpk01 為 'CARD_KEY_001'
+INSERT INTO lpk_file (lpk01, lpk03, lpk04, lpk05)
+VALUES ('CARD_KEY_001', 'TEMP_CARD_2026_001', '測試人員', '1990-01-01')
+ON DUPLICATE KEY UPDATE lpk03 = 'TEMP_CARD_2026_001';
+
+-- 2. 補齊 lpj_file (點數帳戶主檔)
+-- 透過 lpj01 = k.lpk01 ('CARD_KEY_001') 與上面串聯
+-- 並且讓 lpj03 的值等於 'TEMP_CARD_2026_001' (對齊 lsm_file.lsm01)
+INSERT INTO lpj_file (lpj01, lpj02, lpj03, lpj06)
+VALUES ('CARD_KEY_001', 'MEMBER_001', 'TEMP_CARD_2026_001', 100.0)
+ON DUPLICATE KEY UPDATE lpj01 = 'CARD_KEY_001';
+
+7. 會員點數處理 API POST /rest/ec/Member/processPoint
+執行會員點數扣款整合ERP系統扣點驗證點數足額記錄點數變動支援消費金額與點數掛鉤
+http://localhost:8095/Surrounding/rest/ec/Member/processPoint
+
+{
+  "id": "MEMBER_001",
+  "birthday": "1995-01-01",
+  "mobile": "0912345678",
+  "email": "test@example.com",
+  "addr": "台北市萬華區",
+  "center": "BY001",
+  "loginId": "L001",
+  "counterId": "BOOTH_01",
+  "userId": "U001",
+  "userName": "測試人員",
+  "cardNo": "TEMP_CARD_2026_001",
+  "point": 100,
+  "amt": 1000
+}
+
+[2m2026-07-12T19:17:12.659+08:00[0;39m [31mERROR[0;39m [35m17532[0;39m [2m--- [beyond-surrounding] [omcat-handler-0] [0;39m[36mc.b.s.ec.service.Member4ECService       [0;39m [2m:[0;39m Feign 調用 ERP WebService 發生通訊異常
+
+feign.RetryableException: Connection refused: getsockopt executing POST http://localhost:8080/Surrounding/rest
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+	at feign.SynchronousMethodHandler.executeAndDecode(SynchronousMethodHandler.java:105) ~[feign-core-13.5.jar:na]
+
+
+INSERT INTO tc_lrj_file (
+    tc_lrj01, tc_lrj02, tc_lrj03, tc_lrj04, tc_lrj05, 
+    tc_lrj06, tc_lrj07, tc_lrj08, tc_lrj09, tc_lrjplant
+) VALUES (
+    'RULE_EC_001', 'EC扣點規則', '1', 0, 0, 
+    0, 0, 0, '', 'BY001'
+)
+ON DUPLICATE KEY UPDATE tc_lrj02 = 'EC扣點規則', tc_lrjplant = 'BY001';
+
+8. 會員戶籍登記 API POST /rest/ec/Member/doHouseHold
+執行臨時會員戶籍登記合併臨時卡與正式卡驗證卡片有效性檢查主卡條件同步會員資訊與點數
+http://localhost:8095/Surrounding/rest/ec/Member/doHouseHold
+
+-- 1. 寫入暫存卡資料 (把 lpj03 填入跟 lpj01 一樣的卡號)
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'TEMP_CARD_2026_001', '000', 'TEMP_CARD_2026_001', 100, '2', 
+    0, 0, 0, 0, 0, 
+    'Y'
+)
+ON DUPLICATE KEY UPDATE 
+    lpj02 = '000', 
+    lpj03 = 'TEMP_CARD_2026_001',
+    lpj09 = '2', 
+    ta_lpj04 = 'Y';
+
+-- 2. 寫入正式主卡會員資料
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'MEMBER_ID_001', '000', '77080001', 0, '1', 
+    0, 0, 0, 0, 0, 
+    'Y'
+)
+ON DUPLICATE KEY UPDATE 
+    lpj03 = '77080001',
+    lpj09 = '1',
+    ta_lpj04 = 'Y';
+
+-- 1. 暫時關閉安全更新模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 執行寫入暫存卡與正式卡資料
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'TEMP_CARD_2026_001', '000', 'TEMP_CARD_2026_001', 100, '2', 
+    0, 0, 0, 0, 0, 
+    'Y'
+)
+ON DUPLICATE KEY UPDATE 
+    lpj02 = '000', 
+    lpj03 = 'TEMP_CARD_2026_001',
+    lpj09 = '2', 
+    ta_lpj04 = 'Y';
+
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'MEMBER_ID_001', '000', '77080001', 0, '1', 
+    0, 0, 0, 0, 0, 
+    'Y'
+)
+ON DUPLICATE KEY UPDATE 
+    lpj03 = '77080001',
+    lpj09 = '1',
+    ta_lpj04 = 'Y';
+
+-- 3. 強制提交
+COMMIT;
+
+-- 4. 重新打開安全更新模式（保持好習慣）
+SET SQL_SAFE_UPDATES = 1;
+
+-- 1. 暫時關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 既然 lpj03 是 PK 且刪不掉，我們直接用 UPDATE 修正它的欄位狀態！
+UPDATE lpj_file 
+SET 
+    lpj01 = 'TEMP_CARD_2026_001', -- 會員內部ID
+    lpj02 = '000',                -- 點數狀態必須為 000
+    lpj07 = 100,                  -- 給它 100 點測試合併
+    lpj09 = '2',                  -- 必須為暫存卡旗標 '2'
+    ta_lpj04 = 'Y'                -- 必須為有效旗標 'Y'
+WHERE lpj03 = 'TEMP_CARD_2026_001';
+
+-- 3. 以防萬一，如果原本根本沒這筆 lpj03，我們補一筆單純的 INSERT
+INSERT IGNORE INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'TEMP_CARD_2026_001', '000', 'TEMP_CARD_2026_001', 100, '2', 
+    0, 0, 0, 0, 0, 
+    'Y'
+);
+
+-- 4. 強制提交
+COMMIT;
+
+-- 5. 回復安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+-- 1. 暫時關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 強制更新既存的正式主卡資料，確保符合程式所有隱藏條件
+UPDATE lpj_file 
+SET 
+    lpj01 = 'MEMBER_ID_001', -- 內部會員ID
+    lpj02 = '000',            -- 點數狀態
+    lpj09 = '1',            -- 🌟 關鍵：必須為正式卡旗標 '1'
+    ta_lpj04 = 'Y'          -- 🌟 關鍵：必須為有效旗標 'Y'
+WHERE lpj03 = '77080001' OR lpj01 = 'MEMBER_ID_001';
+
+-- 3. 如果原本完全沒這筆資料，直接補入
+INSERT IGNORE INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'MEMBER_ID_001', '000', '77080001', 0, '1', 
+    0, 0, 0, 0, 0, 
+    'Y'
+);
+
+-- 4. 強制提交
+COMMIT;
+
+-- 5. 回復安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+-- 1. 暫時關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 補一筆「卡號就是 MEMBER_ID_001」的主卡資料，防止 Repository 查錯欄位
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'MEMBER_ID_001', '000', 'MEMBER_ID_001', 0, '1', 
+    0, 0, 0, 0, 0, 
+    'Y'
+)
+ON DUPLICATE KEY UPDATE 
+    lpj02 = '000',
+    lpj09 = '1',
+    ta_lpj04 = 'Y';
+
+-- 3. 強制提交
+COMMIT;
+
+-- 4. 回復安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+-- 1. 暫時關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 把主卡的 lpj09 強制改成 '2'，以符合程式第一階段的檢核
+UPDATE lpj_file 
+SET 
+    lpj02 = '000',
+    lpj09 = '2',        -- 🌟 關鍵：改成 2 (暫存卡狀態)
+    ta_lpj04 = 'Y'
+WHERE lpj01 = 'MEMBER_ID_001' OR lpj03 = '77080001' OR lpj03 = 'MEMBER_ID_001';
+
+-- 3. 強制提交
+COMMIT;
+
+-- 4. 回復安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+-- 1. 暫時關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 物理重置被歸戶的暫存卡資料 (TEMP_CARD_2026_001)
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'TEMP_CARD_2026_001', '000', 'TEMP_CARD_2026_001', 100, '2', 
+    0, 0, 0, 0, 0, 
+    'Y'
+)
+ON DUPLICATE KEY UPDATE 
+    lpj01 = 'TEMP_CARD_2026_001',
+    lpj02 = '000',
+    lpj09 = '2',
+    ta_lpj04 = 'Y';
+
+-- 3. 物理重置接收點數的主卡資料 (MEMBER_ID_001)
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj07, lpj09, 
+    lpj12, lpj14, lpj15, ta_lpj02, ta_lpj03, 
+    ta_lpj04
+) VALUES (
+    'MEMBER_ID_001', '000', 'MEMBER_ID_001', 0, '2', 
+    0, 0, 0, 0, 0, 
+    'Y'
+)
+ON DUPLICATE KEY UPDATE 
+    lpj01 = 'MEMBER_ID_001',
+    lpj02 = '000',
+    lpj09 = '2',
+    ta_lpj04 = 'Y';
+
+-- 4. 以防萬一，主卡原本的實體卡號 77080001 也同步更新成 2
+UPDATE lpj_file 
+SET lpj09 = '2', ta_lpj04 = 'Y', lpj02 = '000' 
+WHERE lpj03 = '77080001';
+
+-- 5. 強制提交
+COMMIT;
+
+-- 6. 回復安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+
+9. 正式會員申請 API POST /rest/ec/Member/doFormal
+臨時會員轉正式會員驗證會員狀態為"000"建立正式會員紀錄初始化會員完整資訊
+http://localhost:8095/Surrounding/rest/ec/Member/doFormal
+
+{
+    "cardNo": "TEMP_CARD_2026_001",
+    "id": "A123456789",
+    "userName": "測試轉正會員",
+    "birthday": "1995-01-01",
+    "mobile": "0912345678",
+    "addr": "台北市萬華區",
+    "email": "test@example.com"
+}
+
+--
+
+-- 1. 暫時關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 清除乾淨可能卡主鍵或外鍵的殘留舊資料
+DELETE FROM lpk_file WHERE lpk01 = 'TEMP_CARD_2026_001';
+-- 如果 lpj_file 因為外鍵刪不掉，就直接用 INSERT ON DUPLICATE 覆蓋它
+
+-- 3. 補齊會員基本資料檔 (LPK_FILE) - 程式對應的暫存卡實體
+INSERT INTO lpk_file (
+    lpk01, lpk02, lpk04, lpk10, lpk13, 
+    lpkacti, lpkcrat, lpkoriu, lpkorig, lpkpos, 
+    lpkud02, lpkud08, lpkud09, lpkud10, lpk20, 
+    lpk21, ta_lpk04, ta_lpk05, ta_lpk06
+) VALUES (
+    'TEMP_CARD_2026_001', '0', '未註冊', '606', '706', 
+    'Y', NOW(), 'admin', '16', '1', 
+    '61', 0, 0, 0, '999999', 
+    '0', NOW(), 'Y', '3'
+) ON DUPLICATE KEY UPDATE lpkacti = 'Y';
+
+-- 4. 補齊點數主檔 (LPJ_FILE) - 🌟 必須同時符合 lpj01=ID, lpj09='2', lpj02='000', ta_lpj04='Y'
+INSERT INTO lpj_file (
+    lpj01, lpj02, lpj03, lpj04, lpj06, 
+    lpj07, lpj09, lpj12, lpj13, lpj14, 
+    lpj15, lpj16, lpj17, lpj18, lpj19, 
+    lpjpos, ta_lpj01, ta_lpj02, ta_lpj03, ta_lpj04
+) VALUES (
+    'TEMP_CARD_2026_001', -- lpj01 (會員Id)
+    '000',                -- lpj02 (🌟 關鍵：必須是 000)
+    'TEMP_CARD_2026_001', -- lpj03 (卡號)
+    NOW(), 0, 0, 
+    '2',                  -- lpj09 (🌟 關鍵：必須是 2)
+    0, 0, 0, 0, 'N', 'BY001', NOW(), 'BY001', '1', 1, 0, 0, 
+    'Y'                   -- ta_lpj04 (🌟 關鍵：必須是 Y)
+)
+ON DUPLICATE KEY UPDATE 
+    lpj01 = 'TEMP_CARD_2026_001',
+    lpj02 = '000', 
+    lpj09 = '2', 
+    ta_lpj04 = 'Y';
+
+-- 5. 強制提交
+COMMIT;
+
+-- 6. 回復安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+10. 兌換規則查詢 API GET /rest/ec/Redeem/getRule
+查詢點數兌換比率規則取得兌換標準用於點數消費計算
+http://localhost:8095/Surrounding/rest/ec/Redeem/getRule
+
+-- 1. 暫時關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 灌入規則明細檔 (tc_lrj_file) - 嚴格按照 Entity 的型態與主鍵清單
+INSERT INTO tc_lrj_file (
+    tc_lrj01, tc_lrj02, tc_lrj09, tc_lrjplant, 
+    tc_lrj03, tc_lrj04, tc_lrj05, 
+    tc_lrj06, tc_lrj07, tc_lrj08, tc_lrjacti
+) VALUES (
+    'RULE_EC_001',                       -- tc_lrj01 (String / PK / 與主表 tc_lri02 對應)
+    '606',                               -- tc_lrj02 (String / PK / 🌟 關鍵條件：必須為 '606')
+    '01',                                -- tc_lrj09 (String / PK / 🌟 修正：給予正確的字串主鍵值，例如 '01')
+    'HQ',                                -- tc_lrjplant (String / PK / 廠區)
+    1.0,                                 -- tc_lrj03 (Double / 扣除點數)
+    1.0,                                 -- tc_lrj04 (Double / 兌換金額)
+    1.0,                                 -- tc_lrj05 (Double / 🌟 修正：對齊 Java 的 Double 型態)
+    '',                                  -- tc_lrj06 (String)
+    '',                                  -- tc_lrj07 (String)
+    '',                                  -- tc_lrj08 (String)
+    'Y'                                  -- tc_lrjacti (String / 🌟 關鍵條件：必須為 'Y')
+)
+ON DUPLICATE KEY UPDATE 
+    tc_lrj02 = '606', 
+    tc_lrjacti = 'Y';
+
+-- 3. 強制提交
+COMMIT;
+
+-- 4. 回復安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+11. 財政部發票驗證 API POST /rest/ec/MF/verifyLP
+驗證財政部電子發票接收發票驗證回調整合台新支付系統記錄驗證結果更新訂單狀態
+http://localhost:8095/Surrounding/rest/ec/MF/verifyLP
+
+{
+    "s_mid": "MID12345",
+    "ret_code": "00",
+    "tx_type": "AUTH",
+    "order_no": "ORD202607130001",
+    "ret_msg": "Success",
+    "auth_id_resp": "A12345",
+    "carrierId2": "CARRIER_XYZ"
+}
+
+--
+
+{
+    "code": 417,
+    "message": "417 EXPECTATION_FAILED \"{\"code\":417,\"message\":\"Connection refused: getsockopt executing POST https://localhost:8081/auth.ashx\"}\""
+}
+[0;39m [31mERROR[0;39m [35m8136[0;39m [2m--- [beyond-surrounding] [omcat-handler-0] [0;39m[36mc.b.s.e.c.MinistryFinanceController     [0;39m [2m:[0;39m verifyLP Controller 層捕捉異常: 
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8081/auth.ashx
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]

@@ -1,0 +1,9 @@
+## Chicken 銷售資料管理 API
+
+1. 取得銷售資料 API[cite: 8]
+   GET /Chicken/getSaleData[cite: 8]
+   接收分頁與查詢條件，取得銷售資料清單，包含銷售日期、星期、客戶數、餐飲收入、建立日期與更新日期，並回傳分頁資訊與執行狀態[cite: 8]。
+
+2. 儲存銷售資料 API[cite: 8]
+   GET /Chicken/saveSaleData[cite: 8]
+   接收傳入的銷售日期、客戶數與餐飲收入參數，執行銷售資料的儲存或更新作業，並回傳執行狀態[cite: 8]。

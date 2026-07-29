@@ -1,0 +1,5 @@
+SyncYahooOrder ## Yahoo訂單資料同步系統
+
+1. API: 執行Yahoo訂單資料同步作業
+GET /syncYahooOrder
+執行Yahoo訂單資料同步作業，透過 `SyncYahooOrderEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢訂單與交易資料，並將相關訂單主檔、收件人、日期狀態、產品明細與庫存資料寫入或更新至本地資料庫中[cite: 8]

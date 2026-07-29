@@ -1,0 +1,1432 @@
+## Parking Module
+
+# 1. 停車發票補登 API POST /rest/pss/InvoiceParking/appendInvoice4Parking
+執行停車發票補登作業 ・ 支援多種補登管道(POS/Service/APS_UN) ・ 驗證車牌號碼有效性 ・ 整合停
+車系統API驗證 ・ 建立停車消費紀錄 ・ 計算停車優惠金額
+http://localhost:8095/Surrounding/rest/pss/InvoiceParking/appendInvoice4Parking
+
+A. 針對 Service 渠道的測試 (需要 lpj_file 有資料)
+程式碼會呼叫 check4Parking 檢查 lpj_file。
+
+SQL
+-- 插入一筆待核銷的發票記錄
+INSERT INTO lpj_file (lpj03, lpj09, lpj05, lpjpos, lpj01, lpj13, ta_lpj01) 
+VALUES ('INV123456', 'uncheck', '2026-06-15', 'CENTER01', 'COUNTER01', 999, 50.0);
+B. 針對 APS_UN 渠道的測試 (需要 checklog4Parking 有資料)
+程式碼會檢查該發票是否已經在日誌中有記錄。
+
+SQL
+-- 假設 checklog4Parking 是查詢 PARKING_POS_LOG 表
+INSERT INTO PARKING_POS_LOG (
+    invoice_no, random_no, invoice_date, channel
+) VALUES (
+    'INV123456', 'RANDOM789', '2026-06-15', 'APS_UN'
+);
+C. 針對 POS 渠道的測試
+此渠道直接呼叫 appendInvoice4Parking 進行寫入，無需預先檢查，您可以直接送出 POST 請求進行測試。
+
+3. 如何執行測試 (步驟)
+為了驗證上述 SQL 是否生效，請依照以下順序操作：
+
+執行 Insert SQL：將上述資料寫入您的資料庫。
+
+呼叫 API：使用 Postman 或 Curl 發送請求。
+
+範例 (Service 渠道)：
+
+JSON
+{
+  "sInvoiceNo": "INV123456",
+  "sChannel": "Service",
+  "sCarNO": "ABC-1234"
+}
+
+
+
+# 2. 車牌驗證 API GET /rest/pss/Parking/checkCarNO
+驗證車牌號碼有效性 ・ 查詢停車系統車牌資訊 ・ 確認車牌存在性 ・ 用於停車交易前置驗證
+http://localhost:8095/Surrounding/rest/pss/Parking/checkCarNO
+
+sCarNO ABC-1234
+
+
+# 3. 停車位查詢 API GET /rest/pss/Parking/getRemainSpace
+查詢停車場剩餘車位 ・ 取得汽車位數量 ・ 取得機車位數量 ・ 用於停車位顯示與提示
+http://localhost:8095/Surrounding/rest/pss/Parking/getRemainSpace
+
+
+
+4. 停車折抵查詢 API POST /rest/pss/Parking/getDiscount
+查詢會員停車折抵優惠 ・ 驗證車牌租賃狀態 ・ 驗證會員卡片有效性 ・ 檢查折抵使用次數限制 ・ 計算
+VIP/會員卡/訂位折抵小時數 ・ 管理節假日折抵規則
+http://localhost:8095/Surrounding/rest/pss/Parking/getDiscount
+
+{
+    "sCenter": "CENTER01",
+    "sCardNO": "TS12345678",
+    "sCarNO": "ABC-1234"
+}
+
+-- 1. 查看表結構與內容
+SELECT * FROM PARKING_DISCOUNT_SET;
+
+-- 2. 若為空，您可能需要手動匯入基本的折扣設定 (範例)l
+INSERT INTO PARKING_DISCOUNT_SET 
+(disc_id, disc_name, disc_hour, is_active, sort_order) 
+VALUES 
+('vip', 'VIP會員折抵', 2.0, 'Y', 1),
+('black_card', '黑卡折抵', 4.0, 'Y', 2),
+('vip_common', '一般VIP折抵', 1.0, 'Y', 3);
+
+--
+INSERT INTO PARKING_DISCOUNT_EXEC (p_no, car_no, disc_id, access_date, is_used) VALUES (1, 'TS12345678', 'vip', NOW(), 'N')
+
+-- 執行這條語句，確認資料庫撈不撈得到您剛才 INSERT 的那筆資料
+SELECT t2.p_no, t1.disc_id 
+FROM PARKING_DISCOUNT_SET t1 
+LEFT JOIN PARKING_DISCOUNT_EXEC t2 ON t1.disc_id = t2.disc_id 
+WHERE t2.car_no = 'TS12345678';
+
+-- 確保車號與查詢時一致
+INSERT INTO PARKING_DISCOUNT_EXEC (car_no, disc_id, access_date, is_used, p_no, disc_hour) 
+VALUES ('TS12345678', 'vip', NOW(), 'Y', 999, 2.0);
+
+您的開發進度：已突破最困難的資料庫連線與 JOIN 查詢問題。
+
+接下來的任務：
+
+實作一個查詢車輛「當前進場狀態」的方法（例如：SELECT * FROM PARKING_IN WHERE car_no = :carNo）。
+
+將該結果填入您的主 Bean 中。
+
+最後將折扣列表併入該主 Bean 回傳。
+
+--
+-- 插入測試進場資料
+INSERT INTO PARKING_DISCOUNT_EXEC_HEADER (p_no, car_no, enter_date, parking_hour, parking_fee)
+VALUES (101, 'TS12345678', NOW(), 4.5, 150.0);
+-- 確保折扣設定表有資料
+INSERT INTO PARKING_DISCOUNT_SET (disc_id, disc_name, disc_hour, is_active, sort_order)
+VALUES ('vip', 'VIP會員折抵', 2.0, 'Y', 1),
+       ('black_card', '黑卡折抵', 0.0, 'Y', 2);
+--
+SELECT * FROM PARKING_DISCOUNT_SET;
+
+http://localhost:8095/Surrounding/rest/pss/Parking/getDiscount
+
+{
+    "cardNO": "CARD_123", 
+    "carNO": "TEST_CAR_001",
+    "enterDate": "2026-06-17T10:00:00.000+00:00",
+    "parkingHour": 4.5,
+    "parkingFee": 150.0,
+    "pNo": 101,
+    "discount": []
+}
+
+{
+    "pNo": -1,
+    "userNO": "M123456789",
+    "cardNO": "TEST_CAR_001",
+    "discount": [
+        {
+            "bookingDate": "",
+            "discId": "vip",
+            "discName": "VIP會員折抵",
+            "discHour": 2.0,
+            "isUsed": "N",
+            "modify": "N"
+        },
+        {
+            "bookingDate": "",
+            "discId": "black_card",
+            "discName": "黑卡折抵",
+            "discHour": 0.0,
+            "isUsed": "N",
+            "modify": "N"
+        }
+    ]
+}
+	   
+
+
+5. 停車資訊同步 API POST /rest/pss/Parking/sync
+同步停車交易資訊 ・ 更新停車折抵使用狀態 ・ 記錄停車費用與折抵金額 ・ 完成停車交易結算
+http://localhost:8095/Surrounding/rest/pss/Parking/sync
+
+{
+    "center": "CENTER_001",
+    "carNO": "TEST_CAR_001",
+    "pNo": 101,
+    "userNO": "M123456789",
+    "parkingHour": 4.5,
+    "parkingFee": 150.0,
+    "discFee": 50.0,
+    "payAmt": 100.0,
+    "paidAmt": 100.0,
+    "totDiscHour": 2.0,
+    "realDiscHour": 1.0,
+    "otherDiscFee": 0.0,
+    "enterDT": "2026-06-17 10:00:00",
+    "discount": [
+        {
+            "discId": "vip",
+            "discName": "VIP 折抵",
+            "pNo": 101,
+            "modify": "Y",
+            "isUsed": "N"
+        },
+        {
+            "discId": "sale_hour",
+            "discName": "優惠時數",
+            "pNo": 101,
+            "modify": "Y",
+            "isUsed": "N"
+        }
+    ]
+}
+
+
+6. 折抵刪除 API POST /rest/pss/Parking/delCardNO
+刪除停車折抵紀錄 ・ 取消已選擇的折抵方案 ・ 重新選擇折抵優惠 ・ 修正錯誤的折抵申請
+http://localhost:8095/Surrounding/rest/pss/Parking/delCardNO
+
+{
+    "center": "CENTER_001",
+    "cardNO": "CARD_12345",
+    "pNo": 101
+}
+
+
+--
+停車系統 API 文檔
+1. 停車發票補登 API POST /rest/pss/InvoiceParking/appendInvoice4Parking
+http://localhost:8095/Surrounding/rest/pss/InvoiceParking/appendInvoice4Parking
+
+
+
+
+
+功能：
+執行停車發票補登作業
+支援多種補登管道(POS/Service/APS_UN)
+驗證車牌號碼有效性
+整合停車系統API驗證
+建立停車消費紀錄
+計算停車優惠金額
+請求參數：
+sInvoiceDate: 發票日期(yyyy-MM-dd)
+sInvoiceNo: 發票號碼
+sRandomNo: 發票隨機碼
+sInvoiceTime: 發票時間
+sChannel: 補登管道(POS/Service/APS_UN/其他)
+iTranXType: 交易類型
+sCenter: 門市代碼
+sCounterId: 服務檯ID
+sCardNO: 卡號
+sCarNO: 車牌號碼
+dPromoteAmt: 優惠金額
+補登流程說明：
+管道	流程說明
+POS	直接補登POS發票
+Service	驗證車牌後，查詢發票資訊自動補登
+APS_UN	檢查未核銷日誌後補登
+其他	驗證發票後，查詢原始資訊補登
+2. 車牌驗證 API
+GET /rest/pss/Parking/checkCarNO
+功能：
+驗證車牌號碼有效性
+查詢停車系統車牌資訊
+確認車牌存在性
+用於停車交易前置驗證
+查詢參數：
+sCarNO: 車牌號碼
+回傳數據：
+code: 狀態碼
+message: 狀態訊息
+3. 停車位查詢 API
+GET /rest/pss/Parking/getRemainSpace
+功能：
+查詢停車場剩餘車位
+取得汽車位數量
+取得機車位數量
+用於停車位顯示與提示
+回傳數據：
+code: 狀態碼
+message: 狀態訊息
+car: 汽車剩餘車位數
+motor: 機車剩餘車位數
+4. 停車折抵查詢 API
+POST /rest/pss/Parking/getDiscount
+功能：
+查詢會員停車折抵優惠
+驗證車牌租賃狀態
+驗證會員卡片有效性
+檢查折抵使用次數限制
+計算VIP折抵小時數
+計算會員卡折抵小時數
+計算訂位折抵(TS卡)
+計算銷售額折抵
+管理節假日折抵規則
+請求參數：
+sCenter: 門市代碼
+sCardNO: 會員卡號
+sCarNO: 車牌號碼
+回傳數據結構：
+sIsRent: 是否為租賃車(Y/N)
+sUserName: 會員姓名(租賃時)
+sUserNO: 會員編號
+sCardNO: 會員卡號
+p_no: 折抵記錄序號
+discount: 折抵詳情列表
+折抵類型說明：
+折抵代碼	折抵名稱	適用會員	說明
+black_card	黑卡折抵	黑卡會員(66)	固定折抵小時數
+vip	VIP折抵	VIP會員(62)	全年固定折抵小時數
+vip_common	VIP平日折抵	VIP會員(62)	平日折抵小時數
+vip_holiday	VIP假日折抵	VIP會員(62)	假日折抵小時數
+ts_common	訂位平日折抵	TS卡會員	平日折抵小時數
+ts_holiday	訂位假日折抵	TS卡會員	假日折抵小時數
+member_card	會員卡折抵	一般會員	會員卡折抵小時數
+sale_hour	銷售額折抵	全員	按消費金額計算(每$500折$1)
+5. 停車資訊同步 API
+POST /rest/pss/Parking/sync
+功能：
+同步停車交易資訊
+更新停車折抵使用狀態
+記錄停車費用與折抵金額
+完成停車交易結算
+請求參數：
+sCenter: 門市代碼
+sCarNO: 車牌號碼
+dParkingHour: 停車小時數
+dDiscFee: 折抵金額
+dPayAmt: 實際支付金額
+6. 折抵刪除 API
+POST /rest/pss/Parking/delCardNO
+功能：
+刪除停車折抵紀錄
+取消已選擇的折抵方案
+重新選擇折抵優惠
+修正錯誤的折抵申請
+請求參數：
+sCenter: 門市代碼
+sCardNO: 會員卡號
+p_no: 折抵記錄序號
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Invoice 
+
+查詢會員特定日期的發票紀錄
+單純驗證發票效期與隨機碼
+補登發票並同步觸發 ChiefPay 贈獎
+影城等特定場域發票點數補登
+取得已使用/已核銷的發票明細
+退貨時扣回對應累點
+
+
+## POSTMAN API test 
+# 查詢會員特定日期的發票紀錄 GET /rest/app/Invoice/getUserInvoice/{sMemberID}/{sDate}
+http://localhost:8095/Surrounding/rest/app/Invoice/getUserInvoice/M12345/2026-06-11
+
+# 單純驗證發票效期與隨機碼 GET /rest/app/Invoice/validate/{sInvoiceNo}/{sRandomNo}/{sCounterId}
+http://localhost:8095/Surrounding/rest/app/Invoice/validate/AB00000001/500.0/00002
+
+# 補登發票並同步觸發 ChiefPay 贈獎 GET /rest/app/Invoice/appendInvoice/{sMemberID}
+http://localhost:8095/Surrounding/rest/app/Invoice/appendInvoice/M123456789?sCardID=CARD001&sInvoiceNo=AB00000002&sRandomNo=200.0
+
+Params 分頁設定
+KEY,VALUE,說明
+sCardID,CARD001,對應 sCardID
+sInvoiceNo,AB00000002,對應 sInvoiceNo
+sRandomNo,200.0,對應 sRandomNo
+
+# 影城等特定場域發票點數補登 GET /rest/app/Invoice/TheaterAppend/{sMemberID
+http://localhost:8095/Surrounding/rest/app/Invoice/TheaterAppend/M123456789?sCardID=CARD001&sInvoiceNo=INV20260613&sTotalPrice=500.0&sInvoiceDate=2026-06-13&sPointType=2
+
+java.lang.RuntimeException: 影城補登異常: JDBC exception executing SQL [SELECT * FROM THEATER_APPEND_TABLE
+WHERE MEMBER_ID = ?
+  AND CARD_ID = ?
+  AND INVOICE_NO = ?
+] [Table 'surrounding_sf.theater_append_table' doesn't exist] [n/a]; SQL [n/a]
+
+# 取得已使用/已核銷的發票明細 GET /rest/app/Invoice/getInvoiceUsed
+http://localhost:8095/Surrounding/rest/app/Invoice/getInvoiceUsed?sInvoiceNo=AB12345678
+
+Caused by: org.hibernate.exception.SQLGrammarException: JDBC exception executing SQL [SELECT * FROM INVOICE_USED_TABLE
+WHERE INVOICE_NO = ?
+] [Table 'surrounding_sf.invoice_used_table' doesn't exist] [n/a]
+
+# 退貨時扣回對應累點 GET /rest/app/Invoice/AppendReturn/{sMemberID}
+http://localhost:8095/Surrounding/rest/app/Invoice/AppendReturn/M123456789?sInvoiceNo=AB00000002&sTotalPrice=1000&sInvoiceDate=2026-06-11&dPoint=200
+
+在 Postman 的 Params 分頁直接輸入，網址會自動變長：
+Params:
+sInvoiceNo : AB00000002
+sTotalPrice : 1000
+sInvoiceDate : 2026-06-13
+dPoint : 50
+
+
+
+
+
+
+--
+查詢會員特定日期的發票紀錄
+GET /Surrounding/api/invoice/getUserInvoice/{sMemberID}/{sDate}
+
+========================================================================
+發票與點數補登模組（Invoice Module）測試計畫與系統流程圖
+========================================================================
+
+查詢會員特定日期發票紀錄 (getUserInvoice)】
+
+  前端發起 GET 請求
+       |
+       |  /getUserInvoice/{sMemberID}/{sDate}  (例如: /.../M12345/2026-06-11)
+       v
+  InvoiceController (接收 String 參數)
+       |
+       |---> 呼叫 invoiceService.getUserInvoice(sMemberID, sDate)
+       v
+  InvoiceService (安全防禦驗證與交易控制 @Transactional(readOnly = true))
+       |
+       |  執行 java.time.LocalDate.parse(sDate)
+       |  將字串成功解析為符合現代架構的 LocalDate 物件
+       v
+  InvoiceRepository (執行物件導向 JPQL 查詢)
+       |  
+       |  SELECT t FROM TcPsaFile t
+       |  WHERE t.tcPsa13 IN (SELECT l.lpj03 FROM LpjFile l WHERE l.lpj01 = :sMemberID)
+       |    AND t.tcPsa04 = :sDate
+       |    AND t.tcPsaplant = 'BY001'
+       |  ORDER BY t.tcPsa05
+       v
+  資料庫回傳 TcPsaFile 實體清單 (自動適應 Java 屬性映射)
+       |
+       |---> Service 接收 List<TcPsaFile> 並向下傳遞
+       v
+  InvoiceController (型態自動推導，不進行手動強轉)
+       |
+       |---> 回傳封裝格式 InvoiceDTO.Response.success(data, "查詢成功")
+       v
+  前端接收 200 OK 乾淨 JSON 回應 (code="0000", yn="Y", data=[...])
+  
+## 整合測試（Integration Test Plan）
+
+1. 測試目標
+   驗證舊系統 (InvoiceDAOImpl) 複雜原生 SQL 重構至新架構 (Spring Boot 3 + JPQL 文字區塊 + LocalDate) 後，
+   字串日期解析、多表子查詢、JPA 實體映射、交易控制與防禦性錯誤攔截是否完全正常。
+
+2. 測試環境準備
+   - 資料庫：確認開發/測試環境中，lpj_file 與 tc_psa_file 的關聯資料正確（且廠區編號包含 'BY001'）。
+   - 框架版本：Spring Boot 3.x, Hibernate 6.x, JDK 17+。
+   
+	-- 步驟 (1)：新增主檔/關聯檔 lpj_file 資料
+	INSERT INTO lpj_file (
+		lpj01, 
+		lpj03, 
+		lpj02 -- 假設有其他必填欄位，可視實際 Schema 增減
+	) VALUES (
+		'M12345',         -- lpj01: 會員 ID / 識別碼
+		'LINK_KEY_001',   -- lpj03: 內部關聯鍵 (對應 tc_psa13)
+		'測試專用專案'       -- lpj02: 備註或專案名稱 (範例)
+	);
+
+	-- 步驟 (2)：新增主檔/關聯檔 TcPsaFile 資料
+	INSERT INTO TC_PSA_FILE (
+		TC_PSAPLANT, 
+		TC_PSA01, 
+		TC_PSA02, 
+		TC_PSA03, 
+		TC_PSA04, 
+		TC_PSA05, 
+		TC_PSA13, 
+		TC_PSA16, 
+		TC_PSA17, 
+		TC_PSA31
+	) VALUES (
+		'BY001',             -- TC_PSAPLANT: 廠區限制
+		'INV20260611001',    -- TC_PSA01: 單據號
+		'001',               -- TC_PSA02: 序號
+		'A',                 -- TC_PSA03: 類別
+		'2026-06-11',        -- TC_PSA04: MySQL 直接給字串即可 (或用 STR_TO_DATE('2026-06-11', '%Y-%m-%d'))
+		'1',                 -- TC_PSA05: 項次
+		'LINK_KEY_001',      -- TC_PSA13: 會員關聯外鍵
+		'AB-12345678',       -- TC_PSA16: 發票號碼
+		'1234',              -- TC_PSA17: 隨機碼
+		2500.0               -- TC_PSA31: 消費金額
+	);
+	
+3. 測試用例與詳細步驟
+
+   測試用例 01：會員特定日期發票查詢 (getUserInvoice) - 成功情境
+   ├─ 預置條件：
+   │  1. lpj_file 表存在一筆資料：lpj01='M12345', lpj03='LINK_KEY_001'
+   │  2. tc_psa_file 表存在對應資料：tc_psa13='LINK_KEY_001', tc_psa04=to_date('2026-06-11','yyyy-MM-dd'), tc_psaplant='BY001'
+   ├─ 測試步驟：
+   │  1. 使用 Postman 發送 GET 請求至：
+   │     http://localhost:8080/Surrounding/api/invoice/getUserInvoice/M12345/2026-06-11
+   │  2. 檢查 API 狀態碼是否為 200 OK。
+   │  3. 驗證回傳 JSON 的 code 是否為 "0000"，message 是否為 "查詢成功"。
+   │  4. 驗證 data 陣列中是否正確回傳該筆發票實體內容。
+   └─ 預期結果：查詢成功，字串日期 "2026-06-11" 在 Service 層成功轉為 LocalDate 並傳入 JPQL 執行，無任何 ClassCastException。
+
+   測試用例 02：發票查詢 - 用戶輸入錯誤日期格式情境（防禦性測試）
+   ├─ 預置條件：無。
+   ├─ 測試步驟：
+   │  1. 故意輸入錯誤格式的日期字串發送請求：/getUserInvoice/M12345/20260611 (少了橫線) 或 /getUserInvoice/M12345/error-date
+   │  2. 檢查日誌是否輸出 `DateTimeParseException` 攔截警告。
+   │  3. 檢查系統回傳的錯誤格式。
+   └─ 預期結果：Service 層的 `LocalDate.parse()` 精準捕捉異常，系統未崩潰，回傳明確的提示訊息「日期格式錯誤，請使用正確的 yyyy-MM-dd 格式」。
+
+   測試用例 03：新增臨時會員 (addTempMember) - 寫入功能與交易驗證
+   ├─ 預置條件：確認 LSM_FILE 資料表目前沒有 center_id='TPE' 且 member_id='TMP888' 的紀錄。
+   ├─ 測試步驟：
+   │  1. 經由對應的業務入口或測試端點觸發 addTempMember("TPE", "TMP888")。
+   │  2. 檢查底層是否正確執行 INSERT 敘述。
+   │  3. 直接查詢資料庫 LSM_FILE 表，驗證該筆資料是否已被寫入且帶有正確的建立時間。
+   └─ 預期結果：資料成功寫入，無執行期異常。
+
+   測試用例 04：新增臨時會員 (addTempMember) - 異常回復驗證 (Rollback)
+   ├─ 預置條件：刻意在 Service 中製造 RuntimeException（例如傳入不合法的 null 值或主鍵衝突）。
+   ├─ 測試步驟：
+   │  1. 觸發帶有錯誤參數的 addTempMember 請求。
+   │  2. 捕捉到 RuntimeException 錯誤日誌。
+   │  3. 檢查資料庫，確認無任何殘留髒資料寫入。
+   └─ 預期結果：@Transactional 成功觸發，資料庫狀態完全回滾 (Rollback)。   └─ 預期結果：回傳 code="0000"，yn="Y"，且 data 欄位為空陣列 `[]`，系統不崩潰。
+
+
+單純驗證發票效期與隨機碼
+GET /Surrounding/api/invoice/validate/{sInvoiceNo}/{sRandomNo}
+validate
+
+進行「純發票驗證（唯讀）」的階段，並且包含了「金額比對機制（sRandomNo 傳入金額）」以及「發票 8 天過期限制」與「LSM_FILE 重複使用檢查」。
+
+
+準備 TC_PSA_FILE 測試發票紀錄
+這張表存放發票的基礎狀態與檢核資訊。
+
+	SQL
+	-- 正常發票 (TC-01)
+	INSERT INTO TC_PSA_FILE (TC_PSAPLANT, TC_PSA01, TC_PSA02, TC_PSA03, TC_PSA04, TC_PSA06, TC_PSA16, TC_PSA17, TC_PSA31, TC_PSA13) 
+	VALUES ('P01', 'A001', 'INV_001', 'SEQ_001', CURRENT_DATE, '01', 'AB', '12345678', 100.0, NULL);
+
+	-- 專櫃排除發票 (TC-03)
+	INSERT INTO TC_PSA_FILE (TC_PSAPLANT, TC_PSA01, TC_PSA02, TC_PSA03, TC_PSA04, TC_PSA06, TC_PSA16, TC_PSA17, TC_PSA31, TC_PSA13) 
+	VALUES ('P01', '00002', 'INV_002', 'SEQ_002', CURRENT_DATE, '01', 'AB', '00000001', 500.0, NULL);
+	
+	http://localhost:8095/Surrounding/api/invoice/validate/AB00000001/500.0/00002
+	
+	{
+    "code": "E001",
+    "message": "此專櫃為排除專櫃，不可參與活動，專櫃代碼：00002",
+    "data": {
+        "upload_message": null,
+        "download_message": null,
+
+	-- 退貨狀態發票 (TC-04)
+	INSERT INTO TC_PSA_FILE (TC_PSAPLANT, TC_PSA01, TC_PSA02, TC_PSA03, TC_PSA04, TC_PSA06, TC_PSA16, TC_PSA17, TC_PSA31, TC_PSA13) 
+	VALUES ('P01', 'A001', 'INV_003', 'SEQ_003', CURRENT_DATE, '02', 'AB', '00000002', 200.0, NULL);
+
+	-- 已綁定會員發票 (TC-05)
+	INSERT INTO TC_PSA_FILE (TC_PSAPLANT, TC_PSA01, TC_PSA02, TC_PSA03, TC_PSA04, TC_PSA06, TC_PSA16, TC_PSA17, TC_PSA31, TC_PSA13) 
+	VALUES ('P01', 'A001', 'INV_004', 'SEQ_004', CURRENT_DATE, '01', 'AB', '00000003', 300.0, 'MEM12345');
+
+	-- 過期發票 (TC-06，發票日為 10 天前)
+	INSERT INTO TC_PSA_FILE (TC_PSAPLANT, TC_PSA01, TC_PSA02, TC_PSA03, TC_PSA04, TC_PSA06, TC_PSA16, TC_PSA17, TC_PSA31, TC_PSA13) 
+	VALUES ('P01', 'A001', 'INV_005', 'SEQ_005', CURRENT_DATE - 10, '01', 'AB', '00000004', 400.0, NULL);
+
+發票驗證測試計畫與步驟
+
+[開始]
+  |
+  v
+步驟一：發送 Postman GET 請求
+  |   URL: {{base_url}}/Surrounding/api/invoice/validate/{{sInvoiceNo}}/{{sRandomNo}}/{{sCounterId}}
+  |   Method: GET
+  |
+  v
+步驟二：執行驗證邏輯
+  |
+  |---> 1. 檢查發票是否存在 (TC_PSA_FILE)
+  |       |
+  |       |---> [不存在] ---> 回傳 ErrCode: 2002 (查無發票)
+  |       |
+  |       v
+  |---> 2. 檢查專櫃與狀態 (TC_PSA01, TC_PSA06)
+  |       |
+  |       |---> [專櫃代碼 = 00002] ---> 回傳 ErrCode: 2011 (排除專櫃)
+  |       |
+  |       |---> [狀態 = 退貨/換貨] ---> 回傳 ErrCode: 2009 (退貨狀態)
+  |       |
+  |       v
+  |---> 3. 檢查 POS 綁定狀態 (TC_PSA13)
+  |       |
+  |       |---> [已綁定] ---> 回傳 ErrCode: 2005 (發票已使用)
+  |       |
+  |       v
+  |---> 4. 檢查 8 天過期限制 (TC_PSA04)
+  |       |
+  |       |---> [超過 8 天] ---> 回傳 ErrCode: 2004 (發票過期)
+  |       |
+  |       v
+  |---> 5. 檢查 ERP 綁定與防重刷 (LSM_FILE)
+  |       |
+  |       |---> [紀錄存在] ---> 回傳 ErrCode: 2003 (ERP已綁定/重複補登)
+  |       |
+  |       v
+  v
+步驟三：回傳結果 (ErrCode: 0000 驗證通過)
+  |
+  v
+[結束]
+
+-- 6/11
+
+補登發票並同步觸發 ChiefPay 贈獎
+GET /Surrounding/api/invoice/appendInvoice/{sMemberID}
+http://localhost:8095/Surrounding/api/invoice/appendInvoice/M123456789
+
+原程式碼缺少資料表 tqa_file 欄位定義; (6/14) 
+
+
+INSERT INTO lnt_file (
+    lnt01,        -- 補上這欄
+    lnt06,        
+    lnt30,        
+    lnt17,        
+    lnt18         
+) VALUES (
+    '601',        -- 假設這是企業代號
+    'INV001',     
+    'TQA001',     
+    '2026-01-01', 
+    '2026-12-31'  
+);
+
+INSERT INTO tc_psa_file (
+    tc_psa01, tc_psa02, tc_psa03, tc_psa04, tc_psaplant, 
+    tc_psa16, tc_psa17, tc_psa31, -- 關鍵測試欄位
+    tc_psa05, tc_psa06, tc_psa07, tc_psa08 -- 繼承原始資料的必要欄位
+)
+SELECT 
+    'INV001',        -- 新發票ID
+    tc_psa02,        -- 繼承
+    tc_psa03,        -- 繼承
+    '2026-06-13',    -- 測試日期
+    tc_psaplant,     -- 繼承
+    'INV',           -- 新前綴
+    '001',           -- 新後綴
+    '1234',          -- 新隨機碼
+    tc_psa05, tc_psa06, tc_psa07, tc_psa08
+FROM tc_psa_file 
+WHERE tc_psa01 = '00002' -- 請換成您資料庫中確定存在的一筆 ID
+LIMIT 1;
+
+-- 6/13
+
+取得已使用/已核銷的發票明細
+GET /Surrounding/api/invoice/getInvoiceUsed?sInvoiceNo
+
+
+原程式碼缺少資料表 invoice_used_table  欄位定義; (6/14) 
+
+    /**
+     * 5. 查詢已使用發票 (簡化為僅針對業務表的查詢)
+     */
+    //dc- 原程式碼缺少資料表 invoice_used_table  欄位定義; (6/14)
+    @Query(value = """
+        SELECT * FROM INVOICE_USED_TABLE 
+        WHERE INVOICE_NO = :sInvoiceNo
+        """, nativeQuery = true)
+    List<Map<String, Object>> getInvoiceUsed(@Param("sInvoiceNo") String sInvoiceNo);
+
+
+影城等特定場域發票點數補登
+GET /Surrounding/api/invoice/TheaterAppend/{sMemberID}
+
+Postman 設定步驟
+方法 (Method): GET
+URL: 
+GET
+http://localhost:8080/Surrounding/api/invoice/TheaterAppend/M123456789
+
+參數 (Params): 在 Postman 的 Params 分頁中，將所有 @RequestParam 欄位填入：
+
+sCardID: CARD001
+sInvoiceNo: INV20260613
+sTotalPrice: 500.0
+sInvoiceDate: 2026-06-13
+sPointType: 2
+
+    //dc- 原程式碼缺少資料表 theater_append_table  欄位定義; (6/14)
+    @Query(value = """
+            SELECT * FROM THEATER_APPEND_TABLE 
+            WHERE MEMBER_ID = :sMemberID 
+              AND CARD_ID = :sCardID 
+              AND INVOICE_NO = :sInvoiceNo
+            """, nativeQuery = true)
+    Optional<Map<String, Object>> theaterAppend(
+
+
+
+退貨時扣回對應累點
+POST
+http://localhost:8095/Surrounding/api/invoice/AppendReturn/M123456789
+
+JSON
+{
+    "sInvoiceNo": "INV20260613",
+    "sTotalPrice": "1000",
+    "sInvoiceDate": "2026-06-13",
+    "dPoint": 50
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Member 架構與 API 流程
+
+1. Base Path 基礎路由規範
+   
+   Base Path: /Surrounding/api/app/Member (RESTful JSON / Java 21 + Spring Boot 3.4.3)
+   |
+   +---> @Validated (啟用控制器層級校驗)
+   +---> @Slf4j (結構化日誌記錄)
+   +---> @RequiredArgsConstructor (建構子 DI 注入)
+
+
+2. 壹 · 會員查詢服務 (Member Inquiry Services)
+
+   [卡片查詢]
+   |
+   +---> getAllCardByMemberID (依會員 ID 查詢全部卡片)
+   |     |
+   |     v 查詢 LpjFile
+   |       回傳該會員底下所有狀態為啟用的卡片清單
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getAllCardByMemberID/TEST_MEMBER_001
+ 
+		 + -> dto 已改成有 回傳 lpj 欄位值的格式
+		 
+   |
+   +---> getAllCardByID (依身分證 ID 查詢全部卡片)
+   |     |
+   |     v 查詢 LpjFile
+   |       跨帳號搜尋，獲取該身分證字號名下所有卡片
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getAllCardByID/A123456789
+   |
+   +---> getMainCard (查詢主卡資訊)
+   |     |
+   |     v 查詢 LpkFile / LpjFile
+   |       依據卡號查詢其對應的主卡姓名與主卡卡號
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMainCard/CARD_MAIN_001
+   |
+   +---> isExistLPK (確認 LPK 卡片是否存在)
+         |
+         v 查詢 LpkFile
+           傳入會員 ID，確認該會員在系統中是否存在
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/isExistLPK/MEMBER_001
+
+   [點數查詢]
+   |
+   +---> 依會員 ID 查詢點數餘額 (getPointByMemberID)
+   |     |
+   |     v 查詢 LpjFile
+   |       獲取該會員目前累積點數與點數主卡欄位
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getPointByMemberID/TEST_MEMBER_001
+   
+   
+		 |
+   +---> 依身分證 ID 查詢點數餘額 (getPointByID)
+         |
+         v 查詢 LpjFile
+           依身分證字號查詢其名下的點數與卡片狀態
+		    GET
+			http://localhost:8096/Surrounding/api/app/Member/getPointByID/A123456789 
+			
+	SET SQL_SAFE_UPDATES = 0;
+	DELETE FROM lsm_file WHERE lsm01 = 'A123456789';
+	DELETE FROM lpj_file WHERE lpj03 = 'A123456789';
+	DELETE FROM LPJ_FILE;
+	DELETE FROM LPK_FILE;
+	
+	INSERT INTO LPK_FILE (LPK01, LPK03, LPK04, LPKACTI) 
+	VALUES ('MEMBER_001', 'A123456789', '王小明', 'Y');
+	
+	-- 插入主卡 (TA_LPJ04 = 'Y')
+	INSERT INTO LPJ_FILE (
+		LPJ01, LPJ03, LPJ09, LPJ02, LPJ07, 
+		LPJ12, LPJ14, LPJ15, TA_LPJ02, TA_LPJ03, TA_LPJ04
+	) VALUES (
+		'MEMBER_001', 'CARD_MAIN_001', '2', '000', 150, 
+		1200.5, 50.0, 30.0, 10.0, 5.0, 'Y'
+	);
+
+	-- 插入副卡 (TA_LPJ04 = 'N')
+	INSERT INTO LPJ_FILE (
+		LPJ01, LPJ03, LPJ09, LPJ02, LPJ07, 
+		LPJ12, LPJ14, LPJ15, TA_LPJ02, TA_LPJ03, TA_LPJ04
+	) VALUES (
+		'MEMBER_001', 'CARD_SUB_001', '2', '000', 50, 
+		300.0, 10.0, 5.0, 0.0, 0.0, 'N'
+	);
+	
+	UPDATE LPJ_FILE 
+	SET LPJ07 = 150, 
+		LPJ12 = 1200.5, 
+		TA_LPJ04 = 'Y' 
+	WHERE LPJ01 = 'MEMBER_001' AND LPJ09 = '2';
+	
+
+
+   [聯絡資訊查詢]
+   |
+   +---> getMemberContact (依會員 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 LpkFile
+   |       獲取聯絡資料（底層包含去年消費加總與 VIP 等級判斷）
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMemberContact/MEMBER_001		
+   
+   
+   |
+   +---> getMemberContactByID (依身分證 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 LpkFile
+   |       依據身分證字號查詢該會員的聯絡資訊
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMemberContactByID/A123456789
+   
+   
+   |
+   +---> getMemberContactByCardID (依卡號查詢聯絡資訊)
+         |
+         v 查詢 LpkFile
+           依傳入卡號尋找對應的主卡，並查詢其聯絡資訊
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/getMemberContactByCardID/CARD_MAIN_001
+		   
+		   
+
+   [內部微服務 RPC]
+   |
+   +---> getCardNumbersByMemberID 依會員 ID 取得卡號清單 (internal /card-numbers)
+         |
+         v 專供內部 RPC
+           僅供紅利微服務 (Bonus Service) 等內部系統直連，回傳純字串卡號清單
+		   GET
+		   http://localhost:8096/Surrounding/api/app/Member/internal/members/MEMBER_001/card-numbers
+
+
+--0609
+
+
+3. 貳 · 會員管理服務 (Member Management Services)
+
+   [臨時會員建立]
+   |
+   +---> addTempMember (新增一般臨時會員)
+   |     |
+   |     +---> 需帶入中心代碼（sCenter）
+   |     +---> 檢查會員 ID 是否重複，建立過渡期卡片與帳號
+			   POST
+		       http://localhost:8096/Surrounding/api/app/Member/addTempMember
+			   JSON
+			   {
+					"sCenter": "中心代號",
+					"sMemberID": "A123456789"
+			   }
+   
+   
+   |
+   +---> addRSTempMember (新增 RS 臨時會員)
+         |
+         +---> 專用於線下零售店鋪 (Retail Store) 渠道
+         +---> 需帶入中心代碼（sCenter）
+         +---> 系統自動代入姓名為「臨時會員」，等級標記為 "TEMP"
+			   POST
+		       http://localhost:8096/Surrounding/api/app/Member/addRSTempMember
+			   JSON
+			   {
+					"sCenter": "中心代號",
+					"sMemberID": "A123456789"
+			   }
+			   -> [2m2026-06-09T16:03:02.372+08:00[0;39m [31mERROR[0;39m [35m20664[0;39m [2m--- [beyoung-member] [omcat-handler-2] [0;39m[36mc.beyoung.member.api.MemberController   [0;39m [2m:[0;39m addRSTempMember 處理異常: 
+
+				  java.lang.Exception: A123456789 已存在，無法新增RS臨時會員
+			    
+			   JSON
+			   {
+					"timestamp": "2026-06-09T08:03:02.416+00:00",
+					"status": 417,
+					"error": "Expectation Failed",
+					"path": "/Surrounding/api/app/Member/addRSTempMember"
+				}
+				
+				JSON
+				{
+					"sCenter": "中心代號",
+					"sMemberID": "NEW_USER_001"
+				}
+				-> 新增RS臨時會員：sCenter -> 中心代號, sMemberID -> NEW_USER_001
+								
+
+   [轉正式會員]
+   |
+   +---> doFormal (臨時會員升級為正式會員)
+         |
+         +---> (1) 傳入參數: sTempMemberID
+         +---> (2) 身分證檢核機制 (檢查 sID 是否已被佔用)
+         +---> (3) 帶入必填欄位: 姓名、身分證、生日、手機、地址、Email
+         +---> (4) 系統自動校驗與自動化處理
+                   |
+                   +---> 生日格式驗證 YYYYMMDD（8 碼）
+                   +---> 手機格式驗證（09xxxxxxxx）
+                   +---> 依身分證第 2 碼自動判斷性別 (1為男, 2為女)
+				   
+				   POST
+				   http://localhost:8096/Surrounding/api/app/Member/addTempMember
+				   JSON
+				   {
+						"sCenter": "603",
+						"sMemberID": "TEMP_001"
+				   }
+									   
+				   POST
+				   http://localhost:8096/Surrounding/api/app/Member/doFormal
+				   JSON
+				   {
+					"sTempMemberID": "TEMP_001",
+					"sName": "王小明",
+					"sID": "A123456789",
+					"sBirthday": "1990-01-01",
+					"sMobile": "0912345678",
+					"sAddress": "台北市信義區測試路1號",
+					"sEmail": "test@example.com"
+				   }
+				   JSON
+				   {
+						"success": true,
+						"message": "成功",
+						"data": "轉正式會員成功"
+				   }
+				   -> 轉正式會員：sTempMemberID -> TEMP_001, sName -> 王小明, sID -> A123456780
+				               
+					
+   [眷屬綁定]
+   |
+   +---> doHouseHold (臨時會員與正式會員綁定)
+         |
+         +---> 驗證機制: 臨時會員等級必須為 000
+         +---> 渠道限制: 目標主卡號開頭必須符合 7708、EC、APP、TS 官方規範
+         +---> 執行動作: 合併兩端帳號，進行點數合併與眷屬關係綁定
+         +---> 回傳結果: 綁定後最新點數與卡片資訊
+				 SQL
+				 -- 1. 刪除衝突的正式會員資料
+				DELETE FROM LPJ_FILE WHERE LPJ01 = 'MEMBER_001';
+
+				-- 2. 確認臨時會員狀態已就緒 (需為 000)
+				UPDATE LPJ_FILE SET LPJ02 = '000', TA_LPJ04 = 'Y' WHERE LPJ01 = 'TEMP_001';
+
+				-- 3. 確認主卡號已符合前綴要求 (需符合 7708/EC/APP/TS)
+				UPDATE LPJ_FILE SET LPJ03 = '770800000' WHERE LPJ01 = 'A123456789';
+		 
+				POST
+				http://localhost:8096/Surrounding/api/app/Member/doHouseHold				   
+				JSON
+				{
+					"sTempMemberID": "TEMP_001",
+					"sID": "A123456789"
+				}
+									   
+
+   [聯絡資料更新]
+   |
+   +---> updateMemberContact (更新聯絡資料)
+         |
+         v 傳入參數 (皆為選填)
+           sMobile (更新手機號碼) ---> [符合正則] ---> 寫入資料庫
+           sEmail  (更新 Email)   ---> [符合格式] ---> 寫入資料庫
+           sAddr   (更新地址)     ---> [文字寫入] ---> 寫入資料庫
+		   PUT
+		   http://localhost:8096/Surrounding/api/app/Member/updMemberContact
+		   JSON
+		   {
+			"sMemberID": "A123456789",
+			"sMobile": "0912345678",
+			"sEmail": "test@example.com",
+			"sAddr": "台北市萬華區和平西路三段"
+		   }
+		   
+		   
+		   
+		   
+
+
+4. 參 · 驗證與架構規範 (Validation & Response Specs)
+
+   [Spring Validation 參數校驗]
+   |
+   +---> @NotBlank  ---> 攔截必填欄位保護 (姓名、身分證、手機等不可為空)
+   +---> @Email     ---> 攔截並執行 Email 格式驗證
+   +---> @Pattern   ---> 執行 Regex 手機格式驗證 (^09\d{8}$)
+   +---> @Size      ---> 限制生日長度必須精確為 8 碼
+
+   [統一回應封裝]
+   |
+   +---> MemberDTO.Response<T> ---> 系統標準化應答結構
+   |     |
+   |     +---> success() ---> 泛型靜態工廠方法 (快速回傳成功狀態與資料 Payload)
+   |
+   +---> 全域異常轉換機制 (Exception Handling)
+         |
+         v catch (Exception e)
+           將所有未預期錯誤交由 ResponseStatusException 處理
+           拋出標準 HTTP 417 EXPECTATION_FAILED (系統執行異常回傳)
+================================================================================
+
+================================================================================
+Part 1. Bonus-Member MS_Spring Cloud Stream 微服務非同步與 RPC 運作流程
+================================================================================
+
+1. /addPoint 手動加點流程圖 (事件驅動、非同步解耦)
+
+   前端 (POS / Web 端)
+   |
+   +---> (1) POST /addPoint (JSON/XML 請求)
+   v
+   bonus-service (紅利微服務)
+   |
+   +---> (2) 進入 Controller (確認參數格式、記錄結構化日誌 log.info)
+   |
+   +---> (3) 呼叫 bonusService.addPoint() [@Transactional]
+   |     |
+   |     +---> 驗證專櫃合法性 (validateCounter)
+   |     |     [不合法] ---> 拋出異常，中斷事務，回傳 HTTP 400
+   |     |
+   |     +---> 查詢本地 lrq_file (活動設定檔，動態取得贈點基數)
+   |     |
+   |     +---> 寫入本地 lsm_file (同步儲存點數流水帳明細)
+   |
+   +---> (4) 封裝點數異動資料至 PointChangedEvent (運用 Builder 模式)
+   |
+   +---> (5) 透過 StreamBridge 將事件非同步發送至訊息佇列
+   v
+   Kafka 訊息佇列 (MQ) ---> Topic: member-point-topic
+   |
+   +---> (6) 依據組態配置，非同步派送事件至監聽端
+         cloud:
+           stream:
+             kafka:
+               binder:
+                 brokers: localhost:9092
+             function:
+               definition: syncMemberPoints
+   v
+   member-service (會員微服務)
+   |
+   +---> (7) PointChangedListener 接收到點數異動事件
+   |     透過 @Bean syncMemberPoints() 監聽器觸發
+   |
+   +---> (8) 啟動本地事務 [@Transactional], 更新 lpj_file (會員主檔總點數)
+
+
+2. /getPointHistByMemberID 查詢點數歷史歷程流程圖 (資料聚合、RPC 直連)
+
+   前端 (POS / Web 端 / 後台系統)
+   |
+   +---> (1) POST /getPointHistByMemberID (帶入查詢區間參數)
+   v
+   member-service (會員微服務)
+   |
+   +---> (2) 進入 MemberService.getPointHistByMemberID() 
+   |         (Member 端無點數流水帳資料，扮演 RPC 發起方)
+   |
+   +---> (3) 透過 FeignClient (bonusServiceClient) 跨服務發起網路調用
+   v
+   bonus-service (紅利微服務)
+   |
+   +---> (4) 進入 BonusService.getPointHistByMemberID() 接收請求
+   |
+   +---> (5) 由於點數依卡號儲存，Bonus 須透過 memberServiceClient 反向 RPC 索取卡號清單
+   |         |---> 出發: HTTP GET /Surrounding/api/app/Member/{memberId}/card-numbers
+   v
+   member-service (會員微服務 - 內部 RPC 接口)
+   |
+   +---> (6) 執行本地查詢: 撈取 lpj_file 找到該會員 ID 綁定的所有動態卡號
+   |
+   +---> (7) 將 List<String> cardNos 回傳給 Bonus 微服務
+   v
+   bonus-service (紅利微服務)
+   |
+   +---> (8) 收到卡號清單，進入防禦性檢查機制：
+   |         |
+   |         +---> [RPC 失敗/逾時] ---> catch 區塊攔截異常，容錯回傳空列表
+   |         +---> [卡號清單為空]  ---> Java 層直接攔截，回傳空列表 (防止 Oracle IN 空集合報錯)
+   |
+   +---> (9) 通過檢查，執行本地 Native SQL 查詢 (運用 Java Text Blocks 技術)
+   |         |
+   |         +---> 條件過濾: WHERE lsm01 IN (:cardNos) AND lsm05 BETWEEN ...
+   |         +---> 跨表關聯: lsm_file LEFT JOIN lnt_file AND tqa_file
+   |         +---> 結果映射: 封裝為 List<LsmFile> 狀態資料並逐層回傳
+   v
+   前端端點 (呈現最終點數歷程明細大表)
+
+
+================================================================================
+Part 2. Member Module 核心功能與安全架構規範 (全面整合 POST / PUT 版)
+================================================================================
+
+1. 基礎路由與技術規格
+   
+   Base Path: /Surrounding/api/app/Member (RESTful JSON)
+   |
+   +---> 核心環境: Java 21 + Spring Boot 3.4.3
+   +---> 組件管理: @Slf4j 結構化日誌 + @RequiredArgsConstructor 建構子 DI 注入
+   +---> 校驗機制: @Validated 啟用控制器方法層級單一參數校驗
+
+
+2. 壹 · 會員查詢服務 (Member Inquiry Services)
+
+   [卡片查詢]
+   |
+   +---> GET /isExistLPK/{sMemberID} (確認 LPK 卡片是否存在)
+   |     |
+   |     v 查詢 lpk_file
+   |       傳入會員 ID，確認該會員在系統中是否存在
+   |       存在回傳 YN="Y" 碼，查無資料回傳 YN="N" 碼
+   |
+   +---> GET /getAllCardByMemberID/{sMemberID} (依會員 ID 查詢全部卡片)
+   |     |
+   |     v 查詢 LPJ_FILE (條件: lpj09='2')
+   |       獲取該會員名下所有狀態為「啟用」的卡片清單並回傳
+   |
+   +---> GET /getAllCardByID/{sID} (依身分證 ID 查詢全部卡片)
+   |     |
+   |     v 跨表查詢 lpk_file JOIN lpj_file
+   |       跨帳號搜尋，精確獲取該身分證字號名下的所有卡片
+   |
+   +---> GET /getMainCard/{sCardID} (查詢主卡資訊)
+         |
+         v 內部關聯查詢 (lpk01=lpj01 且 ta_lpj04='Y')
+           依據卡號查詢其對應的主卡姓名與主卡卡號
+
+   [點數查詢]
+   |
+   +---> GET /getPointByMemberID/{sMemberID} (依會員 ID 查詢點數餘額)
+   |     |
+   |     v 查詢 LPJ_FILE (ta_lpj04='Y')
+   |       獲取該會員目前累積點數 (lpj07)、累積消費金額與點數主卡等核心帳務欄位
+   |
+   +---> GET /getPointByID/{sID} (依身分證 ID 查詢點數餘額)
+         |
+         v 關聯查詢 lpk_file JOIN lpj_file
+           依據身分證字號查詢其名下主卡的點數與卡片狀態
+
+   [聯絡資訊查詢]
+   |
+   +---> GET /getMemberContact/{sMemberID} (依會員 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 lpk_file
+   |       獲取聯絡資料（底層包含去年消費加總與 VIP 等級判斷邏輯）
+   |
+   +---> GET /getMemberContactByID/{sID} (依身分證 ID 查詢聯絡資料)
+   |     |
+   |     v 查詢 lpk_file
+   |       依據身分證字號查詢該會員的聯絡資訊
+   |
+   +---> GET /getMemberContactByCardID/{sCardID} (依卡號查詢聯絡資訊)
+         |
+         v 查詢 lpk_file
+           依傳入卡號尋找對應的主卡，並查詢與導出其聯絡基本資料
+
+   [內部 RPC 直連端點 - 認人查卡]
+   |
+   +---> GET /{memberId}/card-numbers (依會員 ID 取得卡號清單)
+         |
+         v 專供內部 RPC
+           不對外公開。僅供紅利微服務 (Bonus Service) 等內部系統遠端直連，回傳純字串卡號清單
+
+
+3. 貳 · 會員管理服務 (Member Management Services)
+
+   [臨時會員建立]
+   |
+   +---> POST /addTempMember/{sCenter}/{sMemberID} (新增一般臨時會員)
+   |     |
+   |     +---> 安全防護: 預先執行 checkExistLPK 檢核，已存在則拒絕建立
+   |     +---> 資料處理: 需帶入中心代碼（sCenter），檢查會員 ID 是否重複，建立過渡期卡片與帳號
+   |
+   +---> POST /addRSTempMember/{sCenter}/{sMemberID} (新增 RS 臨時會員)
+         |
+         +---> 渠道限定: 專用於線下零售店鋪 (Retail Store) 渠道點位
+         +---> 資料處理: 需帶入中心代碼（sCenter），系統自動代入姓名欄位為「臨時會員」，卡片等級標記為 "TEMP"
+
+   [轉正式會員]
+   |
+   +---> POST /doFormal/{sTempMemberID} (臨時會員升級為正式會員)
+         |
+         +---> Step 1: 盤查臨時會員資格 (確認 lpj02 等級必須為 "000" 或 "TEMP")
+         +---> Step 2: 身分證唯一性衝突檢查 (若 sID 已被其他帳號佔用則拋出異常)
+         +---> Step 3: 安全檢核必填欄位 (姓名、身分證、生日、手機、地址、Email)
+         +---> Step 4: 系統自動校驗與自動化處理
+                       |
+                       +---> 生日格式強制驗證 YYYYMMDD (精確 8 碼限制)
+                       +---> 手機格式強制驗證 (符合 09xxxxxxxx 規範)
+                       +---> 性別自動化判斷: 依身分證第 2 碼判定 (1->男/lpk06='1'; 2->女/lpk06='0')
+   
+   [眷屬綁定]
+   |
+   +---> POST /doHouseHold/{sTempMemberID}/{sID} (臨時會員與正式會員眷屬綁定)
+         |
+         +---> 資格審查: 驗證發起端臨時會員等級必須為 "000"
+         +---> 目標審查: 取得主卡號，主卡號不可為 null
+         +---> 渠道限制: 目標主卡號前置碼必須符合 7708、EC、APP、TS 官方合法渠道
+         +---> 執行動作: 雙邊主鍵非空校驗 ---> 合併兩端帳號 ---> 轉移點數並綁定眷屬關係
+         +---> 回傳結果: 重新抓取並回傳綁定後最新點數與卡片資訊 (LpjFile)
+
+   [聯絡資料更新]
+   |
+   +---> PUT /updMemberContact/{sMemberID} (更新聯絡資料)
+         |
+         +---> 傳入 Body / Param (皆為選填保護)：
+         |     sMobile (更新手機號碼) ---> [符合正則校驗] ---> 寫入資料庫
+         |     sEmail  (更新 Email)   ---> [符合格式校驗] ---> 寫入資料庫
+         |     sAddr   (更新地址)     ---> [安全文字寫入] ---> 寫入資料庫
+         |
+         +---> 執行動作: 依據傳入參數，更新現有會員的手機、Email 與通訊地址
+
+
+4. 參 · 參數校驗與統一應答規範 (Validation & Exception Specs)
+
+   [Spring Validation 參數校驗門神]
+   |
+   +---> @NotBlank  ---> 攔截並阻斷必填 Null 或空字串參數 (姓名、身分證、手機等不可為空保護)
+   +---> @Email     ---> 攔截並自動校驗標準 Email 電子郵件格式
+   +---> @Pattern   ---> Regex 正則式匹配校驗 (手機號碼格式驗證: ^09\d{8}$)
+   +---> @Size      ---> 嚴格限制欄位長度邊界 (生日長度限制為 min=8, max=8 精確 8 碼)
+
+   [架構回應與異常封裝]
+   |
+   +---> MemberDTO.Response<T> (標準化外層應答結構)
+   |     |
+   |     +---> success(T data) ---> 泛型靜態工廠方法，快速封裝成功狀態與資料 Payload
+   |
+   +---> 全域異常處理與轉換 (RuntimeException Handling)
+         |
+         v 異常攔截機制 (catch block)
+           系統內部發生 Exception 錯誤時，一律由捕獲器進行結構化 log.error 記錄
+           透過 ResponseStatusException 將錯誤轉譯為標準 HTTP 狀態碼
+           統一回傳 HTTP 417 EXPECTATION_FAILED (系統執行預期外異常回傳) 給前端
+================================================================================
+
+================================================================================
+【Beyoung 會員 APP 微服務系統 ─ 模組架構與函式定義流程圖】
+適用環境：Java 21 / Spring Boot 3.4.3 / Spring Data JPA
+================================================================================
+
+[起點：APP 端 / 外部前端 HTTP 請求]
+      |
+      | 請求發送 (透過 GET / POST / PUT)
+      v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 1. 核心控制層：MemberController.java                                         │
+│                                                                              │
+│ 職責：                                                                       │
+│  - 宣告 RESTful 外部端點，全面整合 Spring Validation 進行輸入參數校驗。        │
+│  - 將敏感個資異動（如轉正式、綁定）由 GET 升級為 POST/PUT 機制，防範資安風險。  │
+└──────────────────────────────────────────────────────────────────────────────┘
+      |
+      |--- (A) 查詢點數歷程明細 (單一參數)
+      |    v GET /Surrounding/api/app/Member/getPointHistByMemberID/{sMemberID}
+      |    public MemberDTO.Response<List<LplFile>> getPointHistByMemberID(String sMemberID)
+      |    |
+      |    +---> [流程驅動] ───> (導向步驟 2-A)
+      |
+      |--- (B) 新增臨時會員
+      |    v POST /Surrounding/api/app/Member/addTempMember
+      |    public MemberDTO.Response<String> addTempMember(@RequestBody TempMemberRequest request)
+      |    |
+      |    +---> [流程驅動] ───> (導向步驟 2-B)
+      |
+      |--- (C) 其他核心業務端點定義
+      |    |-- GET /isExistLPK/{sMemberID}      -> checkExistLPK(String)
+      |    |-- POST /addRSTempMember            -> addRSTempMember(TempMemberRequest)
+      |    |-- PUT /updMemberContact            -> updMemberContact(UpdateContactRequest)
+      |    |-- GET /getAllCardByMemberID/{id}   -> getAllCardByMemberID(String)
+      |    |-- GET /getAllCardByID/{sID}        -> getAllCardByID(String)
+      |    |-- GET /getPointByMemberID/{id}     -> getPointByMemberID(String)
+      |    |-- GET /getPointByID/{sID}          -> getPointByID(String)
+      |    |-- POST /doHouseHold                -> doHouseHold(HouseHoldRequest)
+      |    |-- POST /doFormal                   -> doFormal(FormalMemberRequest)
+      |    |-- GET /getCardNumbersByMemberId    -> lpjFileRepository.findCardNosByLpj01(String)
+      |    |-- GET /getMemberContact/{id}       -> getMemberContact(String)
+      |    |-- GET /getMemberContactByID/{sID}  -> getMemberContactByID(String)
+      |    |-- GET /getMemberContactByCardID    -> getMemberContactByCardID(String)
+      |    |-- GET /getMainCard/{sCardID}       -> getMainCard(String)
+      |
+      v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 2. 業務邏輯服務層：MemberService.java                                        │
+│                                                                              │
+│ 解決痛點與核心機制：                                                         │
+│  - 實作「方法多載 (Overloading)」，完美弭平控制器與遠端 FeignClient 參數差。 │
+│  - 將 Feign 回傳之通用非同步集合，利用 Java Stream 機械轉譯為 LplFile 實體。  │
+│  - 保留底層進場商務控制邏輯，改用一級快取一致的 Entity 進行持久化儲存。       │
+└──────────────────────────────────────────────────────────────────────────────┘
+      |
+      |--- [處理 2-A：解決 1 個參數與 3 個參數的適配與轉譯問題]
+      |    |
+      |    v 【多載函式 A-1】由 Controller 直接調用
+      |    public List<LplFile> getPointHistByMemberID(String sMemberID)
+      |    |
+      |    v 內部自動補齊預設起訖日，轉向呼叫
+      |    this.getPointHistByMemberID(sMemberID, "", "");
+      |    |
+      |    v 【多載函式 A-2】負責與遠端微服務對接
+      |    public List<Map<String, Object>> getPointHistByMemberID(String sMemberID, String sStartDate, String sEndDate)
+      |    |
+      |    v 透過 Feign 協定送出網路封包
+      |    +---> bonusServiceClient.getPointHistByMemberID(Map<String, String> params)
+      |    |
+      |    v 將回傳之 List<Map> 透過 Stream API 進行 Data Mapping 
+      |    +---> [型態轉譯] ───> 封裝為系統實體 ───> (導向步驟 3-A)
+      |
+      |--- [處理 2-B：實體狀態持久化控制]
+      |    |
+      |    v 【直接操控實體函式】
+      |    public void addTempMemberDirectEntity(String sCenter, String sMemberID, String sCardID)
+      |    |
+      |    v 執行實體封裝與一級快取變更
+      |    +---> em.persist(LpkFile); 
+      |    +---> em.persist(LpjFile); ───> 屬性命名優化 ───> (導向步驟 3-B 與 3-C)
+      |
+      |--- [其他服務層商業邏輯函式定義]
+           |-- public MemberDTO.ExistResponse checkExistLPK(String sMemberID)
+           |-- public void addTempMember(String sCenter, String sMemberID)
+           |-- public void addRSTempMember(String sCenter, String sMemberID)
+           |-- public void updateMemberContact(String sMemberID, String sMobile, String sEmail, String sAddr)
+           |-- public List<LpjFile> getAllCardByMemberID(String sMemberID)
+           |-- public List<LpjFile> getAllCardByID(String sID)
+           |-- public LpjFile getPointByMemberID(String sMemberID)
+           |-- public LpjFile getPointByID(String sID)
+           |-- public LpjFile doHouseHold(String sTempMemberID, String sID)
+           |-- public void doFormal(String sTempMemberID, String sName, String sID, ...)
+           |-- public LpkFile getMemberContact(String sMemberID)
+           |-- public LpkFile getMemberContactByID(String sID)
+           |-- public LpkFile getMemberContactByCardID(String sCardID)
+           |-- public LpkFile getMainCard(String sCardID)
+           |-- public LpjFile getMemberByCardID(String cardID)
+           |-- public LpkFile getMemberByCardID2(String sCardID)
+           |-- public LpkFile getMemberByCardID3(String sCardID)
+           |-- public LpkFile getMemberByCardID4(String sCardID)
+           |-- public boolean is000(String sCardID)
+      |
+      v
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 3. 基礎設施與數據持久層：Entity 模型定義                                     │
+│                                                                              │
+│ 欄位與結構調整重點：                                                         │
+│  - 調整時間格式為 LocalDateTime，確保時區與記憶體操作無落差。                │
+│  - 修正欄位屬性命名，如將大寫命名缺陷調整為 lpjpos，排除 Setter 未定義錯誤。   │
+└──────────────────────────────────────────────────────────────────────────────┘
+      |
+      |---> [3-A：點數歷史模型] ───> LplFile.java
+      |     |-- private String lpl01; // 會員ID
+      |     |-- private java.sql.Date lpl02; // 歷程日期
+      |     |-- private Integer lpl09; // 點數明細
+      |
+      |---> [3-B：會員基本擴充模型] ───> LpkFile.java
+      |     |-- private String lpk01; // 主鍵
+      |     |-- private String lpk02; // 狀態級別 (衍生修正)
+      |     |-- private String lpk04; // 會員姓名
+      |     |-- private String lpk10; // 系統代碼 (衍生修正)
+      |     |-- private String lpk13;
+      |     |-- private String lpkacti;
+      |     |-- private LocalDateTime lpkcrat; // 格式校正
+      |     |-- private String lpkoriu;
+      |     |-- private String lpkorig;
+      |     |-- private String lpkpos;
+      |     |-- private String lpkud02;
+      |     |-- private Integer lpkud08;
+      |     |-- private Integer lpkud09;
+      |     |-- private Integer lpkud10;
+      |     |-- private String lpk20;
+      |     |-- private String lpk21;
+      |     |-- private LocalDateTime taLpk04;
+      |     |-- private String taLpk05;
+      |     |-- private String taLpk06;
+      |
+      |---> [3-C：卡片點數明細模型] ───> LpjFile.java
+            |-- private String lpj01; // 複合主鍵
+            |-- private String lpj02; // 等級代碼
+            |-- private String lpj03; // 卡號
+            |-- private LocalDateTime lpj04; // 格式校正
+            |-- private Double lpj06;
+            |-- private Integer lpj07;
+            |-- private String lpj09; // 複合主鍵
+            |-- private Integer lpj12;
+            |-- private Integer lpj13;
+            |-- private Integer lpj14;
+            |-- private Integer lpj15;
+            |-- private String lpj16;
+            |-- private String lpj17;
+            |-- private LocalDateTime lpj18;
+            |-- private String lpj19;
+            |-- private String lpjpos; // 核心優化：更名為小寫以利 Lombok 產出 setLpjpos()
+            |-- private Integer taLpj01;
+            |-- private Integer taLpj02;
+            |-- private Integer taLpj03;
+            |-- private String taLpj04;
+
+      |
+      | 資料落庫變更確認 (Commit)
+      v
+[終點：資料庫實體交易完成]
+================================================================================

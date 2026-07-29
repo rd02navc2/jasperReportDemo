@@ -1,0 +1,9 @@
+## Theater 影城銷售與上傳管理系統
+
+1. 查詢銷售資料 API[cite: 14]
+   * **URL**: `POST /Theater/getSaleData`[cite: 14]
+   * **功能說明**: 讀取分頁參數與JSON查詢條件，透過影城服務取得符合筆數與世紀上傳資料清單，將日期格式化、星期對照對應、顧客數、票務收入（ticket_income）、餐飲收入（fmb_income）及總收入（total_income = ticket_income + fmb_income）包裝為分頁JSON物件回傳；若發生例外則記錄錯誤並回傳失敗訊息[cite: 14]。
+
+2. 儲存銷售資料 API[cite: 14]
+   * **URL**: `POST /Theater/saveSaleData`[cite: 14]
+   * **功能說明**: 接收前端傳入包含銷售日期、顧客數、票務收入與餐飲收入的JSON資料，交由影城服務進行儲存作業（傳入系統屬性與日誌記錄），成功時回傳成功標記，失敗時則攔截例外並回傳錯誤訊息[cite: 14]。

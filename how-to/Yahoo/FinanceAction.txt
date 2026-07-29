@@ -1,0 +1,17 @@
+## Finance 財務管理 API
+
+1. 取得訂單資料 API[cite: 8]
+   GET /Finance/getOrder[cite: 8]
+   取得使用者的公司代號，依照不同平台（Yahoo、Rakuten、PChome）計算不同的起訖日期區間，查詢並回傳訂單明細與成本價格資料[cite: 8]。
+
+2. 取得運費資料 API[cite: 8]
+   GET /Finance/getShippingFee[cite: 8]
+   依據平台類型與公司代號計算日期區間，查詢並回傳相關運費與訂單明細資料[cite: 8]。
+
+3. 取得退貨資料 API[cite: 8]
+   GET /Finance/getReturn[cite: 8]
+   依據平台條件取得指定區間內的退貨訂單資料，並回傳退貨建立日、退貨代號、退貨扣款日及成本價等欄位[cite: 8]。
+
+4. 取得退貨運費資料 API[cite: 8]
+   GET /Finance/getReturnFee[cite: 8]
+   針對 Yahoo 與 PChome 平台計算退貨相關的運費與明細資料，並依條件回傳對應的退貨運費金額[cite: 8]。

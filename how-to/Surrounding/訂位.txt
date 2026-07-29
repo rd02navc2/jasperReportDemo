@@ -1,0 +1,958 @@
+## 訂位
+
+1. AI 機器人 API
+POST /rest/ts/OOA/AIRobot
+接收 LINE 訊息事件整合 OpenAI API 進行 AI 回覆實時對話與智能應答支持文本消息處理
+0%
+2. IT 機器人 API
+POST /rest/ts/OOA/ITRobot
+接收 IT 相關查詢從客服知識庫查詢答案返回相關客服回覆內容不支持 AI 生成回覆
+0%
+3. 工作機器人 API
+POST /rest/ts/OOA/echo
+簡單回聲機器人將用戶消息原樣返回用於測試與驗證支持基礎文本回覆
+0%
+4. 取得支付 URL API
+POST /rest/ts/OOA/getPaymentUrl
+生成 OneOnAir QR Code 支付連結支持多種支付類型(LinePay 等)返回 Web、Android、iOS 支付 URL記錄交易日誌
+0%
+5. 退款 API (OOA)
+POST /rest/ts/OOA/refund
+執行 OneOnAir 交易退款支持全額與部分退款驗證原交易紀錄記錄退款詳情
+0%
+6. 交易查詢 API (OOA)
+POST /rest/ts/OOA/query
+查詢 OneOnAir 交易狀態獲取支付與退款信息檢索交易詳細信息
+0%
+7. 支付確認回調 API
+GET /rest/ts/OOA/getConfirm
+接收 OneOnAir 支付確認更新交易狀態為已確認返回確認成功訊息
+0%
+8. 支付通知回調 API
+GET /rest/ts/OOA/getNotify
+接收 OneOnAir 支付結果通知更新交易完成狀態轉發結果至電商系統記錄通知日誌
+0%
+9. 交易狀態查詢 API (OOA)
+POST /rest/ts/OOA/getStatus
+查詢交易最終狀態返回詳細狀態代碼支持電商系統查詢
+0%
+10. 取得支付條碼 API
+POST /rest/ts/PP/getPaymentBarcode
+生成 PayPlus 支付條碼用於行動支付與超商代收返回條碼與有效期限
+0%
+11. 信用卡狀態查詢 API
+POST /rest/ts/PP/getCreditCardStatus
+查詢信用卡授權狀態獲取卡片詳細信息驗證卡片有效性
+0%
+12. 刪除信用卡授權 API
+POST /rest/ts/PP/deleteCreditCardAuth
+刪除保存的信用卡授權移除會員卡片記錄清除卡片 Token
+0%
+13. 信用卡列表查詢 API
+POST /rest/ts/PP/getCreditCardList
+查詢會員所有保存的信用卡返回卡片列表支持多卡管理
+0%
+14. 取得新增卡片頁面 API
+POST /rest/ts/PP/getCardPage
+生成卡片新增授權頁面 URL導向 PayPlus 卡片管理頁用於會員新增卡片
+0%
+15. 新增卡片結果回調 API
+POST /rest/ts/PP/getResult
+接收卡片新增結果保存卡片授權信息返回確認訊息
+0%
+16. 3D 驗證結果回調 API
+POST /rest/ts/PP/get3DResult
+接收 3D 驗證結果保存驗證信息返回確認狀態
+0%
+17. 查詢 3D 頁面資訊 API
+POST /rest/ts/PP/get3DPage
+查詢 3D 驗證頁面信息獲取 HPP URL返回交易詳情
+0%
+18. 信用卡授權 API (TSPG)
+POST /rest/ts/PG/auth
+執行台新信用卡授權生成 HPP 支付頁面支持分期與紅利返回支付 URL
+0%
+19. 授權取消 API
+POST /rest/ts/PG/authCancel
+取消已授權的交易執行授權沖銷返回沖銷結果
+0%
+20. 退款 API (TSPG)
+POST /rest/ts/PG/refund
+執行交易退款全額退款返回退款結果
+0%
+21. 退款取消 API
+POST /rest/ts/PG/refundCancel
+取消已提交的退款恢復交易金額用於誤操作恢復
+0%
+22. 交易查詢 API (TSPG)
+POST /rest/ts/PG/query
+查詢交易狀態詳情獲取授權、清算、退款信息支持分期與紅利查詢
+0%
+23. 支付結果回調 API
+POST /rest/ts/PG/getPostBack
+接收台新支付結果回調更新交易狀態轉發至電商系統
+0%
+24. 交易狀態查詢 API (TSPG)
+POST /rest/ts/PG/getStatus
+查詢交易最終狀態返回詳細狀態代碼支持多卡類型查詢
+0%
+25. NCCC 授權 API
+POST /rest/ts/PG/ncccauth
+執行聯合信用卡中心授權生成 HPP 支付頁面支持分期與消費調用 NCCC SDK
+0%
+26. NCCC 授權取消 API
+POST /rest/ts/PG/ncccauthCancel
+取消 NCCC 授權交易執行沖銷操作調用 NCCC SDK
+0%
+27. NCCC 支付回調 API
+GET /rest/ts/PG/getNCCCPostBack
+接收 NCCC 支付結果解析授權訊息更新交易狀態轉發至電商系統
+0%
+28. NCCC 批次上傳 API
+POST /rest/ts/PG/ncccupload
+生成 NCCC 交易批次文件執行批次上傳調用上傳工具記錄上傳結果
+0%
+29. NCCC 批次下載 API
+POST /rest/ts/PG/ncccdownload
+下載 NCCC 清算回覆文件解析回覆檔案更新交易清算狀態調用下載工具
+
+--
+
+## 訂位
+
+1. AI 機器人 API POST /rest/ts/OOA/AIRobot
+接收 LINE 訊息事件整合 OpenAI API 進行 AI 回覆實時對話與智能應答支持文本消息處理
+http://localhost:8095/Surrounding/rest/ts/OOA/AIRobot
+
+{
+  "events": [
+    {
+      "type": "message",
+      "replyToken": "nHanC9VqKdg63K1pY3yNN3q6vB",
+      "message": {
+        "id": "325708",
+        "type": "text",
+        "text": "你好，請幫我測試 AI 機器人"
+      }
+    }
+  ]
+}
+
+[0;39m [31mERROR[0;39m [35m8832[0;39m [2m--- [beyond-surrounding] [omcat-handler-0] [0;39m[36mc.b.s.ts.service.OneOnAirService        [0;39m [2m:[0;39m 呼召 OpenAI Feign 失敗: 
+feign.FeignException$Unauthorized: [401 Unauthorized] during [POST] to [https://api.openai.com/v1/chat/completions] [OpenaiFeignClient#askOpenai(String,String)]: []
+
+2. IT 機器人 API POST /rest/ts/OOA/ITRobot
+接收 IT 相關查詢從客服知識庫查詢答案返回相關客服回覆內容不支持 AI 生成回覆
+http://localhost:8095/Surrounding/rest/ts/OOA/ITRobot
+
+{
+  "events": [
+    {
+      "type": "message",
+      "replyToken": "itRobotTestToken123456",
+      "message": {
+        "id": "99999",
+        "type": "text",
+        "text": "測試客服問題"
+      }
+    }
+  ]
+}
+
+[0;39m [31mERROR[0;39m [35m15880[0;39m [2m--- [beyond-surrounding] [omcat-handler-0] [0;39m[36mc.b.s.ts.service.OneOnAirService        [0;39m [2m:[0;39m ITRobot 呼叫 LINE Reply Feign 失敗: 
+feign.FeignException$Unauthorized: [401 Unauthorized] during [POST] to [https://api.line.me/v2/bot/message/reply] [LineReplyFeignClient#replyToLine(String,String)]: []
+	at feign.FeignException.clientErrorStatus(FeignException.java:245) ~[feign-core-13.5.jar:na]
+
+3. 工作機器人 API POST /rest/ts/OOA/echo 
+簡單回聲機器人將用戶消息原樣返回用於測試與驗證支持基礎文本回覆
+http://localhost:8095/Surrounding/rest/ts/OOA/echo
+
+[0;39m [31mERROR[0;39m [35m8864[0;39m [2m--- [beyond-surrounding] [omcat-handler-0] [0;39m[36mc.b.s.ts.service.OneOnAirService        [0;39m [2m:[0;39m EchoRobot 呼叫 LINE Reply Feign 失敗: 
+feign.FeignException$Unauthorized: [401 Unauthorized] during [POST] to [https://api.line.me/v2/bot/message/reply] [LineReplyFeignClient#replyToLine(String,String)]: []
+
+4. 取得支付 URL API POST /rest/ts/OOA/getPaymentUrl
+生成 OneOnAir QR Code 支付連結支持多種支付類型(LinePay 等)返回 Web、Android、iOS 支付 URL記錄交易日誌
+http://localhost:8095/Surrounding/rest/ts/OOA/getPaymentUrl
+
+{
+  "order_no": "A202607130001",
+  "card_no": "411111XXXXXX1111",
+  "amt": 1500.0,
+  "payment_type": "LinePay"
+}
+
+[0;39m [31mERROR[0;39m [35m9312[0;39m [2m--- [beyond-surrounding] [omcat-handler-0] [0;39m[36mc.b.s.ts.controller.OneOnAirController  [0;39m [2m:[0;39m getPaymentUrl 異常: 
+feign.RetryableException: api.example.com executing POST https://api.example.com/LinePay/v1/qr/request
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+5. 退款 API (OOA) POST /rest/ts/OOA/refund
+執行 OneOnAir 交易退款支持全額與部分退款驗證原交易紀錄記錄退款詳情
+http://localhost:8095/Surrounding/rest/ts/OOA/refund
+
+
+{
+  "order_no": "A202607130001",
+  "new_order_no": "R202607130001",
+  "refund_amt": 1500.0
+}
+
+
+[0;39m [31mERROR[0;39m [35m18416[0;39m [2m--- [beyond-surrounding] [omcat-handler-2] [0;39m[36mc.b.s.ts.controller.OneOnAirController  [0;39m [2m:[0;39m refund 異常: 
+feign.RetryableException: api.example.com executing POST https://api.example.com/LinePay/v1/qr/refund
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+INSERT INTO TS_OOA_LOG (
+    order_no, 
+    payment_type, 
+    card_no, 
+    case_id, 
+    trade_no, 
+    amt, 
+    create_date
+) VALUES (
+    'A202607130001', 
+    'LinePay', 
+    '411111XXXXXX1111', 
+    'CASE_TEST_99999', 
+    'TRADE_TEST_88888', 
+    1500.00, 
+    NOW()
+);
+
+6. 交易查詢 API (OOA) POST /rest/ts/OOA/query
+查詢 OneOnAir 交易狀態獲取支付與退款信息檢索交易詳細信息
+http://localhost:8095/Surrounding/rest/ts/OOA/query
+
+{
+  "order_no": "A202607130001"
+}
+
+[0;39m [31mERROR[0;39m [35m9184[0;39m [2m--- [beyond-surrounding] [omcat-handler-0] [0;39m[36mc.b.s.ts.controller.OneOnAirController  [0;39m [2m:[0;39m query 異常: 
+feign.RetryableException: api.example.com executing POST https://api.example.com/LinePay/v1/qr/paydetails
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+7. 支付確認回調 API GET /rest/ts/OOA/getConfirm
+接收 OneOnAir 支付確認更新交易狀態為已確認返回確認成功訊息
+http://localhost:8095/Surrounding/rest/ts/OOA/getConfirm?merchanttradeno=A202607130001
+
+
+-- 1. 先刪除舊的衝突資料
+DELETE FROM TS_OOA_LOG WHERE order_no = 'A202607130001';
+
+-- 2. 重新寫入乾淨的測試資料
+INSERT INTO TS_OOA_LOG (
+    order_no, payment_type, card_no, case_id, trade_no, amt, create_date, confirm_date
+) VALUES (
+    'A202607130001', 'LinePay', '411111XXXXXX1111', 'CASE_CONFIRM_TEST', 'TRADE_CONFIRM_TEST', 1500.00, NOW(), NULL
+);
+
+8. 支付通知回調 API GET /rest/ts/OOA/getNotify
+接收 OneOnAir 支付結果通知更新交易完成狀態轉發結果至電商系統記錄通知日誌
+http://localhost:8095/Surrounding/rest/ts/OOA/getNotify?merchanttradeno=A202607130001&rtncode=000&rtnmsg=交易成功
+
+測試完成後，記得去你的 application.properties (或 application-prod.properties)，
+把 OneOnAir_EC_Notify_URL 改回真正的電商接收端點。這樣當金流通知進來時，消費者就會被正確導回電商前台首頁或訂單完成
+
+REPLACE INTO TS_OOA_LOG (
+    order_no, 
+    payment_type, 
+    card_no, 
+    case_id, 
+    trade_no, 
+    amt, 
+    create_date,
+    ret_code,
+    ret_msg,
+    notify_date
+) VALUES (
+    'A202607130001', 
+    'LinePay', 
+    '411111XXXXXX1111', 
+    'CASE_NOTIFY_TEST', 
+    'TRADE_NOTIFY_TEST', 
+    1500.00, 
+    NOW(),
+    NULL,  -- 初始 ret_code 為空
+    NULL,  -- 初始 ret_msg 為空
+    NULL   -- 初始 notify_date 為空
+);
+
+--07/13/2026
+
+9. 交易狀態查詢 API (OOA) POST /rest/ts/OOA/getStatus
+查詢交易最終狀態返回詳細狀態代碼支持電商系統查詢
+http://localhost:8095/Surrounding/rest/ts/OOA/getStatus
+
+{
+    "order_no": "ORD202607170001",
+    "payment_type": "CREDIT"
+}
+
+
+feign.RetryableException: api.example.com executing POST https://api.example.com/GetPaymentBarcode
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+
+INSERT INTO TS_OOA_LOG (ORDER_NO, PAYMENT_TYPE, CREATE_DATE, CONFIRM_DATE, NOTIFY_DATE, REFUND_DATE, RET_CODE, RET_MSG)
+VALUES ('ORD202607170001', 'CREDIT', NOW(), NULL, NULL, NULL, NULL, NULL);
+
+10. 取得支付條碼 API POST /rest/ts/PP/getPaymentBarcode
+生成 PayPlus 支付條碼用於行動支付與超商代收返回條碼與有效期限
+http://localhost:8095/Surrounding/rest/ts/PP/getPaymentBarcode
+
+{
+    "card_token": "tk_live_7483920194bcde",
+    "member_id": "MEM_20260717009",
+    "trans_no": "TXN8892019482"
+}
+
+--
+
+CREATE TABLE PAYPLUS_MEMBER_CARD (
+    MEMBER_ID VARCHAR(50) NOT NULL,
+    CARD_TOKEN VARCHAR(100) NOT NULL,
+    STATUS VARCHAR(10) DEFAULT 'ACTIVE',
+    PRIMARY KEY (MEMBER_ID, CARD_TOKEN)
+);
+
+INSERT INTO PAYPLUS_MEMBER_CARD (MEMBER_ID, CARD_TOKEN, STATUS) 
+VALUES ('MEM_20260717009', 'tk_live_7483920194bcde', 'ACTIVE');
+
+
+11. 信用卡狀態查詢 API POST /rest/ts/PP/getCreditCardStatus
+查詢信用卡授權狀態獲取卡片詳細信息驗證卡片有效性
+http://localhost:8095/Surrounding/rest/ts/PP/getCreditCardStatus
+
+
+{
+    "order_no": "ORD_20260717_99",
+    "member_id": "MEM_20260717009",
+    "trans_no": "TXN_CC_881920"
+}
+
+feign.RetryableException: api.example.com executing POST https://api.example.com/GetCreditCardStatus
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+-- 1. 建立信用卡綁定紀錄表 (若尚未建立)
+CREATE TABLE IF NOT EXISTS CREDIT_CARD_BIND_LOG (
+    ORDER_NO VARCHAR(50) NOT NULL,
+    MEMBER_ID VARCHAR(50) NOT NULL,
+    BANK_NO VARCHAR(20) DEFAULT NULL,
+    CARD_NAME VARCHAR(50) DEFAULT NULL,
+    CARD_NUMBER VARCHAR(30) DEFAULT NULL,
+    CARD_STATUS VARCHAR(10) NOT NULL,
+    CARD_TYPE VARCHAR(10) DEFAULT NULL,
+    CARD_TOKEN VARCHAR(100) DEFAULT NULL,
+    UPDATE_TIME DATETIME DEFAULT NULL,
+    PRIMARY KEY (ORDER_NO)
+);
+
+-- 2. 插入一筆「初始狀態（INIT）」的交易資料以供測試
+-- 當 API 成功接收到 PayPlus 回傳的卡片資訊時，會將這筆資料更新
+INSERT INTO CREDIT_CARD_BIND_LOG (
+    ORDER_NO, 
+    MEMBER_ID, 
+    CARD_STATUS, 
+    UPDATE_TIME
+) VALUES (
+    'ORD_20260717_99', 
+    'MEM_20260717009', 
+    'INIT', 
+    NOW()
+);
+
+12. 刪除信用卡授權 API POST /rest/ts/PP/deleteCreditCardAuth
+刪除保存的信用卡授權移除會員卡片記錄清除卡片 Token
+http://localhost:8095/Surrounding/rest/ts/PP/deleteCreditCardAuth
+
+{
+    "order_no": "ORD_20260717_99",
+    "member_id": "MEM_20260717009",
+    "card_token": "tk_live_7483920194bcde",
+    "trans_no": "TXN_DEL_881920"
+}
+
+
+feign.RetryableException: api.example.com executing POST https://api.example.com/DeleteCreditCardAuth
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+13. 信用卡列表查詢 API POST /rest/ts/PP/getCreditCardList
+查詢會員所有保存的信用卡返回卡片列表支持多卡管理
+http://localhost:8095/Surrounding/rest/ts/PP/getCreditCardList
+
+{
+    "member_id": "MEM_20260717009",
+    "trans_no": "TXN_LIST_772021"
+}
+
+
+feign.RetryableException: api.example.com executing POST https://api.example.com/GetCreditCardList
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+14. 取得新增卡片頁面 API POST /rest/ts/PP/getCardPage
+生成卡片新增授權頁面 URL導向 PayPlus 卡片管理頁用於會員新增卡片
+http://localhost:8095/Surrounding/rest/ts/PP/getCardPage
+
+{
+    "order_no": "ORD_20260717_101",
+    "member_id": "MEM_20260717009",
+    "payment_type": "04"
+}
+
+feign.RetryableException: api.example.com executing POST https://api.example.com/GetCardPage
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+15. 新增卡片結果回調 API POST /rest/ts/PP/getResult
+接收卡片新增結果保存卡片授權信息返回確認訊息
+http://localhost:8095/Surrounding/rest/ts/PP/getResult
+
+{
+    "RequestParams": {
+        "OrderNo": "ORD_20260717_101",
+        "MemberId": "MEM_20260717009",
+        "BankNo": "822",
+        "CardName": "中國信託 LINE Pay 卡",
+        "CardNumber": "4311-95XX-XXXX-1111",
+        "CardType": "VISA",
+        "CardToken": "tk_live_9a8b7c6d5e4f3g2h1"
+    }
+}
+
+16. 3D 驗證結果回調 API POST /rest/ts/PP/get3DResult
+接收 3D 驗證結果保存驗證信息返回確認狀態
+http://localhost:8095/Surrounding/rest/ts/PP/get3DResult
+
+{
+    "RequestParams": {
+        "MerchantTradeNo": "TRADE_20260717_999",
+        "Status": "SUCCESS",
+        "CardToken": "tk_live_9a8b7c6d5e4f3g2h1"
+    }
+}
+
+INSERT INTO CREDIT_CARD_BIND_LOG (
+    ORDER_NO, 
+    MEMBER_ID, 
+    BANK_NO, 
+    CARD_NAME, 
+    CARD_NUMBER, 
+    CARD_STATUS, 
+    CARD_TYPE, 
+    CARD_TOKEN
+) VALUES (
+    'TRADE_20260717_999',         -- 對應 Postman 中的 MerchantTradeNo
+    'MEM_USER_88888',             -- 會員編號
+    '822',                        -- 銀行代碼 (例如中國信託)
+    '中國信託 LINE Pay 信用卡',      -- 卡片名稱
+    '4311-95XX-XXXX-1111',        -- 卡號遮罩
+    'INIT',                       -- 初始狀態：等待 3D 驗證完成
+    'VISA',                       -- 卡別
+    NULL                          -- 尚未取得 Token
+);
+
+17. 查詢 3D 頁面資訊 API POST /rest/ts/PP/get3DPage
+查詢 3D 驗證頁面信息獲取 HPP URL返回交易詳情
+http://localhost:8095/Surrounding/rest/ts/PP/get3DPage
+
+{
+    "member_id": "MEM_20260717_ABC",
+    "barcode": "BARCODE_777888999"
+}
+
+INSERT INTO TS_PAYPLUS_LOG (
+    MEMBER_ID, 
+    BARCODE, 
+    ORDER_NO, 
+    HPP_URL
+) VALUES (
+    'MEM_20260717_ABC', 
+    'BARCODE_777888999', 
+    'ORD_3D_20260717', 
+    'https://payplus.com/3d/redirect/xyz'
+);
+
+--
+
+18. 信用卡授權 API (TSPG) POST /rest/ts/PG/auth
+執行台新信用卡授權生成 HPP 支付頁面支持分期與紅利返回支付 URL
+http://localhost:8095/Surrounding/rest/ts/PG/auth
+
+
+{
+    "order_no": "ORD_TS_20260718_01",
+    "ec_order_no": "EC_ORD_999888",
+    "pay_type": "1",
+    "amt": 1000,
+    "order_desc": "測試商品交易",
+    "card_no": "431195******2222",
+    "install_period": 0,
+    "use_redeem": "N"
+}
+
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8081/auth.ashx
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+INSERT INTO TS_PAYPLUS_LOG (
+    MEMBER_ID, 
+    BARCODE, 
+    ORDER_NO, 
+    HPP_URL,
+    PAYMENT_TYPE,
+    CARD_NUMBER
+) VALUES (
+    'MEM_20260718_TS', 
+    'BARCODE_TS_888', 
+    'ORD_TS_20260718_01', 
+    'https://localhost:8081/auth.ashx',
+    '1',
+    '431195******2222'
+);
+
+19. 授權取消 API POST /rest/ts/PG/authCancel
+取消已授權的交易執行授權沖銷返回沖銷結果
+http://localhost:8095/Surrounding/rest/ts/PG/authCancel
+
+{
+    "order_no": "ORD_TS_20260718_02",
+    "pay_type": "1",
+    "amt": 1000
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8081/other.ashx
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+INSERT INTO TS_PAYPLUS_LOG (
+    MEMBER_ID, 
+    BARCODE, 
+    ORDER_NO, 
+    HPP_URL,
+    PAYMENT_TYPE,
+    RET_CODE,   -- 💡 修正為 RET_CODE
+    RET_MSG     -- 💡 修正為 RET_MSG
+) VALUES (
+    'MEM_20260718_CANCEL', 
+    'BARCODE_TS_CANCEL', 
+    'ORD_TS_20260718_02', 
+    'https://localhost:8081/auth.ashx',
+    '1',
+    '00',
+    'SUCCESS'
+);
+
+20. 退款 API (TSPG) POST /rest/ts/PG/refund
+執行交易退款全額退款返回退款結果
+http://localhost:8095/Surrounding/rest/ts/PG/refund
+
+{
+    "order_no": "ORD_TS_20260718_REF",
+    "pay_type": "1",
+    "amt": 2500
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8081/other.ashx
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+INSERT INTO TS_EC_LOG (
+    ORDER_NO, 
+    EC_ORDER_NO,
+    TYPE, 
+    AMT, 
+    ORDER_DESC, 
+    CARD_NO, 
+    INSTALL_PERIOD, 
+    ACCESS_DATE, 
+    AUTH_DATE
+) VALUES (
+    'ORD_TS_20260718_REF', 
+    'EC_999111',
+    '1', -- 初始交易型態為 1 (授權)
+    2500, 
+    'Postman測試退款原訂單', 
+    '431195******1111', 
+    0, 
+    NOW(), 
+    NOW()
+);
+
+21. 退款取消 API POST /rest/ts/PG/refundCancel
+取消已提交的退款恢復交易金額用於誤操作恢復
+http://localhost:8095/Surrounding/rest/ts/PG/refundCancel
+
+{
+    "order_no": "ORD_TS_20260718_RFCAN",
+    "pay_type": "1",
+    "amt": 2500
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8081/other.ashx
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+INSERT INTO TS_EC_LOG (
+    ORDER_NO, 
+    EC_ORDER_NO,
+    TYPE, 
+    AMT, 
+    ORDER_DESC, 
+    CARD_NO, 
+    INSTALL_PERIOD, 
+    ACCESS_DATE, 
+    REFUND_DATE
+) VALUES (
+    'ORD_TS_20260718_RFCAN', 
+    'EC_999222',
+    '5', -- 💡 模擬狀態：已退款
+    2500, 
+    'Postman測試取消退款原單', 
+    '431195******3333', 
+    0, 
+    NOW(), 
+    NOW()
+);
+
+22. 交易查詢 API (TSPG) POST /rest/ts/PG/query
+查詢交易狀態詳情獲取授權、清算、退款信息支持分期與紅利查詢
+http://localhost:8095/Surrounding/rest/ts/PG/query
+
+{
+    "order_no": "ORD_TS_20260718_QRY2",
+    "pay_type": "1"
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8081/other.ashx
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+INSERT INTO TS_EC_LOG (
+    ORDER_NO, 
+    EC_ORDER_NO,
+    TYPE, 
+    AMT, 
+    ORDER_DESC, 
+    CARD_NO, 
+    INSTALL_PERIOD, 
+    ACCESS_DATE, 
+    AUTH_DATE,
+    RET_CODE,
+    RET_MSG
+) VALUES (
+    'ORD_TS_20260718_QRY2', 
+    'EC_999888',
+    '1', -- 初始交易型態：授權
+    3800, 
+    'Postman測試查詢對照表功能', 
+    '431195******8888', 
+    0, 
+    NOW(), 
+    NOW(),
+    '00',
+    'SUCCESS'
+);
+
+23. 支付結果回調 API POST /rest/ts/PG/getPostBack
+接收台新支付結果回調更新交易狀態轉發至電商系統
+http://localhost:8095/Surrounding/rest/ts/PG/getPostBack
+
+Postman 測試設定由於這是模擬台新主機以 x-www-form-urlencoded 格式發送的請求，Postman 設定如下：HTTP Method: POSTURL: http://localhost:8095/Surrounding/rest/ts/PP/getPostBackBody 選擇: x-www-form-urlencodedKeyValues_mid999222333ret_code00tx_type1order_noORD_TS_20260718_PBret_msgCAPTUREDauth_id_resp123456carrierId2載具測試
+
+Key,Value
+s_mid,999222333
+ret_code,00
+tx_type,1
+order_no,ORD_TS_20260718_PB
+ret_msg,CAPTURED
+auth_id_resp,123456
+carrierId2,載具測試
+
+
+
+INSERT INTO TS_EC_LOG (
+    ORDER_NO, 
+    EC_ORDER_NO,
+    TYPE, 
+    AMT, 
+    ORDER_DESC, 
+    CARD_NO, 
+    INSTALL_PERIOD, 
+    ACCESS_DATE, 
+    AUTH_DATE,
+    RET_CODE,
+    RET_MSG
+) VALUES (
+    'ORD_TS_20260718_PB', 
+    'EC_999444',
+    '1', 
+    1200, 
+    'Postman測試背景回傳原單', 
+    '431195******4444', 
+    0, 
+    NOW(), 
+    NOW(),
+    NULL, -- 尚未收到回傳碼
+    NULL
+);
+
+
+
+24. 交易狀態查詢 API (TSPG) POST /rest/ts/PG/getStatus
+查詢交易最終狀態返回詳細狀態代碼支持多卡類型查詢
+http://localhost:8095/Surrounding/rest/ts/PG/getStatus
+
+{
+    "order_no": "ORD_NCCC_20260718_001",
+    "card_type": "1"
+}
+
+
+CREATE TABLE IF NOT EXISTS NCCC_EC_LOG (
+    order_no VARCHAR(50) NOT NULL,
+    ret_code VARCHAR(10),
+    ret_msg VARCHAR(255),
+    auth_date DATETIME,
+    auth_cancel_date DATETIME,
+    refund_date DATETIME,
+    PRIMARY KEY (order_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE NCCC_EC_LOG 
+ADD COLUMN ec_order_no VARCHAR(50) NULL AFTER order_no,
+ADD COLUMN type VARCHAR(10) NULL AFTER ec_order_no,
+ADD COLUMN amt DOUBLE NULL AFTER type,
+ADD COLUMN amt_refund DOUBLE NULL AFTER amt,
+ADD COLUMN order_desc VARCHAR(255) NULL AFTER amt_refund,
+ADD COLUMN card_no VARCHAR(50) NULL AFTER order_desc,
+ADD COLUMN install_period INT DEFAULT 0 AFTER card_no,
+ADD COLUMN use_redeem VARCHAR(10) NULL AFTER install_period,
+ADD COLUMN access_date DATETIME NULL AFTER ret_msg;
+
+
+-- 若 NCCC_EC_LOG 表不存在，欄位結構與 TS_EC_LOG 相同
+INSERT INTO NCCC_EC_LOG (
+    ORDER_NO, 
+    RET_CODE, 
+    RET_MSG, 
+    AUTH_DATE,
+    AUTH_CANCEL_DATE, -- 💡 塞入取消日期以觸發 0001
+    REFUND_DATE
+) VALUES (
+    'ORD_NCCC_20260718_001', 
+    '00', 
+    'SUCCESS', 
+    NOW(), 
+    NOW(), -- 模擬已取消
+    NULL
+);
+
+25. NCCC 授權 API POST /rest/ts/PG/ncccauth
+執行聯合信用卡中心授權生成 HPP 支付頁面支持分期與消費調用 NCCC SDK
+http://localhost:8095/Surrounding/rest/ts/PG/ncccauth
+
+{
+    "order_no": "ORD_NCCC_20260718_099",
+    "ec_order_no": "EC_ORD_99999",
+    "amt": 1500,
+    "order_desc": "NCCC 現代化測試商品",
+    "card_no": "422111XXXXXX1111",
+    "install_period": 0,
+    "use_redeem": "0",
+    "card_type": "1"
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8082/merchant/HPPRequest
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+ALTER TABLE NCCC_EC_LOG ADD COLUMN approve_code VARCHAR(20) NULL AFTER order_no;
+
+26. NCCC 授權取消 API POST /rest/ts/PG/ncccauthCancel
+取消 NCCC 授權交易執行沖銷操作調用 NCCC SDK
+http://localhost:8095/Surrounding/rest/ts/PG/ncccauthCancel
+
+{
+    "order_no": "ORD_NCCC_20260718_099",
+    "pay_type": 1,
+    "amt": 1500
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8082/merchant/HPPRequest
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+
+-- 1. 清理舊資料，確保測試乾淨
+DELETE FROM NCCC_EC_LOG WHERE ORDER_NO = 'ORD_NCCC_20260718_099';
+
+-- 2. 模擬一筆當初已經「授權成功」的原始訂單紀錄
+INSERT INTO NCCC_EC_LOG (
+    ORDER_NO, 
+    EC_ORDER_NO, 
+    TYPE, 
+    AMT, 
+    ORDER_DESC, 
+    CARD_NO, 
+    INSTALL_PERIOD, 
+    APPROVE_CODE,  -- 授權成功碼
+    RET_CODE,      -- 原始授權成功 00
+    RET_MSG, 
+    ACCESS_DATE, 
+    AUTH_DATE,
+    AMT_REFUND,       -- 初始退款金額為空
+    AUTH_CANCEL_DATE  -- 初始取消時間為空
+) VALUES (
+    'ORD_NCCC_20260718_099', 
+    'EC_ORD_99999', 
+    1, -- 原始交易類型
+    1500, 
+    'NCCC 現代化測試商品', 
+    '422111XXXXXX1111', 
+    0, 
+    'APP001', 
+    '00', 
+    'AUTH_SUCCESS', 
+    NOW(), 
+    NOW(),
+    NULL,
+    NULL
+);
+
+27. NCCC 支付回調 API GET /rest/ts/PG/getNCCCPostBack
+接收 NCCC 支付結果解析授權訊息更新交易狀態轉發至電商系統
+http://localhost:8095/Surrounding/rest/ts/PG/getNCCCPostBack
+
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8082/merchant/HPPRequest
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+-- 1. 清理舊測試資料
+DELETE FROM NCCC_EC_LOG WHERE ORDER_NO = 'ORD_NCCC_20260718_099';
+
+-- 2. 模擬一筆消費者剛點擊送出、前往收銀台前，由 /ncccauth 寫入的初始請求紀錄
+INSERT INTO NCCC_EC_LOG (
+    ORDER_NO, 
+    EC_ORDER_NO, 
+    TYPE, 
+    AMT, 
+    ORDER_DESC, 
+    CARD_NO, 
+    INSTALL_PERIOD, 
+    APPROVE_CODE,     -- 此時尚未有授權碼
+    RET_CODE,         -- 此時尚未有回傳碼
+    RET_MSG, 
+    ACCESS_DATE, 
+    AUTH_DATE
+) VALUES (
+    'ORD_NCCC_20260718_099', 
+    'EC_ORD_99999', 
+    1, -- 原始交易
+    1500, 
+    'NCCC 現代化測試商品', 
+    '422111XXXXXX1111', 
+    0, 
+    NULL, 
+    NULL, 
+    'WAIT_FOR_POSTBACK', -- 狀態為等待回傳
+    NOW(), 
+    NOW()
+);
+
+28. NCCC 批次上傳 API POST /rest/ts/PG/ncccupload
+生成 NCCC 交易批次文件執行批次上傳調用上傳工具記錄上傳結果
+http://localhost:8095/Surrounding/rest/ts/PG/ncccupload
+
+{
+    "mid": "NCCC_MID_99999",
+    "send_date": "20260718",
+    "serial_no": "01",
+    "total_cnt": 3,
+    "amt_sign": "+",
+    "amt": 50000,
+    "detail": [
+        {
+            "mid": "NCCC_MID_99999",
+            "tid": "TID99991",
+            "order_no": "ORD_BATCH_20260718_001",
+            "price": 15000,
+            "approve_code": "999001",
+            "order_type": "02",
+            "order_date": "20260718"
+        },
+        {
+            "mid": "NCCC_MID_99999",
+            "tid": "TID99992",
+            "order_no": "ORD_BATCH_20260718_002",
+            "price": 20000,
+            "approve_code": "999002",
+            "order_type": "02",
+            "order_date": "20260718"
+        },
+        {
+            "mid": "NCCC_MID_99999",
+            "tid": "TID99993",
+            "order_no": "ORD_BATCH_20260718_003",
+            "price": 15000,
+            "approve_code": "999003",
+            "order_type": "02",
+            "order_date": "20260718"
+        }
+    ]
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8082/merchant/HPPRequest
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]
+
+
+
+
+-- 1. 改用 ORDER_NO 條件清理舊的測試資料
+DELETE FROM NCCC_EC_LOG WHERE ORDER_NO LIKE 'ORD_BATCH_20260718_%';
+
+-- 2. 重新寫入 3 筆等待批次請款的模擬紀錄（對應 JSON 中的 total_cnt = 3, 總金額 = 50000）
+INSERT INTO NCCC_EC_LOG (ORDER_NO, EC_ORDER_NO, TYPE, AMT, APPROVE_CODE, RET_CODE, RET_MSG, ACCESS_DATE, AUTH_DATE)
+VALUES 
+('ORD_BATCH_20260718_001', 'EC_TXT_001', 1, 15000, '999001', '00', 'AUTH_SUCCESS', NOW(), NOW()),
+('ORD_BATCH_20260718_002', 'EC_TXT_002', 1, 20000, '999002', '00', 'AUTH_SUCCESS', NOW(), NOW()),
+('ORD_BATCH_20260718_003', 'EC_TXT_003', 1, 15000, '999003', '00', 'AUTH_SUCCESS', NOW(), NOW());
+
+
+29. NCCC 批次下載 API POST /rest/ts/PG/ncccdownload
+下載 NCCC 清算回覆文件解析回覆檔案更新交易清算狀態調用下載工具
+http://localhost:8095/Surrounding/rest/ts/PG/ncccdownload
+
+
+{
+    "mid": "NCCC_MID_99999",
+    "send_date": "20260718",
+    "serial_no": "0000000001",
+    "total_cnt": 3,
+    "amt_sign": "+",
+    "amt": 50000,
+    "detail": [
+        {
+            "mid": "NCCC_MID_99999",
+            "tid": "TID99991",
+            "order_no": "ORD_BATCH_20260718_001",
+            "price": 15000,
+            "approve_code": "999001",
+            "order_type": "02",
+            "order_date": "20260718"
+        },
+        {
+            "mid": "NCCC_MID_99999",
+            "tid": "TID99992",
+            "order_no": "ORD_BATCH_20260718_002",
+            "price": 20000,
+            "approve_code": "999002",
+            "order_type": "02",
+            "order_date": "20260718"
+        },
+        {
+            "mid": "NCCC_MID_99999",
+            "tid": "TID99993",
+            "order_no": "ORD_BATCH_20260718_003",
+            "price": 15000,
+            "approve_code": "999003",
+            "order_type": "02",
+            "order_date": "20260718"
+        }
+    ]
+}
+
+feign.RetryableException: Connection refused: getsockopt executing POST https://localhost:8082/merchant/HPPRequest?mode=Internet
+	at feign.FeignException.errorExecuting(FeignException.java:300) ~[feign-core-13.5.jar:na]

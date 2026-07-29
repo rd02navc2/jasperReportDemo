@@ -1,0 +1,45 @@
+## ReadingSpace 閱讀空間管理系統
+
+1. 取得無限期資料 API
+   - API: GET /ReadingSpace/getUnlimitData[cite: 9]
+   - 說明: 查詢並回傳擁有無限期權限的使用者編號與姓名清單[cite: 9]
+
+2. 取得閱讀空間參數 API
+   - API: GET /ReadingSpace/getRSParam[cite: 9]
+   - 說明: 查詢並回傳閱讀空間的會員限制人數與扣點數等相關參數設定[cite: 9]
+
+3. 儲存閱讀空間參數 API
+   - API: GET /ReadingSpace/saveRSParam[cite: 9]
+   - 說明: 接收會員限制與扣點數參數並進行儲存更新[cite: 9]
+
+4. 取得臨時卡設定 API
+   - API: GET /ReadingSpace/getRSTempCard[cite: 9]
+   - 說明: 查詢並回傳閱讀空間臨時卡的起始與結束編號設定[cite: 9]
+
+5. 儲存臨時卡設定 API
+   - API: GET /ReadingSpace/saveRSTempCard[cite: 9]
+   - 說明: 儲存新的臨時卡區間範圍，並自動呼叫外部會員系統新增對應的臨時卡會員資料[cite: 9]
+
+6. 新增無限期資料 API
+   - API: GET /ReadingSpace/insertUnlimitData[cite: 9]
+   - 說明: 檢核會員資料是否存在及是否已具備無限期權限，若皆無誤則新增無限期授權資料[cite: 9]
+
+7. 刪除無限期資料 API
+   - API: GET /ReadingSpace/deleteUnlimitData[cite: 9]
+   - 說明: 依據卡號或使用者編號刪除對應的無限期權限資料[cite: 9]
+
+8. 取得目前即時資料 API
+   - API: GET /ReadingSpace/getNowData[cite: 9]
+   - 說明: 查詢並回傳閱讀空間目前的進出紀錄、交易時間、發票號碼及是否在室內等即時狀態清單[cite: 9]
+
+9. 更新狀態 API
+   - API: GET /ReadingSpace/updateStatus[cite: 9]
+   - 說明: 依據使用者編號更新閱讀空間的進出狀態與時間[cite: 9]
+
+10. 取得統計資料 API
+    - API: GET /ReadingSpace/getStatistics[cite: 9]
+    - 說明: 查詢並回傳閱讀空間的交易日期、點數、價格及各類次數統計報表資料[cite: 9]
+
+11. 取得閱讀空間會員 API
+    - API: GET /ReadingSpace/getRSMember[cite: 9]
+    - 說明: 透過會員卡號與查詢條件，取得閱讀空間的會員詳細資料、紀錄次數、性別與年齡等清單[cite: 9]

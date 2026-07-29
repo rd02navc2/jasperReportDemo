@@ -1,0 +1,9 @@
+## ParkingReport 停車報表管理系統
+
+1. 取得停車折抵報表 API
+   - API: GET /ParkingReport/getParkingDiscount[cite: 8]
+   - 說明: 查詢並回傳各項停車折抵項目、時數統計與車輛數量的詳細報表資料[cite: 8]
+
+2. 查詢停車折抵明細報表 API
+   - API: GET /ParkingReport/getParkingDiscountQry[cite: 8]
+   - 說明: 透過會員卡號與分頁條件，查詢並回傳停車折抵執行的明細紀錄與相關進出時間[cite: 8]

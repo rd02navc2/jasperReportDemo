@@ -1,0 +1,25 @@
+## Product 產品管理系統
+
+1. 產品批次動作 API
+POST /Product/submit
+處理批次動作如ApproveOn、Off、ReOn及Delete，依據指定平台更新產品狀態
+
+2. 查詢產品列表 API
+GET /Product/getProduct
+取得分頁產品清單，支援DataTables與jqGrid參數，回傳市場價、售價、成本、庫存及佣金率
+
+3. 新增產品 API
+POST /Product/saveProduct
+驗證產品名稱長度、描述、公司是否存在及平台格式，儲存新產品並發送通知郵件
+
+4. 更新產品 API
+POST /Product/saveUpdProduct
+修改現有產品細節，若更新核心財務欄位或名稱會處理平台狀態變更並儲存歷史快照
+
+5. 上傳產品圖片 API
+POST /Product/uploadImage
+處理多部分檔案上傳，限制檔案大小在1MB以內並儲存至指定供應商目錄
+
+6. 依ID查詢產品 API
+GET /Product/getProductById
+根據主產品ID與公司代碼取得詳細規格、類別對應及多平台狀態

@@ -1,0 +1,17 @@
+## Shipping 出貨與物流管理系統
+
+1. 取得物流供應商清單 API[cite: 13]
+POST /Shipping/getShippingSupplier
+根據傳入的平台參數（如PChome提供預設物流選項或一般平台查詢資料庫清單）動態產生並回傳HTML下拉選單內容[cite: 13]
+
+2. 查詢出貨訂單資料 API[cite: 13]
+POST /Shipping/getShipping
+依據登入公司代碼與平台、銷售日期區間取得訂單主檔清單，格式化物流代碼、交易編號、買家與收件人資訊及明細金額後回傳[cite: 13]
+
+3. 確認出貨與狀態更新 API[cite: 13]
+POST /Shipping/confirm
+接收選擇的出貨資料，依不同平台（Yahoo、Rakuten、PChome）執行對應的宅配確認、串接外部簽章API、更新物流單號與扣減產品庫存[cite: 13]
+
+4. 查詢撿貨出貨清單 API[cite: 13]
+POST /Shipping/getShipping4Pick
+根據登入公司代碼與銷售日期區間取得撿貨出貨的產品明細，並依規格判斷對應的庫存數量後回傳[cite: 13]

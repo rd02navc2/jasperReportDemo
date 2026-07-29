@@ -1,0 +1,9 @@
+## PosReport POS 報表管理系統
+
+1. 取得 POS 資料 API
+   - API: GET /PosReport/getPosData[cite: 8]
+   - 說明: 查詢並回傳 POS 交易資料，包含交易日期、時間、卡號、會員姓名、櫃位名稱、發票號碼、金額以及補點紀錄等相關資訊[cite: 8]
+
+2. 依編號取得員工資料 API
+   - API: GET /PosReport/getEmployeeByID[cite: 8]
+   - 說明: 依據請求內容查詢並回傳指定員工的代號、姓名、職稱、部門名稱、到職日、生日、聯絡電話、電子信箱、地址、學歷、科系及學位等詳細資料[cite: 8]

@@ -1,0 +1,13 @@
+## InvoiceReport 發票報表系統
+
+1. 取得停車記錄 API
+   - API: GET /InvoiceReport/getParkingLog
+   - 說明: 根據前端請求參數查詢停車 POS 記錄清單，並回傳格式化後的 JSON 結果
+
+2. 取得發票補登查詢 API
+   - API: GET /InvoiceReport/getInvoiceAppendQry
+   - 說明: 依據分頁與請求參數查詢發票補登點數記錄清單及總筆數，並回傳詳細的金額與點數計算資料
+
+3. 依使用者編號取得發票補登查詢 API
+   - API: GET /InvoiceReport/getInvAppQryByUID
+   - 說明: 根據指定的使用者代號與分頁資訊查詢對應的發票補登與點數明細記錄

@@ -1,0 +1,5 @@
+## SyncAD AD網域同步系統
+
+1. AD資料同步 API
+   - API: GET /syncAD[cite: 9]
+   - 說明: 執行網域 Active Directory 使用者資料同步作業，透過 SyncADEntry 呼叫 doSync() 取得 AD 使用者清單並更新至系統暫存與正式資料表中[cite: 9]

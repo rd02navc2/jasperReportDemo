@@ -1,0 +1,21 @@
+## BI 報表 Excel 匯出與下載 API
+
+1. 樓層部類業績分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genSaleAnalysisExcel[cite: 8]
+   接收查詢條件並產生包含部門與樓層預算及銷售分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+2. 交易筆單價分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genSaleRecordAnalysisExcel[cite: 8]
+   接收查詢條件並產生包含交易筆數與單價分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+3. 毛利狀況分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genGrossProfitExcel[cite: 8]
+   接收查詢條件並產生包含毛利狀況分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+4. 各櫃業績分析報表 Excel 產生 API[cite: 8]
+   GET /BIReport/genSaleCounterAnalysisExcel[cite: 8]
+   檢查使用者群組權限，接收查詢條件及對比日期，並產生包含各櫃業績、預算與對比分析資料的 Excel 報表檔案，並回傳檔案下載路徑[cite: 8]。
+
+5. 報表檔案下載 API[cite: 8]
+   GET /BIReport/download[cite: 8]
+   透過傳入的檔案名稱參數讀取並下載對應的報表檔案，自動判斷 MIME 類型並支援 UTF-8 編碼檔名[cite: 8]。

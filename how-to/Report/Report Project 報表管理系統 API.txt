@@ -1,0 +1,2055 @@
+Report 專案 報表管理系統 API
+
+## AppReport 應用程式報表系統
+
+1. 取得應用程式專櫃統計資料 API
+   - API: POST /AppReport/getAppCounter[cite: 1]
+   - 說明: 接收前端請求參數與分頁資訊（page、rows、sidx、sord），呼叫 ReportService 查詢應用程式專櫃統計清單與總筆數，並回傳分頁格式的 JSON 資料[cite: 1]
+   
+## Asset 資產盤點系統
+
+1. 取得盤點日期清單 API
+   - API: GET /Asset/getInventoryDate
+   - 說明: 查詢所有資產盤點日期的表頭資訊、產生類型與結案日期狀態
+
+2. 取得資產盤點明細 API
+   - API: POST /Asset/getAssetInventory
+   - 說明: 根據指定的盤點日期與排序條件，查詢資產盤點的詳細清單與員工擁有者資訊
+
+3. 取得資產類別選單 API
+   - API: GET /Asset/getAssetType
+   - 說明: 取得系統中所有的資產類別並組成 HTML <select> 下拉選單供前端使用
+
+4. 上傳資產 Excel 檔案 API
+   - API: POST /Asset/uploadExcel
+   - 說明: 驗證使用者登入狀態，上傳並解析資產 Excel 盤點檔案，並對照員工與資產編號回傳明細
+
+5. 儲存匯入資產資料 API
+   - API: POST /Asset/saveImport
+   - 說明: 接收並儲存從前端傳入的匯入資產盤點資料
+
+6. 儲存資產資料 API
+   - API: POST /Asset/saveAsset
+   - 說明: 針對指定的盤點日期與資料集進行資產盤點資料的儲存與更新
+
+7. 刪除全部資產盤點資料 API
+   - API: POST /Asset/deleteAll
+   - 說明: 刪除指定盤點日期的所有資產盤點資料
+
+8. 刪除單筆資產資料 API
+   - API: POST /Asset/delete
+   - 說明: 刪除指定盤點日期與自身財產編號的單筆資產資料
+
+9. 資產報廢 API
+   - API: POST /Asset/scrapped
+   - 說明: 將指定盤點日期與財產編號的資產標記為報廢狀態
+
+10. 建立新資產盤點 API
+    - API: POST /Asset/newAsset
+    - 說明: 檢查驗證狀態後發起新的個人設備資產盤點任務，並寄送盤點通知郵件給全體同仁
+
+11. 取得員工個人資產 API
+    - API: POST /Asset/getStaffAsset
+    - 說明: 取得目前登入員工名下的個人設備資產清單與盤點確認狀態
+
+12. 取得已報廢資產 API
+    - API: POST /Asset/getAssetScrapped
+    - 說明: 依據指定的銷售/報廢日期區間與財產編號查詢已報廢的資產清單
+
+13. 提交個人資產盤點確認 API
+    - API: POST /Asset/submit
+    - 說明: 供登入員工提交並確認其名下的個人資產盤點結果
+
+14. 發送未盤點人員提醒通知 API
+    - API: POST /Asset/inform
+    - 說明: 檢查尚未完成盤點確認的人員，並批次發送資產盤點再次提醒通知電子郵件
+	
+## Budget 預算管理系統
+
+1. 取得預算參數設定 API
+   - API: GET /Budget/getBGParam[cite: 2]
+   - 說明: 取得預算申請與審核相關的電子郵件收件人與副本參數設定[cite: 2]
+
+2. 儲存預算參數設定 API
+   - API: POST /Budget/saveBGParam[cite: 2]
+   - 說明: 接收並儲存預算申請與審核的電子郵件收件人與副本設定[cite: 2]
+
+3. 取得預算表頭清單 API
+   - API: GET /Budget/getBudgetHeader[cite: 2]
+   - 說明: 查詢所有月份的預算表頭資訊、審核狀態、操作人員與時間、以及退回原因[cite: 2]
+
+4. 取得預算明細資料 API
+   - API: POST /Budget/getBudgetDetail[cite: 2]
+   - 說明: 根據指定的預算月份與排序條件查詢各樓層、部門與櫃位的每日預算明細資料[cite: 2]
+
+5. 上傳預算 Excel 檔案 API
+   - API: POST /Budget/uploadExcel[cite: 2]
+   - 說明: 驗證使用者登入狀態，上傳並解析預算 Excel 檔案，並回傳對應的每日預算明細清單[cite: 2]
+
+6. 儲存預算資料 API
+   - API: POST /Budget/save[cite: 2]
+   - 說明: 儲存指定月份的預算資料、檢查是否尚有櫃位預算為 0，若完整則發送預算審核通知信並更新狀態為審核中[cite: 2]
+
+7. 更新預算樓層資訊 API
+   - API: POST /Budget/updateFloor[cite: 2]
+   - 說明: 根據目前的櫃位清單更新指定月份預算資料中的樓層對應資訊[cite: 2]
+
+8. 提交或審核預算 API
+   - API: POST /Budget/submit[cite: 2]
+   - 說明: 針對指定月份的預算進行核准或退回動作，並寄送對應的通知信給申請人[cite: 2]
+
+9. 刪除單筆預算資料 API
+   - API: POST /Budget/delete[cite: 2]
+   - 說明: 刪除指定月份、部門與櫃位的單筆預算資料[cite: 2]
+
+10. 刪除全部預算為零的資料 API
+    - API: POST /Budget/delete0[cite: 2]
+    - 說明: 刪除指定月份中預算資料為全部為零的相關紀錄[cite: 2]
+
+11. 取得例外專櫃清單 API
+    - API: POST /Budget/getExceptCounter[cite: 2]
+    - 說明: 查詢預算計算或處理中的例外專櫃清單[cite: 2]
+
+12. 新增例外專櫃 API
+    - API: POST /Budget/addExceptCounter[cite: 2]
+    - 說明: 根據傳入的專櫃代號新增一筆例外專櫃資料[cite: 2]
+
+13. 刪除例外專櫃 API
+    - API: POST /Budget/delExceptCounter[cite: 2]
+    - 說明: 根據傳入的專櫃代號刪除對應的例外專櫃資料[cite: 2]
+
+14. 檢查預算完成狀態 API
+    - API: POST /Budget/isCompletion[cite: 2]
+    - 說明: 檢查指定月份的預算資料是否完整，若完整則自動送出審核[cite: 2]
+
+15. 重新計算預算 API
+    - API: POST /Budget/reCalc[cite: 2]
+    - 說明: 針對指定月份的預算執行重新計算與核准狀態更新處理[cite: 2]
+	
+## Campaign 活動管理系統
+
+1. 取得活動設定清單 API
+   - API: GET /Campaign/getCampaignSet[cite: 3]
+   - 說明: 查詢並回傳活動設定的清單與相關參數內容[cite: 3]
+
+2. 依編號取得活動設定 API
+   - API: GET /Campaign/getCampaignSetBySN[cite: 3]
+   - 說明: 根據指定的活動編號（sno）查詢該筆活動設定的詳細內容與星期限制[cite: 3]
+
+3. 儲存活動設定 API
+   - API: POST /Campaign/saveCampaignSet[cite: 3]
+   - 說明: 接收前端傳入的資料並儲存活動設定，同時記錄登入者的操作代號[cite: 3]
+
+4. 取得活動設定下拉選單 API
+   - API: GET /Campaign/getCampaignSetCombo[cite: 3]
+   - 說明: 取得符合當日星期條件且有效的活動清單，並組成下拉選單選項供前端使用[cite: 3]
+
+5. 取得活動兌換記錄 API
+   - API: GET /Campaign/getCampaign[cite: 3]
+   - 說明: 根據分頁與請求參數查詢活動兌換記錄明細，並回傳分頁格式的 JSON 資料[cite: 3]
+
+6. 儲存活動兌換記錄 API
+   - API: POST /Campaign/saveCampaign[cite: 3]
+   - 說明: 驗證會員資格、當日星期限制以及每日與每月兌換上限後，儲存活動兌換記錄[cite: 3]
+
+7. 取得活動統計資料 API
+   - API: GET /Campaign/getStatistics[cite: 3]
+   - 說明: 查詢各活動的兌換次數與加總統計數據，並以列表及圖表陣列格式回傳[cite: 3]
+   
+## Card 卡片點數設定系統
+
+1. 取得卡片點數設定清單 API
+   - API: GET /Card/getCard[cite: 4]
+   - 說明: 根據前端請求參數與分頁資訊查詢卡片點數設定清單，並回傳 JSON 格式資料[cite: 4]
+
+2. 依編號取得卡片點數設定 API
+   - API: GET /Card/getCardByID[cite: 4]
+   - 說明: 根據指定的卡片代號與序號查詢卡片點數的詳細設定內容[cite: 4]
+
+3. 儲存卡片點數設定 API
+   - API: POST /Card/saveCard[cite: 4]
+   - 說明: 接收前端傳入的資料並進行卡片點數設定的儲存與更新，同時記錄登入者的操作代號[cite: 4]
+   
+## Catch 資訊擷取與查詢系統
+
+1. 取得產品排行 API
+   - API: GET /Catch/getProductRank[cite: 5]
+   - 說明: 根據前端請求參數與分頁資訊查詢產品排行資料清單與總筆數[cite: 5]
+
+2. 取得會員清單 API
+   - API: GET /Catch/getMemberList[cite: 5]
+   - 說明: 查詢符合條件的會員詳細清單、基本資料及相關統計資訊[cite: 5]
+
+3. 取得部門清單 API
+   - API: GET /Catch/getDeptList[cite: 5]
+   - 說明: 查詢系統中的部門與相關對應資訊清單[cite: 5]
+
+4. 取得櫃位清單 API
+   - API: GET /Catch/getCounterList[cite: 5]
+   - 說明: 查詢櫃位相關的詳細資訊、期間與類別資料[cite: 5]
+
+5. 取得部門交易資訊 API
+   - API: GET /Catch/getDeptTransaction[cite: 5]
+   - 說明: 查詢各部門的交易金額、次數與平均客單價等統計數據[cite: 5]
+
+6. 取得會員購買記錄 API
+   - API: GET /Catch/getMemberBuy[cite: 5]
+   - 說明: 查詢會員在各櫃位的購買明細、消費金額與平均單價[cite: 5]
+
+7. 取得會員年齡層購買分析 API
+   - API: GET /Catch/getMemberAgeBuy[cite: 5]
+   - 說明: 依會員年齡層分組統計購買金額、平均價格與交易筆數，並回傳圖表陣列格式[cite: 5]
+
+8. 取得合約清單 API
+   - API: GET /Catch/getContractList[cite: 5]
+   - 說明: 依據分頁與請求參數查詢櫃位合約清單與相關基本資料[cite: 5]
+
+9. 取得零關鍵字明細 API
+   - API: GET /Catch/get0KeyDetail[cite: 5]
+   - 說明: 查詢特定條件下的零關鍵字詳細紀錄清單[cite: 5]
+
+10. 取得合約明細資料 API
+    - API: GET /Catch/getContractDetail[cite: 5]
+    - 說明: 查詢指定合約的詳細資料，包含各項費用、租金、管理費及水電瓦斯等細項[cite: 5]
+
+11. 依合約編號取得合約清單 API
+    - API: GET /Catch/getContractListByCNO[cite: 5]
+    - 說明: 根據指定的合約編號查詢相關的合約清單資訊[cite: 5]
+	
+## Coupon 優惠券管理系統
+
+1. 取得優惠券清單 API
+   - API: GET /Coupon/getCoupon[cite: 6]
+   - 說明: 根據前端請求參數與分頁資訊查詢優惠券明細清單或歷史記錄，並回傳 JSON 格式資料[cite: 6]
+
+2. 更新優惠券日期 API
+   - API: POST /Coupon/updateCouponDate[cite: 6]
+   - 說明: 接收前端傳入的優惠券區間並更新對應的日期，同時記錄登入者的操作歷程[cite: 6]
+
+3. 取得優惠券異動日誌 API
+   - API: GET /Coupon/getCouponLog[cite: 6]
+   - 說明: 依據分頁與請求參數查詢優惠券的操作日誌與交易明細清單[cite: 6]
+   
+## DoorControl 門禁管制系統
+
+1. 取得門禁解禁資料 API
+   - API: GET /DoorControl/getUnlimitData[cite: 7]
+   - 說明: 查詢並回傳所有門禁解禁或不受限制的使用者與相關資料清單[cite: 7]
+
+2. 新增門禁解禁資料 API
+   - API: POST /DoorControl/insertUnlimitData[cite: 7]
+   - 說明: 檢查會員主檔資料與現有解禁紀錄後，新增指定會員的門禁解禁（不受限制）資料[cite: 7]
+
+3. 刪除門禁解禁資料 API
+   - API: POST /DoorControl/deleteUnlimitData[cite: 7]
+   - 說明: 檢查會員與解禁紀錄是否存在後，刪除指定會員的門禁解禁資料[cite: 7]
+   
+## Employee 員工資料管理系統
+
+1. 取得員工清單 API
+   - API: GET /Employee/getEmployee[cite: 8]
+   - 說明: 根據前端請求參數與搜尋編號查詢員工清單資料，並回傳 JSON 格式結果[cite: 8]
+
+2. 依編號取得員工詳細資料 API
+   - API: GET /Employee/getEmployeeByID[cite: 8]
+   - 說明: 根據指定的員工代號查詢其詳細個人資料，包含職稱、部門、到職日、生日、聯絡方式及學歷等資訊[cite: 8]
+   
+## InvoiceProcess 發票處理系統
+
+1. 停車發票補登 API
+   - API: POST /InvoiceProcess/appendInvoice4Parking[cite: 8]
+   - 說明: 接收頻道、發票號碼與車牌號碼等參數，透過 Web Service 執行停車發票補登作業，並回傳執行結果與運算代號[cite: 8]
+
+2. 發票銷退補登 API
+   - API: GET /InvoiceProcess/appendReturn[cite: 8]
+   - 說明: 驗證會員資料與補登歷程後，透過 Web Service 執行發票銷退補登與點數異動處理，並記錄相關操作人員與時間[cite: 8]
+
+3. 一般發票補登 API
+   - API: GET /InvoiceProcess/appendInvoice[cite: 8]
+   - 說明: 檢查會員身分並呼叫後端 Web Service 執行發票補登，寫入補登日誌並回傳詳細的點數與金額計算結果[cite: 8]
+
+4. 發票贈獎補登 API
+   - API: GET /InvoiceProcess/appendInvoicePrize[cite: 8]
+   - 說明: 依據發票號碼查詢櫃位發票明細，並將發票記錄新增至使用者帳號中，回傳對應的金額與櫃位資訊[cite: 8]
+
+5. 影城發票補登 API
+   - API: GET /InvoiceProcess/TheaterAppend[cite: 8]
+   - 說明: 驗證會員資料、發票日期區間與發票編號格式後，呼叫影城補登 Web Service 進行點數與金額補登，並記錄異動日誌[cite: 8]
+   
+## InvoiceReport 發票報表系統
+
+1. 取得停車記錄 API
+   - API: GET /InvoiceReport/getParkingLog
+   - 說明: 根據前端請求參數查詢停車 POS 記錄清單，並回傳格式化後的 JSON 結果
+
+2. 取得發票補登查詢 API
+   - API: GET /InvoiceReport/getInvoiceAppendQry
+   - 說明: 依據分頁與請求參數查詢發票補登點數記錄清單及總筆數，並回傳詳細的金額與點數計算資料
+
+3. 依使用者編號取得發票補登查詢 API
+   - API: GET /InvoiceReport/getInvAppQryByUID
+   - 說明: 根據指定的使用者代號與分頁資訊查詢對應的發票補登與點數明細記錄
+   
+## ITRequest 資訊需求系統
+
+1. 取得統計資訊 API
+   - API: GET /ITRequest/getStatistic[cite: 10]
+   - 說明: 根據請求參數與登入資訊分頁查詢各項維護與 POS 相關的統計數據清單[cite: 10]
+
+2. 依登入編號取得員工資訊 API
+   - API: GET /ITRequest/getEmployeeByLoginID[cite: 10]
+   - 說明: 查詢當前登入使用者的員工詳細資料、直屬主管資訊以及是否具備資訊人員身分[cite: 10]
+
+3. 儲存資訊需求單 API
+   - API: GET /ITRequest/saveITRequest[cite: 10]
+   - 說明: 儲存使用者的資訊需求單、處理相關附件檔案並發送通知信件給部門主管[cite: 10]
+
+4. 取得資訊需求單清單 API
+   - API: GET /ITRequest/getITRequest[cite: 10]
+   - 說明: 依分頁與查詢條件取得資訊需求單清單，並包含狀態名稱與附件狀態等資訊[cite: 10]
+
+5. 依單號取得資訊需求單明細 API
+   - API: GET /ITRequest/getITRequestByNo[cite: 10]
+   - 說明: 根據指定的的需求單號查詢詳細的申請內容、簽核歷程、POS 設定與維護備註[cite: 10]
+
+6. 駁回資訊需求單 API
+   - API: GET /ITRequest/doReturn[cite: 10]
+   - 說明: 主管或資訊人員將指定的資訊需求單進行退回處理，記錄退回原因並發送通知信[cite: 10]
+
+7. 核准資訊需求單 API
+   - API: GET /ITRequest/doApprove[cite: 10]
+   - 說明: 執行資訊需求單的各階段簽核與確認，並依據處理結果發送對應的郵件或 Line 訊息通知[cite: 10]
+
+8. 儲存資訊備註 API
+   - API: GET /ITRequest/saveITMemo[cite: 10]
+   - 說明: 儲存資訊人員針對需求單填寫的維護備註與相關附件檔案[cite: 10]
+
+9. 取得資訊郵件設定 API
+   - API: GET /ITRequest/getITMail[cite: 10]
+   - 說明: 查詢系統設定的 IT 確認與接收信件群組收件者清單[cite: 10]
+
+10. 儲存資訊郵件設定 API
+    - API: GET /ITRequest/saveITMail[cite: 10]
+    - 說明: 更新並儲存系統的 IT 確認與接收郵件群組設定[cite: 10]
+
+11. 上傳檔案 (主檔) API
+    - API: GET /ITRequest/uploadImage[cite: 10]
+    - 說明: 接收 multipart 檔案上傳請求，將上傳的檔案暫存至指定目錄並回傳檔名[cite: 10]
+
+12. 上傳檔案 (副檔) API
+    - API: GET /ITRequest/uploadImage1[cite: 10]
+    - 說明: 接收第二個 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳相關路徑與檔名[cite: 10]
+	
+## LineReport Line 報表系統
+
+1. 取得 Line 櫃位統計 API
+   - API: GET /LineReport/getLineCounter[cite: 11]
+   - 說明: 根據請求參數與分頁資訊查詢 Line 交易記錄清單，並計算客單價與總筆數後回傳 JSON 格式結果[cite: 11]
+   
+## Member 會員管理系統
+
+1. 取得會員資料 API
+   - API: GET /Member/getMemberData[cite: 12]
+   - 說明: 依據請求的卡號或會員編號查詢對應的會員基本資料與各項點數統計，並以 JSON 格式回傳[cite: 12]
+
+2. 取得 VIP 室會員資料 API
+   - API: GET /Member/getMemberData4VipRoom[cite: 12]
+   - 說明: 針對 VIP 室進行卡號有效性驗證與查詢會員資料，並額外帶出預約記錄筆數及 VIP 身分識別[cite: 12]
+
+3. 取得 PD 會員資料 API
+   - API: GET /Member/getMemberData4PD[cite: 12]
+   - 說明: 驗證 7708 開頭之卡號有效性，並查詢會員詳細個人資訊與是否為 VIP 或黑卡身分[cite: 12]
+
+4. 取得活動會員資料 API
+   - API: GET /Member/getMember4Campaign[cite: 12]
+   - 說明: 查詢行銷活動相關的會員資料與兌換記錄計數，並回傳會員卡別等級與身分標示[cite: 12]
+
+5. 取得 VIP 資料清單 API
+   - API: GET /Member/getVipData[cite: 12]
+   - 說明: 查詢符合條件的 VIP 會員清單，包含去年與今年的消費金額與消費次數統計[cite: 12]
+
+6. 取得去年 VIP 明細 API
+   - API: GET /Member/getLYVipDtl[cite: 12]
+   - 說明: 查詢 VIP 會員去年的詳細交易記錄，包含交易日期、櫃位編號、櫃位名稱、發票號碼與金額[cite: 12]
+
+7. 取得今年 VIP 明細 API
+   - API: GET /Member/getTYVipDtl[cite: 12]
+   - 說明: 查詢 VIP 會員今年的詳細交易記錄，包含交易日期、櫃位編號、櫃位名稱、發票號碼與金額[cite: 12]
+
+8. 更新狀態 API
+   - API: GET /Member/updateStatus[cite: 12]
+   - 說明: 根據使用者代號更新會員狀態[cite: 12]
+
+9. 取得點數轉移記錄 API
+   - API: GET /Member/getPointTransfer[cite: 12]
+   - 說明: 分頁查詢會員卡片之間的點數轉移記錄與異動明細[cite: 12]
+
+10. 點數轉移 API
+    - API: GET /Member/transferPoint[cite: 12]
+    - 說明: 執行會員卡片間的點數轉移作業，並記錄操作人員資訊[cite: 12]
+
+11. 執行投注點數 API
+    - API: GET /Member/runBetPoint[cite: 12]
+    - 說明: 執行會員的投注點數計算或處理作業[cite: 12]
+
+12. 顯示投注點數日誌 API
+    - API: GET /Member/showBetPointLog[cite: 12]
+    - 說明: 查詢並回傳會員的投注點數日誌清單與點數明細[cite: 12]
+	
+## MKTRequest 行銷需求管理系統
+
+1. 取得登入員工資訊 API
+   - API: GET /MKTRequest/getEmployeeByLoginID[cite: 12]
+   - 說明: 依據目前登入的使用者帳號查詢員工基本資料與兩層主管的詳細資訊與信箱[cite: 12]
+
+2. 儲存行銷需求單 API
+   - API: GET /MKTRequest/saveMKTRequest[cite: 12]
+   - 說明: 驗證並儲存行銷需求單內容，搬移暫存上傳檔案至正式目錄，並排程寄送確認通知信給主管[cite: 12]
+
+3. 查詢行銷需求單清單 API
+   - API: GET /MKTRequest/getMKTRequest[cite: 12]
+   - 說明: 根據分頁條件與請求參數查詢行銷需求單列表，並帶出各狀態的中英文字幕與附件資訊[cite: 12]
+
+4. 依需求單號查詢明細 API
+   - API: GET /MKTRequest/getMKTRequestByNo[cite: 12]
+   - 說明: 依據需求單號查詢完整的行銷需求明細、審核歷程及各階段對應的簽核信箱群組[cite: 12]
+
+5. 執行審核通過 API
+   - API: GET /MKTRequest/doApprove[cite: 12]
+   - 說明: 處理行銷需求單的各級主管審核通過流程，並根據單據狀態自動發送對應的通知信[cite: 12]
+
+6. 執行退回作業 API
+   - API: GET /MKTRequest/doReturn[cite: 12]
+   - 說明: 處理行銷需求單的主管或企劃設計退回作業，記錄退回原因並寄送退回通知信[cite: 12]
+
+7. 取得行銷審核信箱清單 API
+   - API: GET /MKTRequest/getMKTMail[cite: 12]
+   - 說明: 查詢並回傳各個行銷企劃與簽核層級（A/B/C方案、設計、主管、副總）的預設收件信箱[cite: 12]
+
+8. 儲存行銷審核信箱清單 API
+   - API: GET /MKTRequest/saveMKTMail[cite: 12]
+   - 說明: 更新並儲存各個行銷企劃與簽核層級的收件信箱設定[cite: 12]
+
+9. 上傳主圖片檔案 API
+   - API: GET /MKTRequest/uploadImage[cite: 12]
+   - 說明: 接收 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳新檔名[cite: 12]
+
+10. 上傳副圖片或附件檔案 API
+    - API: GET /MKTRequest/uploadImage1[cite: 12]
+    - 說明: 接收第二個 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳新檔名[cite: 12]
+	
+## Parking 停車管理系統
+
+1. 刪除租賃車輛 API
+   - API: GET /Parking/delRentCar[cite: 8]
+   - 說明: 依據請求內容刪除指定的租賃車輛資料[cite: 8]
+
+2. 儲存租賃車輛 API
+   - API: GET /Parking/saveRentCar[cite: 8]
+   - 說明: 驗證並儲存租賃車輛資訊，同時記錄操作人員的登入編號[cite: 8]
+
+3. 取得租賃車輛清單 API
+   - API: GET /Parking/getRentCar[cite: 8]
+   - 說明: 查詢並回傳所有租賃車輛的詳細清單與相關日期時間[cite: 8]
+
+4. 取得停車折抵設定清單 API
+   - API: GET /Parking/getDiscSet[cite: 8]
+   - 說明: 依分頁與查詢條件取得停車折抵設定列表[cite: 8]
+
+5. 依代號取得停車折抵設定 API
+   - API: GET /Parking/getDiscSetByID[cite: 8]
+   - 說明: 根據折抵編號（disc_id）查詢單一停車折抵設定的詳細內容與上下限資訊[cite: 8]
+
+6. 執行停車折抵試算 API
+   - API: GET /Parking/getDiscExec[cite: 8]
+   - 說明: 呼叫外部停車場 API 進行試算，計算停車時間、費用與折抵結果，並回傳相關數據[cite: 8]
+
+7. 儲存停車折抵設定 API
+   - API: GET /Parking/saveDiscSet[cite: 8]
+   - 說明: 新增或修改停車折抵設定，並記錄操作人員身分[cite: 8]
+
+8. 更新停車折抵執行 API
+   - API: GET /Parking/updateDiscExec[cite: 8]
+   - 說明: 重新執行試算並更新停車折抵的執行狀態與相關金額[cite: 8]
+
+9. 依車號查詢歷史紀錄 API
+   - API: GET /Parking/getHistByCarNO[cite: 8]
+   - 說明: 透過分頁查詢指定車號的停車折抵與進出歷史紀錄[cite: 8]
+   
+## ParkingReport 停車報表管理系統
+
+1. 取得停車折抵報表 API
+   - API: GET /ParkingReport/getParkingDiscount[cite: 8]
+   - 說明: 查詢並回傳各項停車折抵項目、時數統計與車輛數量的詳細報表資料[cite: 8]
+
+2. 查詢停車折抵明細報表 API
+   - API: GET /ParkingReport/getParkingDiscountQry[cite: 8]
+   - 說明: 透過會員卡號與分頁條件，查詢並回傳停車折抵執行的明細紀錄與相關進出時間[cite: 8]
+   
+## PosReport POS 報表管理系統
+
+1. 取得 POS 資料 API
+   - API: GET /PosReport/getPosData[cite: 8]
+   - 說明: 查詢並回傳 POS 交易資料，包含交易日期、時間、卡號、會員姓名、櫃位名稱、發票號碼、金額以及補點紀錄等相關資訊[cite: 8]
+
+2. 依編號取得員工資料 API
+   - API: GET /PosReport/getEmployeeByID[cite: 8]
+   - 說明: 依據請求內容查詢並回傳指定員工的代號、姓名、職稱、部門名稱、到職日、生日、聯絡電話、電子信箱、地址、學歷、科系及學位等詳細資料[cite: 8]
+   
+## PunchReport 打卡報表管理系統
+
+1. 取得下班打卡異常 API
+   - API: GET /PunchReport/getOffPunch[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並處理並回傳下班打卡相關的異常清單[cite: 8]
+
+2. 取得未配對打卡 API
+   - API: GET /PunchReport/getUnpairPunch[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並處理並回傳未完整配對的打卡清單[cite: 8]
+
+3. 取得加班紀錄 API
+   - API: GET /PunchReport/getOvertime[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並計算與回傳加班相關的詳細清單[cite: 8]
+   
+## ReadingSpace 閱讀空間管理系統
+
+1. 取得無限期資料 API
+   - API: GET /ReadingSpace/getUnlimitData[cite: 9]
+   - 說明: 查詢並回傳擁有無限期權限的使用者編號與姓名清單[cite: 9]
+
+2. 取得閱讀空間參數 API
+   - API: GET /ReadingSpace/getRSParam[cite: 9]
+   - 說明: 查詢並回傳閱讀空間的會員限制人數與扣點數等相關參數設定[cite: 9]
+
+3. 儲存閱讀空間參數 API
+   - API: GET /ReadingSpace/saveRSParam[cite: 9]
+   - 說明: 接收會員限制與扣點數參數並進行儲存更新[cite: 9]
+
+4. 取得臨時卡設定 API
+   - API: GET /ReadingSpace/getRSTempCard[cite: 9]
+   - 說明: 查詢並回傳閱讀空間臨時卡的起始與結束編號設定[cite: 9]
+
+5. 儲存臨時卡設定 API
+   - API: GET /ReadingSpace/saveRSTempCard[cite: 9]
+   - 說明: 儲存新的臨時卡區間範圍，並自動呼叫外部會員系統新增對應的臨時卡會員資料[cite: 9]
+
+6. 新增無限期資料 API
+   - API: GET /ReadingSpace/insertUnlimitData[cite: 9]
+   - 說明: 檢核會員資料是否存在及是否已具備無限期權限，若皆無誤則新增無限期授權資料[cite: 9]
+
+7. 刪除無限期資料 API
+   - API: GET /ReadingSpace/deleteUnlimitData[cite: 9]
+   - 說明: 依據卡號或使用者編號刪除對應的無限期權限資料[cite: 9]
+
+8. 取得目前即時資料 API
+   - API: GET /ReadingSpace/getNowData[cite: 9]
+   - 說明: 查詢並回傳閱讀空間目前的進出紀錄、交易時間、發票號碼及是否在室內等即時狀態清單[cite: 9]
+
+9. 更新狀態 API
+   - API: GET /ReadingSpace/updateStatus[cite: 9]
+   - 說明: 依據使用者編號更新閱讀空間的進出狀態與時間[cite: 9]
+
+10. 取得統計資料 API
+    - API: GET /ReadingSpace/getStatistics[cite: 9]
+    - 說明: 查詢並回傳閱讀空間的交易日期、點數、價格及各類次數統計報表資料[cite: 9]
+
+11. 取得閱讀空間會員 API
+    - API: GET /ReadingSpace/getRSMember[cite: 9]
+    - 說明: 透過會員卡號與查詢條件，取得閱讀空間的會員詳細資料、紀錄次數、性別與年齡等清單[cite: 9]
+	
+	
+## Report 報表與檔案下載管理系統
+
+1. 產生出勤異常 Excel 報表 API
+   - API: GET /Report/genOffPunchExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生出勤異常 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+2. 產生上下班刷卡不成對 Excel 報表 API
+   - API: GET /Report/genUnpairExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生未配對刷卡 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+3. 產生加班異常 Excel 報表 API
+   - API: GET /Report/genOvertimeExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生加班異常 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+4. 產生預算 Excel 報表 API
+   - API: GET /Report/genBudgetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，依據月份與條件產生預算報表 Excel 檔案並回傳下載網址[cite: 9]
+
+5. 產生資產盤點 Excel 報表 API
+   - API: GET /Report/genAssetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，依據盤點日期產生資產盤點報表 Excel 檔案並回傳下載網址[cite: 9]
+
+6. 產生個人資產設備 Excel 報表 API
+   - API: GET /Report/genStaffAssetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，產生個人資產設備報表 Excel 檔案並回傳下載網址[cite: 9]
+
+7. 檔案下載 API
+   - API: GET /Report/download[cite: 9]
+   - 說明: 依據請求的檔案路徑讀取檔案，設定對應的 Content-Type 與 UTF-8 附檔名標頭，將檔案串流輸出供使用者下載[cite: 9]
+   
+## ReportCatch 擷取報表管理系統
+
+1. 產生自營商品排行 Excel 報表 API
+   - API: GET /ReportCatch/genProductRankExcel[cite: 9]
+   - 說明: 查詢自營商品排行資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+2. 產生會員名單 Excel 報表 API
+   - API: GET /ReportCatch/genMemberListExcel[cite: 9]
+   - 說明: 查詢會員名單資料，產生 Excel 報表檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+3. 產生部類銷售 Excel 報表 API
+   - API: GET /ReportCatch/genDeptTransactionExcel[cite: 9]
+   - 說明: 查詢部類銷售資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+4. 產生部類消費 Excel 報表 API
+   - API: GET /ReportCatch/genMemberBuyExcel[cite: 9]
+   - 說明: 查詢會員部類消費資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+5. 產生年齡層消費 Excel 報表 API
+   - API: GET /ReportCatch/genMemberAgeBuyExcel[cite: 9]
+   - 說明: 查詢會員年齡層消費資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+6. 檔案下載 API
+   - API: GET /ReportCatch/download[cite: 9]
+   - 說明: 依據請求的檔案路徑讀取檔案，設定適當的 Content-Type 與 UTF-8 附檔名標頭，將檔案串流輸出供使用者下載[cite: 9]
+   
+## SBReport 接駁車報表管理系統
+
+1. 取得接駁車計數統計 API
+   - API: GET /SBReport/getSBCounter[cite: 9]
+   - 說明: 查詢並分頁回傳接駁車的上下車人次統計與總筆數等資訊[cite: 9]
+
+2. 取得接駁車會員詳細資料 API
+   - API: GET /SBReport/getSBMember[cite: 9]
+   - 說明: 透過會員卡號與查詢條件取得接駁車會員的詳細資料、乘車次數、性別及年齡等清單[cite: 9]
+   
+## TSProcess 處理程序與電商管理系統
+
+1. 補點處理 API
+   - API: GET /TSProcess/appendPoint[cite: 9]
+   - 說明: 檢查 ERP 狀態與重複性後執行補點作業，並回傳會員姓名、基本點數、發票日期、櫃位名稱、金額、點數及前後點數餘額等資訊[cite: 9]
+
+2. 依訂單號碼查詢電商紀錄 API
+   - API: GET /TSProcess/getECLogByOrderNO[cite: 9]
+   - 說明: 透過分頁與訂單號碼查詢並回傳電商交易紀錄清單，包含訂單編號、型態說明、卡號、金額、退款金額及各項授權與退貨日期[cite: 9]
+
+3. 電商退款處理 API
+   - API: GET /TSProcess/refundEC[cite: 9]
+   - 說明: 記錄操作人員並呼叫外部 Web Service 執行電商交易退款作業，處理並回傳退款結果狀態碼與訊息[cite: 9]
+   
+## TSReport 台新報表與交易管理系統
+
+1. 產生台新電商記錄 Excel 報表 API
+   - API: GET /TSReport/genTSECLogExcel[cite: 11]
+   - 說明: 查詢電商交易紀錄，產生對應的 Excel 報表檔案與下載網址[cite: 11]
+
+2. 取得台新櫃位統計資料 API
+   - API: GET /TSReport/getTSCounter[cite: 11]
+   - 說明: 分頁查詢並回傳台新櫃位的總計、Beyond 與非 Beyond 等統計數據清單[cite: 11]
+
+3. 取得台新補點紀錄資料 API
+   - API: GET /TSReport/getTSAppend[cite: 11]
+   - 說明: 分頁查詢並回傳台新補點紀錄的日期、記錄筆數與點數總計[cite: 11]
+
+4. 取得台新補點明細查詢 API
+   - API: GET /TSReport/getTSAppendQry[cite: 11]
+   - 說明: 透過卡號及條件查詢並分頁回傳台新補點明細，包含發票號碼、金額、點數、操作人員及櫃位名稱等詳細資料[cite: 11]
+   
+## VipRoom 貴賓室管理系統
+
+1. 取得無限期資料 API
+   - API: GET /VipRoom/getUnlimitData[cite: 11]
+   - 說明: 查詢並回傳貴賓室無限期會員的使用者編號與姓名清單[cite: 11]
+
+2. 新增無限期資料 API
+   - API: GET /VipRoom/insertUnlimitData[cite: 11]
+   - 說明: 檢查會員資料與重複性後，新增貴賓室無限期會員資料[cite: 11]
+
+3. 刪除無限期資料 API
+   - API: GET /VipRoom/deleteUnlimitData[cite: 11]
+   - 說明: 依據卡號刪除指定的貴賓室無限期會員資料[cite: 11]
+
+4. 依使用者編號查詢預約紀錄 API
+   - API: GET /VipRoom/getBookingByUID[cite: 11]
+   - 說明: 分頁查詢並回傳會員的貴賓室預約與進出紀錄，包含交易日期、進出時間、退款日期及總數量等資訊[cite: 11]
+
+5. 貴賓室預約（購買） API
+   - API: GET /VipRoom/booking[cite: 11]
+   - 說明: 驗證會員資料後，呼叫遠端服務執行貴賓室消費預約，並記錄操作人員與處理結果[cite: 11]
+
+6. 取消貴賓室預約（退款） API
+   - API: GET /VipRoom/cancelbooking[cite: 11]
+   - 說明: 驗證會員資料後，呼叫遠端服務執行貴賓室預約退款作業，並回傳處理狀態[cite: 11]
+
+7. 取得貴賓會員資料 API
+   - API: GET /VipRoom/getVipMember[cite: 11]
+   - 說明: 依條件查詢並回傳貴賓室會員的詳細資料，包含卡號、姓名、性別、年齡及總消費數量等統計數據[cite: 11]
+   
+## WebSign 線上簽到退管理系統
+
+1. 取得簽到資料 API
+   - API: GET /WebSign/getSignData[cite: 11]
+   - 說明: 依據登入身分查詢員工代碼，並分頁回傳簽到紀錄清單，包含紀錄時間、工作狀態（上班/下班）、記錄IP及登入代號等資訊[cite: 11]
+
+2. 執行線上簽到退 API
+   - API: GET /WebSign/sign[cite: 11]
+   - 說明: 取得目前登入員工資料與遠端 IP，執行線上簽到/簽退處理並記錄相關日誌與狀態[cite: 11]
+   
+
+   
+--dc 07-25-2026  
+   
+Report 專案 報表管理系統 API
+
+## AppReport 應用程式報表系統
+
+1. 取得應用程式專櫃統計資料 API
+   - API: POST /AppReport/getAppCounter[cite: 1]
+   - 說明: 接收前端請求參數與分頁資訊（page、rows、sidx、sord），呼叫 ReportService 查詢應用程式專櫃統計清單與總筆數，並回傳分頁格式的 JSON 資料[cite: 1]
+http://localhost:8095/Report/rest/AppReport/getAppCounter?page=1&rows=10
+
+{
+  "sale_s_date": "2026-07-01",
+  "sale_e_date": "2026-07-25"
+}
+
+
+-- 插入測試資料 (符合 2026-07-01 ~ 2026-07-25 區間)
+INSERT INTO `APP_COUNTER` (`lpj04`, `counter_all`, `counter_000`, `counter_app`, `counter_beyond`, `counter_non_beyond`) 
+VALUES 
+('2026-07-01', 800, 100, 700, 500, 200),
+('2026-07-15', 1200, 200, 1000, 600, 400),
+('2026-07-24', 1500, 300, 1200, 800, 400),
+-- 區間外的資料 (測試日期過濾效果)
+('2026-06-28', 500, 50, 450, 300, 150),
+('2026-08-01', 2000, 400, 1600, 1000, 600);
+
+
+## Asset 資產盤點系統
+
+1. 取得盤點日期清單 API
+   - API: GET /Asset/getInventoryDate
+   - 說明: 查詢所有資產盤點日期的表頭資訊、產生類型與結案日期狀態
+http://localhost:8095/Report/rest/Asset/getInventoryDate
+
+
+{
+    "rows": [
+        {
+            "generate_type": "發起盤點",
+            "close_date": "2026-07-26 02:00:00",
+            "remark": "年度例行資產盤點",
+            "inventory_date": "2026-07-25"
+        },
+        {
+            "generate_type": "匯入",
+            "close_date": "",
+            "remark": "系統批次匯入盤點單",
+            "inventory_date": "2026-06-01"
+        },
+        {
+            "generate_type": "發起盤點",
+            "close_date": "2026-05-16 20:00:00",
+            "remark": "",
+            "inventory_date": "2026-05-15"
+        }
+    ],
+    "Success": "Y"
+}
+
+
+-- 測試資料 1: generate_type = '0' (會顯示 "發起盤點"), close_date 有值
+INSERT INTO `ASSET_INVENTORY_HEADER` (`inventory_date`, `generate_type`, `close_date`, `remark`)
+VALUES ('2026-07-25', '0', '2026-07-25 18:00:00', '年度例行資產盤點');
+
+-- 測試資料 2: generate_type = '1' (會顯示 "匯入"), close_date 為 NULL (未關閉)
+INSERT INTO `ASSET_INVENTORY_HEADER` (`inventory_date`, `generate_type`, `close_date`, `remark`)
+VALUES ('2026-06-01', '1', NULL, '系統批次匯入盤點單');
+
+-- 測試資料 3: generate_type 為 NULL (會顯示 "發起盤點"), remark 為 NULL
+INSERT INTO `ASSET_INVENTORY_HEADER` (`inventory_date`, `generate_type`, `close_date`, `remark`)
+VALUES ('2026-05-15', NULL, '2026-05-16 12:00:00', NULL);
+
+
+2. 取得資產盤點明細 API
+   - API: POST /Asset/getAssetInventory
+   - 說明: 根據指定的盤點日期與排序條件，查詢資產盤點的詳細清單與員工擁有者資訊
+http://localhost:8095/Report/rest/Asset/addAssetInventory
+
+
+{
+  "inventory_date": "2026-07-25",
+  "self_no": "AST-2026-001",
+  "model_no": "MacBook Pro 16",
+  "type": "T01",
+  "prod_desc": "開發用高效能筆電",
+  "owner_id": "EMP1001",
+  "owner_name": "張小明",
+  "title": "資深工程師",
+  "dept_name": "資訊開發部",
+  "confirm_id": "MGR2001",
+  "confirm_date": "2026-07-25 14:30:00"
+}
+
+{
+    "rows": [
+        {
+            "prod_desc": "開發用高效能筆電",
+            "owner_name": "張小明",
+            "owner_id": "EMP1001",
+            "dept_name": "資訊開發部",
+            "type": "T01",
+            "title": "資深工程師",
+            "confirm_id": "MGR2001",
+            "model_no": "MacBook Pro 16",
+            "inventory_date": "2026-07-25",
+            "maintain_hist": "",
+            "memo_hist": "",
+            "self_no": "AST-2026-001",
+            "confirm_date": "2026-07-25 22:30:00"
+        }
+    ],
+    "Success": "Y"
+}
+
+INSERT INTO ASSET_INVENTORY (
+    inventory_date,
+    self_no,
+    model_no,
+    type,
+    prod_desc,
+    owner_id,
+    owner_name,
+    title,
+    dept_name,
+    confirm_id,
+    confirm_date
+) VALUES (
+    '2026-07-25',
+    'AST-2026-001',
+    'MacBook Pro 16',
+    'T01',
+    '開發用高效能筆電',
+    'EMP1001',
+    '張小明',
+    '資深工程師',
+    '資訊開發部',
+    'MGR2001',
+    '2026-07-25 14:30:00'
+);
+
+3. 取得資產類別選單 API
+   - API: GET /Asset/getAssetType
+   - 說明: 取得系統中所有的資產類別並組成 HTML <select> 下拉選單供前端使用
+http://localhost:8095/Report/rest/Asset/getAssetType
+
+
+
+   
+   
+-- ============================================
+-- 完整重新初始化腳本 (修正版)
+-- ============================================
+
+-- 1. 關閉安全模式
+SET SQL_SAFE_UPDATES = 0;
+
+-- 2. 設定日期變數
+SET @date1 = '2026-07-25';
+SET @date2 = '2026-07-24';
+SET @date3 = '2026-07-23';
+
+-- 3. 刪除關聯資料 (先刪除子表)
+DELETE FROM ASSET_MEMO_HIST 
+WHERE self_no IN (
+    SELECT self_no FROM ASSET_INVENTORY 
+    WHERE inventory_date IN (@date1, @date2, @date3)
+);
+
+DELETE FROM ASSET_MAINTAIN_HIST 
+WHERE self_no IN (
+    SELECT self_no FROM ASSET_INVENTORY 
+    WHERE inventory_date IN (@date1, @date2, @date3)
+);
+
+-- 4. 刪除資產明細
+DELETE FROM ASSET_INVENTORY 
+WHERE inventory_date IN (@date1, @date2, @date3);
+
+-- 5. 刪除 Header
+DELETE FROM ASSET_INVENTORY_HEADER 
+WHERE inventory_date IN (@date1, @date2, @date3);
+
+-- 6. 重新開啟安全模式
+SET SQL_SAFE_UPDATES = 1;
+
+-- 7. 插入新的測試資料
+INSERT INTO ASSET_INVENTORY_HEADER (inventory_date, generate_type, close_date, access_id, access_date, remark) VALUES 
+('2026-07-25', '2', NULL, 'admin001', NOW(), '發起資產盤點'),
+('2026-07-24', '1', '2026-07-24 17:30:00', 'admin001', NOW(), '資產盤點已完成'),
+('2026-07-23', '1', '2026-07-23 16:00:00', 'admin002', NOW(), '匯入資產盤點資料');
+
+-- 8. 驗證結果
+SELECT * FROM ASSET_INVENTORY_HEADER ORDER BY inventory_date DESC;
+SELECT '資料重新初始化完成！' AS Status;
+
+
+4. 上傳資產 Excel 檔案 API
+   - API: POST /Asset/uploadExcel
+   - 說明: 驗證使用者登入狀態，上傳並解析資產 Excel 盤點檔案，並對照員工與資產編號回傳明細
+http://localhost:8095/Report/rest/Asset/uploadExcel
+   
+   
+{
+    "total": 198,
+    "FileName": "20260724POS.xlsx",
+    "rows": [
+        {
+            "prod_desc": "12308",
+            "memo_hist": "",
+            "self_no": "AP2336150106",
+            "owner_name": "",
+            "owner_id": "",
+            "dept_name": "",
+            "type": "30001",
+            "title": "",
+            "model_no": "AP-3615 POS Terminal",
+            "maintain_hist": ""
+        },
+        {
+            "prod_desc": "24744",
+            "memo_hist": "",
+            "self_no": "AP2336150016",
+            "owner_name": "",
+            "owner_id": "",
+            "dept_name": "",
+            "type": "70009",
+            "title": "",
+            "model_no": "AP-3615 POS Terminal",
+            "maintain_hist": ""
+        }
+    ],
+    "Success": "Y"
+}
+   
+
+5. 儲存匯入資產資料 API
+   - API: POST /Asset/saveImport
+   - 說明: 接收並儲存從前端傳入的匯入資產盤點資料
+http://localhost:8095/Report/rest/Asset/saveImport
+
+{
+  "asset_inventory_data": [
+    {
+      "self_no": "AST-2026-001",
+      "model_no": "ThinkPad X1",
+      "type": "Laptop",
+      "prod_desc": "開發用筆電",
+      "owner_id": "EMP001"
+    },
+    {
+      "self_no": "AST-2026-002",
+      "model_no": "Dell U2723QE",
+      "type": "Monitor",
+      "prod_desc": "27吋顯示器",
+      "owner_id": "EMP002"
+    }
+  ]
+}
+
+{
+    "Message": "匯入成功",
+    "Success": "Y"
+}
+
+   
+
+
+6. 儲存資產資料 API
+   - API: POST /Asset/saveAsset
+   - 說明: 針對指定的盤點日期與資料集進行資產盤點資料的儲存與更新
+http://localhost:8095/Report/rest/Asset/saveAsset
+   
+{
+  "inventory_date": "2026-07-27",
+  "asset_inventory_data": [
+    {
+      "self_no": "AST-2026-001",
+      "status": "CHECKED",
+      "memo": "盤點正常"
+    },
+    {
+      "self_no": "AST-2026-002",
+      "status": "CHECKED",
+      "memo": "螢幕有刮傷"
+    }
+  ]
+}
+
+{
+    "Message": "盤點資料儲存成功",
+    "Success": "Y"
+}
+
+7. 刪除全部資產盤點資料 API
+   - API: POST /Asset/deleteAll
+   - 說明: 刪除指定盤點日期的所有資產盤點資料
+http://localhost:8095/Report/rest/Asset/deleteAll
+
+{
+  "inventory_date": "2026-07-27"
+}
+
+{
+    "Message": "刪除成功",
+    "Success": "Y"
+}
+   
+
+8. 刪除單筆資產資料 API
+   - API: POST /Asset/delete
+   - 說明: 刪除指定盤點日期與自身財產編號的單筆資產資料
+http://localhost:8095/Report/rest/Asset/delete   
+
+{
+  "inventory_date": "2026-07-27",
+  "self_no": "AST-2026-001"
+}
+
+{
+    "Message": "單筆資產刪除成功",
+    "Success": "Y"
+}
+   
+-- 1. 建立測試主檔
+INSERT INTO ASSET_INVENTORY_HEADER (inventory_date, remark, access_id, access_date)
+VALUES ('2026-07-27', '測試盤點主檔', 'TEST_USER', NOW())
+ON DUPLICATE KEY UPDATE remark = VALUES(remark);
+
+-- 2. 建立待刪除的資產 (AST-2026-001) 與要保留的資產 (AST-2026-002)
+INSERT INTO ASSET_INVENTORY (inventory_date, self_no, type, model_no, prod_desc, owner_id)
+VALUES 
+('2026-07-27', 'AST-2026-001', '1 電腦', 'MacBook Pro 16', '待刪除的測試電腦', 'EMP001'),
+('2026-07-27', 'AST-2026-002', '2 螢幕', 'Dell U2720Q', '應保留的測試螢幕', 'EMP002')
+ON DUPLICATE KEY UPDATE prod_desc = VALUES(prod_desc);
+
+9. 資產報廢 API
+   - API: POST /Asset/scrapped
+   - 說明: 將指定盤點日期與財產編號的資產標記為報廢狀態
+http://localhost:8095/Report/rest/Asset/scrapped
+   
+{
+  "inventory_date": "2026-07-27",
+  "self_no": "AST-2026-001"
+}
+
+{
+    "Message": "報廢成功",
+    "Success": "Y"
+}
+
+-- 1. 建立測試盤點主檔
+INSERT INTO ASSET_INVENTORY_HEADER (inventory_date, remark, access_id, access_date)
+VALUES ('2026-07-27', '測試盤點主檔', 'TEST_USER', NOW())
+ON DUPLICATE KEY UPDATE remark = VALUES(remark);
+
+-- 2. 建立待報廢的資產資料 (不帶 status 欄位)
+INSERT INTO ASSET_INVENTORY (
+    inventory_date, 
+    self_no, 
+    type, 
+    model_no, 
+    prod_desc, 
+    owner_id
+) VALUES (
+    '2026-07-27', 
+    'AST-2026-001', 
+    '1 電腦', 
+    'MacBook Pro 16', 
+    '準備報廢的舊筆電', 
+    'EMP001'
+) ON DUPLICATE KEY UPDATE prod_desc = VALUES(prod_desc);
+ 
+
+10. 建立新資產盤點 API
+    - API: POST /Asset/newAsset
+    - 說明: 檢查驗證狀態後發起新的個人設備資產盤點任務，並寄送盤點通知郵件給全體同仁
+http://localhost:8095/Report/rest/Asset/newAsset
+
+{}
+
+{
+    "ErrorMessage": "今日已有產生資產盤點資料",
+    "Success": "N"
+}
+
+-- 1. 先建立盤點主檔 (確保主外鍵關聯或日期索引正確)
+INSERT INTO ASSET_INVENTORY_HEADER (
+    inventory_date, 
+    remark, 
+    access_id, 
+    access_date
+) VALUES (
+    '2026-07-28', 
+    '測試盤點發起主檔', 
+    'TEST_USER', 
+    NOW()
+) ON DUPLICATE KEY UPDATE remark = VALUES(remark);
+
+-- 2. 直接寫入測試資產清單到 ASSET_INVENTORY
+INSERT INTO ASSET_INVENTORY (
+    inventory_date, 
+    self_no, 
+    type, 
+    model_no, 
+    prod_desc, 
+    owner_id
+) VALUES 
+    ('2026-07-28', 'AST-2026-001', '1 電腦', 'MacBook Pro 16', '測試用筆電 A', 'EMP001'),
+    ('2026-07-28', 'AST-2026-002', '2 螢幕', 'Dell U2723QE', '測試用螢幕 B', 'EMP002')
+ON DUPLICATE KEY UPDATE prod_desc = VALUES(prod_desc);
+
+--
+UPDATE ASSET_INVENTORY_HEADER 
+SET close_date = CURRENT_DATE() 
+WHERE inventory_date = (
+    SELECT max_date FROM (
+        SELECT MAX(inventory_date) AS max_date FROM ASSET_INVENTORY_HEADER
+    ) tmp
+);
+
+
+
+11. 取得員工個人資產 API
+    - API: POST /Asset/getStaffAsset
+    - 說明: 取得目前登入員工名下的個人設備資產清單與盤點確認狀態
+http://localhost:8095/Report/rest/Asset/getStaffAsset
+
+{
+  "sidx": "self_no",
+  "sord": "ASC"
+}
+
+{
+    "AssetStatus": "Y",
+    "rows": [],
+    "Success": "Y"
+}
+	
+INSERT INTO EMPLOYEE (
+    EMPLOYEEID, 
+    CODE, 
+    CNNAME
+) VALUES (
+    'TEST_USER',      -- 對應 login.getLoginId() 或 setLoginId("TEST_USER")
+    'EMP_TEST_001',   -- 對應 emp.getCODE()
+    '測試人員'         -- 對應 CNNAME 欄位
+);
+
+INSERT INTO ASSET_INVENTORY (
+    inventory_date,
+    self_no,
+    model_no,
+    type,
+    prod_desc,
+    owner_id,
+    owner_name,
+    title,
+    dept_name,
+    confirm_id,
+    confirm_date
+) VALUES (
+    '2026-07-01',
+    'AST-TEST-001',
+    'ThinkPad X1',
+    'LAPTOP',
+    '測試用筆電',
+    'TEST_USER',
+    '測試人員',
+    '系統工程師',
+    '資訊部',
+    NULL,
+    NULL
+);
+
+
+12. 取得已報廢資產 API
+    - API: POST /Asset/getAssetScrapped
+    - 說明: 依據指定的銷售/報廢日期區間與財產編號查詢已報廢的資產清單
+http://localhost:8095/Report/rest/Asset/getAssetScrapped
+
+
+{
+  "sale_s_date": "2026-01-01",
+  "sale_e_date": "2026-12-31",
+  "self_no": "",
+  "sidx": "self_no",
+  "sord": "ASC"
+}
+
+{
+    "rows": [
+        {
+            "prod_desc": "準備報廢的舊筆電",
+            "memo_hist": "",
+            "self_no": "AST-2026-001",
+            "owner_name": "",
+            "owner_id": "EMP001",
+            "dept_name": "",
+            "scrapped_id": "TEST_USER",
+            "type": "1 電腦",
+            "title": "",
+            "model_no": "MacBook Pro 16",
+            "scrapped_date": "2026-07-28 10:27:54",
+            "maintain_hist": ""
+        },
+        {
+            "prod_desc": "舊型開發用筆電",
+            "memo_hist": "",
+            "self_no": "SCRAP-2026-001",
+            "owner_name": "張小明",
+            "owner_id": "EMP001",
+            "dept_name": "資訊研發部",
+            "scrapped_id": "ADMIN01",
+            "type": "LAPTOP",
+            "title": "資深工程師",
+            "model_no": "Dell Latitude 5420",
+            "scrapped_date": "2026-06-15 22:30:00",
+            "maintain_hist": ""
+        },
+        {
+            "prod_desc": "部門印表機",
+            "memo_hist": "",
+            "self_no": "SCRAP-2026-002",
+            "owner_name": "李小華",
+            "owner_id": "EMP002",
+            "dept_name": "總務部",
+            "scrapped_id": "ADMIN01",
+            "type": "PRINTER",
+            "title": "行政專員",
+            "model_no": "HP LaserJet Pro",
+            "scrapped_date": "2026-07-10 18:00:00",
+            "maintain_hist": ""
+        }
+    ],
+    "Success": "Y"
+}
+
+INSERT INTO ASSET_SCRAPPED (
+    self_no,
+    model_no,
+    type,
+    prod_desc,
+    owner_id,
+    owner_name,
+    title,
+    dept_name,
+    scrapped_id,
+    scrapped_date
+) VALUES (
+    'SCRAP-2026-001',
+    'Dell Latitude 5420',
+    'LAPTOP',
+    '舊型開發用筆電',
+    'EMP001',
+    '張小明',
+    '資深工程師',
+    '資訊研發部',
+    'ADMIN01',
+    '2026-06-15 14:30:00'
+);
+
+INSERT INTO ASSET_SCRAPPED (
+    self_no,
+    model_no,
+    type,
+    prod_desc,
+    owner_id,
+    owner_name,
+    title,
+    dept_name,
+    scrapped_id,
+    scrapped_date
+) VALUES (
+    'SCRAP-2026-002',
+    'HP LaserJet Pro',
+    'PRINTER',
+    '部門印表機',
+    'EMP002',
+    '李小華',
+    '行政專員',
+    '總務部',
+    'ADMIN01',
+    '2026-07-10 10:00:00'
+);
+
+13. 提交個人資產盤點確認 API
+    - API: POST /Asset/submit
+    - 說明: 供登入員工提交並確認其名下的個人資產盤點結果
+http://localhost:8095/Report/rest/Asset/submit
+
+{
+    "Message": "提交成功",
+    "Success": "Y"
+}
+
+-- 1. 新增員工資料 (假設 Session 的 loginId 為 'EMP001')
+INSERT INTO EMPLOYEE (
+    EMPLOYEEID, 
+    CODE, 
+    CNNAME
+) VALUES (
+    'EMP001',        -- 對應 login.getLoginId()
+    'EMP_TEST_001',  -- 對應 emp.getCODE()
+    '測試人員'
+)
+ON DUPLICATE KEY UPDATE 
+    CODE = VALUES(CODE), 
+    CNNAME = VALUES(CNNAME);
+	
+-- 針對 Mock 預設帳號 TEST_USER 新增測試資料
+INSERT INTO EMPLOYEE (
+    EMPLOYEEID, 
+    CODE, 
+    CNNAME
+) VALUES (
+    'TEST_USER',      -- 對應 login.getLoginId()
+    'EMP_TEST_001',   -- 對應 emp.getCODE() 傳給 submit 方法
+    '測試管理員'
+)
+ON DUPLICATE KEY UPDATE 
+    CODE = VALUES(CODE), 
+    CNNAME = VALUES(CNNAME);
+
+
+14. 發送未盤點人員提醒通知 API
+    - API: POST /Asset/inform
+    - 說明: 檢查尚未完成盤點確認的人員，並批次發送資產盤點再次提醒通知電子郵件
+http://localhost:8095/Report/rest/Asset/inform	
+	
+{
+    "Message": "通知已發送",
+    "ErrorMessage": "JDBC exception executing SQL [SELECT * FROM PermissionDB.email_address\nWHERE `function` = ?\n] [Table 'permissiondb.email_address' doesn't exist] [n/a]; SQL [n/a]",
+    "Success": "N"
+}
+	
+INSERT INTO ASSET_INVENTORY (
+    inventory_date,
+    self_no,
+    model_no,
+    type,
+    prod_desc,
+    owner_id,
+    owner_name,
+    title,
+    dept_name,
+    confirm_id,
+    confirm_date
+) VALUES 
+(
+    '2026-07-01',
+    'AST-2026-001',
+    'ThinkPad X1',
+    'LAPTOP',
+    '開發用筆電',
+    'EMP001',
+    '張小明',
+    '系統工程師',
+    '資訊部',
+    NULL,          -- NULL 代表尚未盤點確認 (未完成)
+    NULL
+),
+(
+    '2026-07-01',
+    'AST-2026-002',
+    'MacBook Pro 16',
+    'LAPTOP',
+    '設計用筆電',
+    'EMP002',
+    '李小華',
+    'UI設計師',
+    '設計部',
+    NULL,          -- NULL 代表尚未盤點確認 (未完成)
+    NULL
+)
+ON DUPLICATE KEY UPDATE 
+    model_no = VALUES(model_no),
+    owner_id = VALUES(owner_id);
+
+--dc 07/28/2026
+
+## Budget 預算管理系統
+
+1. 取得預算參數設定 API
+   - API: GET /Budget/getBGParam[cite: 2]
+   - 說明: 取得預算申請與審核相關的電子郵件收件人與副本參數設定[cite: 2]
+http://localhost:8095/Report/rest/Budget/getBGParam
+
+
+   
+
+-- 1. 預算申請相關測試資料 (BudgetApply)
+INSERT INTO email_address (`function`, `from`, `from_name`, `to`, `cc`, `bcc`) 
+VALUES (
+    'BUDGET_APPLY', 
+    'system@beyond.com', 
+    '系統通知員', 
+    'user1@beyond.com;user2@beyond.com;user3@beyond.com', 
+    'manager@beyond.com', 
+    ''
+);
+
+-- 2. 預算審核相關測試資料 (BudgetApprove)
+INSERT INTO email_address (`function`, `from`, `from_name`, `to`, `cc`, `bcc`) 
+VALUES (
+    'BUDGET_APPROVE', 
+    'system@beyond.com', 
+    '系統審核員', 
+    'boss@beyond.com', 
+    'admin1@beyond.com;admin2@beyond.com', 
+    'audit@beyond.com'
+);
+
+-- 3. 通用系統測試資料
+INSERT INTO email_address (`function`, `from`, `from_name`, `to`, `cc`, `bcc`) 
+VALUES (
+    'DEFAULT_MAIL', 
+    'noreply@beyond.com', 
+    '系統自動發信', 
+    'service@beyond.com', 
+    '', 
+    ''
+);
+
+2. 儲存預算參數設定 API
+   - API: POST /Budget/saveBGParam[cite: 2]
+   - 說明: 接收並儲存預算申請與審核的電子郵件收件人與副本設定[cite: 2]
+
+3. 取得預算表頭清單 API
+   - API: GET /Budget/getBudgetHeader[cite: 2]
+   - 說明: 查詢所有月份的預算表頭資訊、審核狀態、操作人員與時間、以及退回原因[cite: 2]
+
+4. 取得預算明細資料 API
+   - API: POST /Budget/getBudgetDetail[cite: 2]
+   - 說明: 根據指定的預算月份與排序條件查詢各樓層、部門與櫃位的每日預算明細資料[cite: 2]
+
+5. 上傳預算 Excel 檔案 API
+   - API: POST /Budget/uploadExcel[cite: 2]
+   - 說明: 驗證使用者登入狀態，上傳並解析預算 Excel 檔案，並回傳對應的每日預算明細清單[cite: 2]
+
+6. 儲存預算資料 API
+   - API: POST /Budget/save[cite: 2]
+   - 說明: 儲存指定月份的預算資料、檢查是否尚有櫃位預算為 0，若完整則發送預算審核通知信並更新狀態為審核中[cite: 2]
+
+7. 更新預算樓層資訊 API
+   - API: POST /Budget/updateFloor[cite: 2]
+   - 說明: 根據目前的櫃位清單更新指定月份預算資料中的樓層對應資訊[cite: 2]
+
+8. 提交或審核預算 API
+   - API: POST /Budget/submit[cite: 2]
+   - 說明: 針對指定月份的預算進行核准或退回動作，並寄送對應的通知信給申請人[cite: 2]
+
+9. 刪除單筆預算資料 API
+   - API: POST /Budget/delete[cite: 2]
+   - 說明: 刪除指定月份、部門與櫃位的單筆預算資料[cite: 2]
+
+10. 刪除全部預算為零的資料 API
+    - API: POST /Budget/delete0[cite: 2]
+    - 說明: 刪除指定月份中預算資料為全部為零的相關紀錄[cite: 2]
+
+11. 取得例外專櫃清單 API
+    - API: POST /Budget/getExceptCounter[cite: 2]
+    - 說明: 查詢預算計算或處理中的例外專櫃清單[cite: 2]
+
+12. 新增例外專櫃 API
+    - API: POST /Budget/addExceptCounter[cite: 2]
+    - 說明: 根據傳入的專櫃代號新增一筆例外專櫃資料[cite: 2]
+
+13. 刪除例外專櫃 API
+    - API: POST /Budget/delExceptCounter[cite: 2]
+    - 說明: 根據傳入的專櫃代號刪除對應的例外專櫃資料[cite: 2]
+
+14. 檢查預算完成狀態 API
+    - API: POST /Budget/isCompletion[cite: 2]
+    - 說明: 檢查指定月份的預算資料是否完整，若完整則自動送出審核[cite: 2]
+
+15. 重新計算預算 API
+    - API: POST /Budget/reCalc[cite: 2]
+    - 說明: 針對指定月份的預算執行重新計算與核准狀態更新處理[cite: 2]
+	
+## Campaign 活動管理系統
+
+1. 取得活動設定清單 API
+   - API: GET /Campaign/getCampaignSet[cite: 3]
+   - 說明: 查詢並回傳活動設定的清單與相關參數內容[cite: 3]
+
+2. 依編號取得活動設定 API
+   - API: GET /Campaign/getCampaignSetBySN[cite: 3]
+   - 說明: 根據指定的活動編號（sno）查詢該筆活動設定的詳細內容與星期限制[cite: 3]
+
+3. 儲存活動設定 API
+   - API: POST /Campaign/saveCampaignSet[cite: 3]
+   - 說明: 接收前端傳入的資料並儲存活動設定，同時記錄登入者的操作代號[cite: 3]
+
+4. 取得活動設定下拉選單 API
+   - API: GET /Campaign/getCampaignSetCombo[cite: 3]
+   - 說明: 取得符合當日星期條件且有效的活動清單，並組成下拉選單選項供前端使用[cite: 3]
+
+5. 取得活動兌換記錄 API
+   - API: GET /Campaign/getCampaign[cite: 3]
+   - 說明: 根據分頁與請求參數查詢活動兌換記錄明細，並回傳分頁格式的 JSON 資料[cite: 3]
+
+6. 儲存活動兌換記錄 API
+   - API: POST /Campaign/saveCampaign[cite: 3]
+   - 說明: 驗證會員資格、當日星期限制以及每日與每月兌換上限後，儲存活動兌換記錄[cite: 3]
+
+7. 取得活動統計資料 API
+   - API: GET /Campaign/getStatistics[cite: 3]
+   - 說明: 查詢各活動的兌換次數與加總統計數據，並以列表及圖表陣列格式回傳[cite: 3]
+   
+## Card 卡片點數設定系統
+
+1. 取得卡片點數設定清單 API
+   - API: GET /Card/getCard[cite: 4]
+   - 說明: 根據前端請求參數與分頁資訊查詢卡片點數設定清單，並回傳 JSON 格式資料[cite: 4]
+
+2. 依編號取得卡片點數設定 API
+   - API: GET /Card/getCardByID[cite: 4]
+   - 說明: 根據指定的卡片代號與序號查詢卡片點數的詳細設定內容[cite: 4]
+
+3. 儲存卡片點數設定 API
+   - API: POST /Card/saveCard[cite: 4]
+   - 說明: 接收前端傳入的資料並進行卡片點數設定的儲存與更新，同時記錄登入者的操作代號[cite: 4]
+   
+## Catch 資訊擷取與查詢系統
+
+1. 取得產品排行 API
+   - API: GET /Catch/getProductRank[cite: 5]
+   - 說明: 根據前端請求參數與分頁資訊查詢產品排行資料清單與總筆數[cite: 5]
+
+2. 取得會員清單 API
+   - API: GET /Catch/getMemberList[cite: 5]
+   - 說明: 查詢符合條件的會員詳細清單、基本資料及相關統計資訊[cite: 5]
+
+3. 取得部門清單 API
+   - API: GET /Catch/getDeptList[cite: 5]
+   - 說明: 查詢系統中的部門與相關對應資訊清單[cite: 5]
+
+4. 取得櫃位清單 API
+   - API: GET /Catch/getCounterList[cite: 5]
+   - 說明: 查詢櫃位相關的詳細資訊、期間與類別資料[cite: 5]
+
+5. 取得部門交易資訊 API
+   - API: GET /Catch/getDeptTransaction[cite: 5]
+   - 說明: 查詢各部門的交易金額、次數與平均客單價等統計數據[cite: 5]
+
+6. 取得會員購買記錄 API
+   - API: GET /Catch/getMemberBuy[cite: 5]
+   - 說明: 查詢會員在各櫃位的購買明細、消費金額與平均單價[cite: 5]
+
+7. 取得會員年齡層購買分析 API
+   - API: GET /Catch/getMemberAgeBuy[cite: 5]
+   - 說明: 依會員年齡層分組統計購買金額、平均價格與交易筆數，並回傳圖表陣列格式[cite: 5]
+
+8. 取得合約清單 API
+   - API: GET /Catch/getContractList[cite: 5]
+   - 說明: 依據分頁與請求參數查詢櫃位合約清單與相關基本資料[cite: 5]
+
+9. 取得零關鍵字明細 API
+   - API: GET /Catch/get0KeyDetail[cite: 5]
+   - 說明: 查詢特定條件下的零關鍵字詳細紀錄清單[cite: 5]
+
+10. 取得合約明細資料 API
+    - API: GET /Catch/getContractDetail[cite: 5]
+    - 說明: 查詢指定合約的詳細資料，包含各項費用、租金、管理費及水電瓦斯等細項[cite: 5]
+
+11. 依合約編號取得合約清單 API
+    - API: GET /Catch/getContractListByCNO[cite: 5]
+    - 說明: 根據指定的合約編號查詢相關的合約清單資訊[cite: 5]
+	
+## Coupon 優惠券管理系統
+
+1. 取得優惠券清單 API
+   - API: GET /Coupon/getCoupon[cite: 6]
+   - 說明: 根據前端請求參數與分頁資訊查詢優惠券明細清單或歷史記錄，並回傳 JSON 格式資料[cite: 6]
+
+2. 更新優惠券日期 API
+   - API: POST /Coupon/updateCouponDate[cite: 6]
+   - 說明: 接收前端傳入的優惠券區間並更新對應的日期，同時記錄登入者的操作歷程[cite: 6]
+
+3. 取得優惠券異動日誌 API
+   - API: GET /Coupon/getCouponLog[cite: 6]
+   - 說明: 依據分頁與請求參數查詢優惠券的操作日誌與交易明細清單[cite: 6]
+   
+## DoorControl 門禁管制系統
+
+1. 取得門禁解禁資料 API
+   - API: GET /DoorControl/getUnlimitData[cite: 7]
+   - 說明: 查詢並回傳所有門禁解禁或不受限制的使用者與相關資料清單[cite: 7]
+
+2. 新增門禁解禁資料 API
+   - API: POST /DoorControl/insertUnlimitData[cite: 7]
+   - 說明: 檢查會員主檔資料與現有解禁紀錄後，新增指定會員的門禁解禁（不受限制）資料[cite: 7]
+
+3. 刪除門禁解禁資料 API
+   - API: POST /DoorControl/deleteUnlimitData[cite: 7]
+   - 說明: 檢查會員與解禁紀錄是否存在後，刪除指定會員的門禁解禁資料[cite: 7]
+   
+## Employee 員工資料管理系統
+
+1. 取得員工清單 API
+   - API: GET /Employee/getEmployee[cite: 8]
+   - 說明: 根據前端請求參數與搜尋編號查詢員工清單資料，並回傳 JSON 格式結果[cite: 8]
+
+2. 依編號取得員工詳細資料 API
+   - API: GET /Employee/getEmployeeByID[cite: 8]
+   - 說明: 根據指定的員工代號查詢其詳細個人資料，包含職稱、部門、到職日、生日、聯絡方式及學歷等資訊[cite: 8]
+   
+## InvoiceProcess 發票處理系統
+
+1. 停車發票補登 API
+   - API: POST /InvoiceProcess/appendInvoice4Parking[cite: 8]
+   - 說明: 接收頻道、發票號碼與車牌號碼等參數，透過 Web Service 執行停車發票補登作業，並回傳執行結果與運算代號[cite: 8]
+
+2. 發票銷退補登 API
+   - API: GET /InvoiceProcess/appendReturn[cite: 8]
+   - 說明: 驗證會員資料與補登歷程後，透過 Web Service 執行發票銷退補登與點數異動處理，並記錄相關操作人員與時間[cite: 8]
+
+3. 一般發票補登 API
+   - API: GET /InvoiceProcess/appendInvoice[cite: 8]
+   - 說明: 檢查會員身分並呼叫後端 Web Service 執行發票補登，寫入補登日誌並回傳詳細的點數與金額計算結果[cite: 8]
+
+4. 發票贈獎補登 API
+   - API: GET /InvoiceProcess/appendInvoicePrize[cite: 8]
+   - 說明: 依據發票號碼查詢櫃位發票明細，並將發票記錄新增至使用者帳號中，回傳對應的金額與櫃位資訊[cite: 8]
+
+5. 影城發票補登 API
+   - API: GET /InvoiceProcess/TheaterAppend[cite: 8]
+   - 說明: 驗證會員資料、發票日期區間與發票編號格式後，呼叫影城補登 Web Service 進行點數與金額補登，並記錄異動日誌[cite: 8]
+   
+## InvoiceReport 發票報表系統
+
+1. 取得停車記錄 API
+   - API: GET /InvoiceReport/getParkingLog
+   - 說明: 根據前端請求參數查詢停車 POS 記錄清單，並回傳格式化後的 JSON 結果
+
+2. 取得發票補登查詢 API
+   - API: GET /InvoiceReport/getInvoiceAppendQry
+   - 說明: 依據分頁與請求參數查詢發票補登點數記錄清單及總筆數，並回傳詳細的金額與點數計算資料
+
+3. 依使用者編號取得發票補登查詢 API
+   - API: GET /InvoiceReport/getInvAppQryByUID
+   - 說明: 根據指定的使用者代號與分頁資訊查詢對應的發票補登與點數明細記錄
+   
+## ITRequest 資訊需求系統
+
+1. 取得統計資訊 API
+   - API: GET /ITRequest/getStatistic[cite: 10]
+   - 說明: 根據請求參數與登入資訊分頁查詢各項維護與 POS 相關的統計數據清單[cite: 10]
+
+2. 依登入編號取得員工資訊 API
+   - API: GET /ITRequest/getEmployeeByLoginID[cite: 10]
+   - 說明: 查詢當前登入使用者的員工詳細資料、直屬主管資訊以及是否具備資訊人員身分[cite: 10]
+
+3. 儲存資訊需求單 API
+   - API: GET /ITRequest/saveITRequest[cite: 10]
+   - 說明: 儲存使用者的資訊需求單、處理相關附件檔案並發送通知信件給部門主管[cite: 10]
+
+4. 取得資訊需求單清單 API
+   - API: GET /ITRequest/getITRequest[cite: 10]
+   - 說明: 依分頁與查詢條件取得資訊需求單清單，並包含狀態名稱與附件狀態等資訊[cite: 10]
+
+5. 依單號取得資訊需求單明細 API
+   - API: GET /ITRequest/getITRequestByNo[cite: 10]
+   - 說明: 根據指定的的需求單號查詢詳細的申請內容、簽核歷程、POS 設定與維護備註[cite: 10]
+
+6. 駁回資訊需求單 API
+   - API: GET /ITRequest/doReturn[cite: 10]
+   - 說明: 主管或資訊人員將指定的資訊需求單進行退回處理，記錄退回原因並發送通知信[cite: 10]
+
+7. 核准資訊需求單 API
+   - API: GET /ITRequest/doApprove[cite: 10]
+   - 說明: 執行資訊需求單的各階段簽核與確認，並依據處理結果發送對應的郵件或 Line 訊息通知[cite: 10]
+
+8. 儲存資訊備註 API
+   - API: GET /ITRequest/saveITMemo[cite: 10]
+   - 說明: 儲存資訊人員針對需求單填寫的維護備註與相關附件檔案[cite: 10]
+
+9. 取得資訊郵件設定 API
+   - API: GET /ITRequest/getITMail[cite: 10]
+   - 說明: 查詢系統設定的 IT 確認與接收信件群組收件者清單[cite: 10]
+
+10. 儲存資訊郵件設定 API
+    - API: GET /ITRequest/saveITMail[cite: 10]
+    - 說明: 更新並儲存系統的 IT 確認與接收郵件群組設定[cite: 10]
+
+11. 上傳檔案 (主檔) API
+    - API: GET /ITRequest/uploadImage[cite: 10]
+    - 說明: 接收 multipart 檔案上傳請求，將上傳的檔案暫存至指定目錄並回傳檔名[cite: 10]
+
+12. 上傳檔案 (副檔) API
+    - API: GET /ITRequest/uploadImage1[cite: 10]
+    - 說明: 接收第二個 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳相關路徑與檔名[cite: 10]
+	
+## LineReport Line 報表系統
+
+1. 取得 Line 櫃位統計 API
+   - API: GET /LineReport/getLineCounter[cite: 11]
+   - 說明: 根據請求參數與分頁資訊查詢 Line 交易記錄清單，並計算客單價與總筆數後回傳 JSON 格式結果[cite: 11]
+   
+## Member 會員管理系統
+
+1. 取得會員資料 API
+   - API: GET /Member/getMemberData[cite: 12]
+   - 說明: 依據請求的卡號或會員編號查詢對應的會員基本資料與各項點數統計，並以 JSON 格式回傳[cite: 12]
+
+2. 取得 VIP 室會員資料 API
+   - API: GET /Member/getMemberData4VipRoom[cite: 12]
+   - 說明: 針對 VIP 室進行卡號有效性驗證與查詢會員資料，並額外帶出預約記錄筆數及 VIP 身分識別[cite: 12]
+
+3. 取得 PD 會員資料 API
+   - API: GET /Member/getMemberData4PD[cite: 12]
+   - 說明: 驗證 7708 開頭之卡號有效性，並查詢會員詳細個人資訊與是否為 VIP 或黑卡身分[cite: 12]
+
+4. 取得活動會員資料 API
+   - API: GET /Member/getMember4Campaign[cite: 12]
+   - 說明: 查詢行銷活動相關的會員資料與兌換記錄計數，並回傳會員卡別等級與身分標示[cite: 12]
+
+5. 取得 VIP 資料清單 API
+   - API: GET /Member/getVipData[cite: 12]
+   - 說明: 查詢符合條件的 VIP 會員清單，包含去年與今年的消費金額與消費次數統計[cite: 12]
+
+6. 取得去年 VIP 明細 API
+   - API: GET /Member/getLYVipDtl[cite: 12]
+   - 說明: 查詢 VIP 會員去年的詳細交易記錄，包含交易日期、櫃位編號、櫃位名稱、發票號碼與金額[cite: 12]
+
+7. 取得今年 VIP 明細 API
+   - API: GET /Member/getTYVipDtl[cite: 12]
+   - 說明: 查詢 VIP 會員今年的詳細交易記錄，包含交易日期、櫃位編號、櫃位名稱、發票號碼與金額[cite: 12]
+
+8. 更新狀態 API
+   - API: GET /Member/updateStatus[cite: 12]
+   - 說明: 根據使用者代號更新會員狀態[cite: 12]
+
+9. 取得點數轉移記錄 API
+   - API: GET /Member/getPointTransfer[cite: 12]
+   - 說明: 分頁查詢會員卡片之間的點數轉移記錄與異動明細[cite: 12]
+
+10. 點數轉移 API
+    - API: GET /Member/transferPoint[cite: 12]
+    - 說明: 執行會員卡片間的點數轉移作業，並記錄操作人員資訊[cite: 12]
+
+11. 執行投注點數 API
+    - API: GET /Member/runBetPoint[cite: 12]
+    - 說明: 執行會員的投注點數計算或處理作業[cite: 12]
+
+12. 顯示投注點數日誌 API
+    - API: GET /Member/showBetPointLog[cite: 12]
+    - 說明: 查詢並回傳會員的投注點數日誌清單與點數明細[cite: 12]
+	
+## MKTRequest 行銷需求管理系統
+
+1. 取得登入員工資訊 API
+   - API: GET /MKTRequest/getEmployeeByLoginID[cite: 12]
+   - 說明: 依據目前登入的使用者帳號查詢員工基本資料與兩層主管的詳細資訊與信箱[cite: 12]
+
+2. 儲存行銷需求單 API
+   - API: GET /MKTRequest/saveMKTRequest[cite: 12]
+   - 說明: 驗證並儲存行銷需求單內容，搬移暫存上傳檔案至正式目錄，並排程寄送確認通知信給主管[cite: 12]
+
+3. 查詢行銷需求單清單 API
+   - API: GET /MKTRequest/getMKTRequest[cite: 12]
+   - 說明: 根據分頁條件與請求參數查詢行銷需求單列表，並帶出各狀態的中英文字幕與附件資訊[cite: 12]
+
+4. 依需求單號查詢明細 API
+   - API: GET /MKTRequest/getMKTRequestByNo[cite: 12]
+   - 說明: 依據需求單號查詢完整的行銷需求明細、審核歷程及各階段對應的簽核信箱群組[cite: 12]
+
+5. 執行審核通過 API
+   - API: GET /MKTRequest/doApprove[cite: 12]
+   - 說明: 處理行銷需求單的各級主管審核通過流程，並根據單據狀態自動發送對應的通知信[cite: 12]
+
+6. 執行退回作業 API
+   - API: GET /MKTRequest/doReturn[cite: 12]
+   - 說明: 處理行銷需求單的主管或企劃設計退回作業，記錄退回原因並寄送退回通知信[cite: 12]
+
+7. 取得行銷審核信箱清單 API
+   - API: GET /MKTRequest/getMKTMail[cite: 12]
+   - 說明: 查詢並回傳各個行銷企劃與簽核層級（A/B/C方案、設計、主管、副總）的預設收件信箱[cite: 12]
+
+8. 儲存行銷審核信箱清單 API
+   - API: GET /MKTRequest/saveMKTMail[cite: 12]
+   - 說明: 更新並儲存各個行銷企劃與簽核層級的收件信箱設定[cite: 12]
+
+9. 上傳主圖片檔案 API
+   - API: GET /MKTRequest/uploadImage[cite: 12]
+   - 說明: 接收 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳新檔名[cite: 12]
+
+10. 上傳副圖片或附件檔案 API
+    - API: GET /MKTRequest/uploadImage1[cite: 12]
+    - 說明: 接收第二個 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳新檔名[cite: 12]
+	
+## Parking 停車管理系統
+
+1. 刪除租賃車輛 API
+   - API: GET /Parking/delRentCar[cite: 8]
+   - 說明: 依據請求內容刪除指定的租賃車輛資料[cite: 8]
+
+2. 儲存租賃車輛 API
+   - API: GET /Parking/saveRentCar[cite: 8]
+   - 說明: 驗證並儲存租賃車輛資訊，同時記錄操作人員的登入編號[cite: 8]
+
+3. 取得租賃車輛清單 API
+   - API: GET /Parking/getRentCar[cite: 8]
+   - 說明: 查詢並回傳所有租賃車輛的詳細清單與相關日期時間[cite: 8]
+
+4. 取得停車折抵設定清單 API
+   - API: GET /Parking/getDiscSet[cite: 8]
+   - 說明: 依分頁與查詢條件取得停車折抵設定列表[cite: 8]
+
+5. 依代號取得停車折抵設定 API
+   - API: GET /Parking/getDiscSetByID[cite: 8]
+   - 說明: 根據折抵編號（disc_id）查詢單一停車折抵設定的詳細內容與上下限資訊[cite: 8]
+
+6. 執行停車折抵試算 API
+   - API: GET /Parking/getDiscExec[cite: 8]
+   - 說明: 呼叫外部停車場 API 進行試算，計算停車時間、費用與折抵結果，並回傳相關數據[cite: 8]
+
+7. 儲存停車折抵設定 API
+   - API: GET /Parking/saveDiscSet[cite: 8]
+   - 說明: 新增或修改停車折抵設定，並記錄操作人員身分[cite: 8]
+
+8. 更新停車折抵執行 API
+   - API: GET /Parking/updateDiscExec[cite: 8]
+   - 說明: 重新執行試算並更新停車折抵的執行狀態與相關金額[cite: 8]
+
+9. 依車號查詢歷史紀錄 API
+   - API: GET /Parking/getHistByCarNO[cite: 8]
+   - 說明: 透過分頁查詢指定車號的停車折抵與進出歷史紀錄[cite: 8]
+   
+## ParkingReport 停車報表管理系統
+
+1. 取得停車折抵報表 API
+   - API: GET /ParkingReport/getParkingDiscount[cite: 8]
+   - 說明: 查詢並回傳各項停車折抵項目、時數統計與車輛數量的詳細報表資料[cite: 8]
+
+2. 查詢停車折抵明細報表 API
+   - API: GET /ParkingReport/getParkingDiscountQry[cite: 8]
+   - 說明: 透過會員卡號與分頁條件，查詢並回傳停車折抵執行的明細紀錄與相關進出時間[cite: 8]
+   
+## PosReport POS 報表管理系統
+
+1. 取得 POS 資料 API
+   - API: GET /PosReport/getPosData[cite: 8]
+   - 說明: 查詢並回傳 POS 交易資料，包含交易日期、時間、卡號、會員姓名、櫃位名稱、發票號碼、金額以及補點紀錄等相關資訊[cite: 8]
+
+2. 依編號取得員工資料 API
+   - API: GET /PosReport/getEmployeeByID[cite: 8]
+   - 說明: 依據請求內容查詢並回傳指定員工的代號、姓名、職稱、部門名稱、到職日、生日、聯絡電話、電子信箱、地址、學歷、科系及學位等詳細資料[cite: 8]
+   
+## PunchReport 打卡報表管理系統
+
+1. 取得下班打卡異常 API
+   - API: GET /PunchReport/getOffPunch[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並處理並回傳下班打卡相關的異常清單[cite: 8]
+
+2. 取得未配對打卡 API
+   - API: GET /PunchReport/getUnpairPunch[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並處理並回傳未完整配對的打卡清單[cite: 8]
+
+3. 取得加班紀錄 API
+   - API: GET /PunchReport/getOvertime[cite: 8]
+   - 說明: 查詢員工排班與登入打卡紀錄，並計算與回傳加班相關的詳細清單[cite: 8]
+   
+## ReadingSpace 閱讀空間管理系統
+
+1. 取得無限期資料 API
+   - API: GET /ReadingSpace/getUnlimitData[cite: 9]
+   - 說明: 查詢並回傳擁有無限期權限的使用者編號與姓名清單[cite: 9]
+
+2. 取得閱讀空間參數 API
+   - API: GET /ReadingSpace/getRSParam[cite: 9]
+   - 說明: 查詢並回傳閱讀空間的會員限制人數與扣點數等相關參數設定[cite: 9]
+
+3. 儲存閱讀空間參數 API
+   - API: GET /ReadingSpace/saveRSParam[cite: 9]
+   - 說明: 接收會員限制與扣點數參數並進行儲存更新[cite: 9]
+
+4. 取得臨時卡設定 API
+   - API: GET /ReadingSpace/getRSTempCard[cite: 9]
+   - 說明: 查詢並回傳閱讀空間臨時卡的起始與結束編號設定[cite: 9]
+
+5. 儲存臨時卡設定 API
+   - API: GET /ReadingSpace/saveRSTempCard[cite: 9]
+   - 說明: 儲存新的臨時卡區間範圍，並自動呼叫外部會員系統新增對應的臨時卡會員資料[cite: 9]
+
+6. 新增無限期資料 API
+   - API: GET /ReadingSpace/insertUnlimitData[cite: 9]
+   - 說明: 檢核會員資料是否存在及是否已具備無限期權限，若皆無誤則新增無限期授權資料[cite: 9]
+
+7. 刪除無限期資料 API
+   - API: GET /ReadingSpace/deleteUnlimitData[cite: 9]
+   - 說明: 依據卡號或使用者編號刪除對應的無限期權限資料[cite: 9]
+
+8. 取得目前即時資料 API
+   - API: GET /ReadingSpace/getNowData[cite: 9]
+   - 說明: 查詢並回傳閱讀空間目前的進出紀錄、交易時間、發票號碼及是否在室內等即時狀態清單[cite: 9]
+
+9. 更新狀態 API
+   - API: GET /ReadingSpace/updateStatus[cite: 9]
+   - 說明: 依據使用者編號更新閱讀空間的進出狀態與時間[cite: 9]
+
+10. 取得統計資料 API
+    - API: GET /ReadingSpace/getStatistics[cite: 9]
+    - 說明: 查詢並回傳閱讀空間的交易日期、點數、價格及各類次數統計報表資料[cite: 9]
+
+11. 取得閱讀空間會員 API
+    - API: GET /ReadingSpace/getRSMember[cite: 9]
+    - 說明: 透過會員卡號與查詢條件，取得閱讀空間的會員詳細資料、紀錄次數、性別與年齡等清單[cite: 9]
+	
+	
+## Report 報表與檔案下載管理系統
+
+1. 產生出勤異常 Excel 報表 API
+   - API: GET /Report/genOffPunchExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生出勤異常 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+2. 產生上下班刷卡不成對 Excel 報表 API
+   - API: GET /Report/genUnpairExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生未配對刷卡 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+3. 產生加班異常 Excel 報表 API
+   - API: GET /Report/genOvertimeExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生加班異常 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+4. 產生預算 Excel 報表 API
+   - API: GET /Report/genBudgetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，依據月份與條件產生預算報表 Excel 檔案並回傳下載網址[cite: 9]
+
+5. 產生資產盤點 Excel 報表 API
+   - API: GET /Report/genAssetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，依據盤點日期產生資產盤點報表 Excel 檔案並回傳下載網址[cite: 9]
+
+6. 產生個人資產設備 Excel 報表 API
+   - API: GET /Report/genStaffAssetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，產生個人資產設備報表 Excel 檔案並回傳下載網址[cite: 9]
+
+7. 檔案下載 API
+   - API: GET /Report/download[cite: 9]
+   - 說明: 依據請求的檔案路徑讀取檔案，設定對應的 Content-Type 與 UTF-8 附檔名標頭，將檔案串流輸出供使用者下載[cite: 9]
+   
+## ReportCatch 擷取報表管理系統
+
+1. 產生自營商品排行 Excel 報表 API
+   - API: GET /ReportCatch/genProductRankExcel[cite: 9]
+   - 說明: 查詢自營商品排行資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+2. 產生會員名單 Excel 報表 API
+   - API: GET /ReportCatch/genMemberListExcel[cite: 9]
+   - 說明: 查詢會員名單資料，產生 Excel 報表檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+3. 產生部類銷售 Excel 報表 API
+   - API: GET /ReportCatch/genDeptTransactionExcel[cite: 9]
+   - 說明: 查詢部類銷售資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+4. 產生部類消費 Excel 報表 API
+   - API: GET /ReportCatch/genMemberBuyExcel[cite: 9]
+   - 說明: 查詢會員部類消費資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+5. 產生年齡層消費 Excel 報表 API
+   - API: GET /ReportCatch/genMemberAgeBuyExcel[cite: 9]
+   - 說明: 查詢會員年齡層消費資料，並產生對應的 Excel 報表檔案與下載網址[cite: 9]
+
+6. 檔案下載 API
+   - API: GET /ReportCatch/download[cite: 9]
+   - 說明: 依據請求的檔案路徑讀取檔案，設定適當的 Content-Type 與 UTF-8 附檔名標頭，將檔案串流輸出供使用者下載[cite: 9]
+   
+## SBReport 接駁車報表管理系統
+
+1. 取得接駁車計數統計 API
+   - API: GET /SBReport/getSBCounter[cite: 9]
+   - 說明: 查詢並分頁回傳接駁車的上下車人次統計與總筆數等資訊[cite: 9]
+
+2. 取得接駁車會員詳細資料 API
+   - API: GET /SBReport/getSBMember[cite: 9]
+   - 說明: 透過會員卡號與查詢條件取得接駁車會員的詳細資料、乘車次數、性別及年齡等清單[cite: 9]
+   
+## TSProcess 處理程序與電商管理系統
+
+1. 補點處理 API
+   - API: GET /TSProcess/appendPoint[cite: 9]
+   - 說明: 檢查 ERP 狀態與重複性後執行補點作業，並回傳會員姓名、基本點數、發票日期、櫃位名稱、金額、點數及前後點數餘額等資訊[cite: 9]
+
+2. 依訂單號碼查詢電商紀錄 API
+   - API: GET /TSProcess/getECLogByOrderNO[cite: 9]
+   - 說明: 透過分頁與訂單號碼查詢並回傳電商交易紀錄清單，包含訂單編號、型態說明、卡號、金額、退款金額及各項授權與退貨日期[cite: 9]
+
+3. 電商退款處理 API
+   - API: GET /TSProcess/refundEC[cite: 9]
+   - 說明: 記錄操作人員並呼叫外部 Web Service 執行電商交易退款作業，處理並回傳退款結果狀態碼與訊息[cite: 9]
+   
+## TSReport 台新報表與交易管理系統
+
+1. 產生台新電商記錄 Excel 報表 API
+   - API: GET /TSReport/genTSECLogExcel[cite: 11]
+   - 說明: 查詢電商交易紀錄，產生對應的 Excel 報表檔案與下載網址[cite: 11]
+
+2. 取得台新櫃位統計資料 API
+   - API: GET /TSReport/getTSCounter[cite: 11]
+   - 說明: 分頁查詢並回傳台新櫃位的總計、Beyond 與非 Beyond 等統計數據清單[cite: 11]
+
+3. 取得台新補點紀錄資料 API
+   - API: GET /TSReport/getTSAppend[cite: 11]
+   - 說明: 分頁查詢並回傳台新補點紀錄的日期、記錄筆數與點數總計[cite: 11]
+
+4. 取得台新補點明細查詢 API
+   - API: GET /TSReport/getTSAppendQry[cite: 11]
+   - 說明: 透過卡號及條件查詢並分頁回傳台新補點明細，包含發票號碼、金額、點數、操作人員及櫃位名稱等詳細資料[cite: 11]
+   
+## VipRoom 貴賓室管理系統
+
+1. 取得無限期資料 API
+   - API: GET /VipRoom/getUnlimitData[cite: 11]
+   - 說明: 查詢並回傳貴賓室無限期會員的使用者編號與姓名清單[cite: 11]
+
+2. 新增無限期資料 API
+   - API: GET /VipRoom/insertUnlimitData[cite: 11]
+   - 說明: 檢查會員資料與重複性後，新增貴賓室無限期會員資料[cite: 11]
+
+3. 刪除無限期資料 API
+   - API: GET /VipRoom/deleteUnlimitData[cite: 11]
+   - 說明: 依據卡號刪除指定的貴賓室無限期會員資料[cite: 11]
+
+4. 依使用者編號查詢預約紀錄 API
+   - API: GET /VipRoom/getBookingByUID[cite: 11]
+   - 說明: 分頁查詢並回傳會員的貴賓室預約與進出紀錄，包含交易日期、進出時間、退款日期及總數量等資訊[cite: 11]
+
+5. 貴賓室預約（購買） API
+   - API: GET /VipRoom/booking[cite: 11]
+   - 說明: 驗證會員資料後，呼叫遠端服務執行貴賓室消費預約，並記錄操作人員與處理結果[cite: 11]
+
+6. 取消貴賓室預約（退款） API
+   - API: GET /VipRoom/cancelbooking[cite: 11]
+   - 說明: 驗證會員資料後，呼叫遠端服務執行貴賓室預約退款作業，並回傳處理狀態[cite: 11]
+
+7. 取得貴賓會員資料 API
+   - API: GET /VipRoom/getVipMember[cite: 11]
+   - 說明: 依條件查詢並回傳貴賓室會員的詳細資料，包含卡號、姓名、性別、年齡及總消費數量等統計數據[cite: 11]
+   
+## WebSign 線上簽到退管理系統
+
+1. 取得簽到資料 API
+   - API: GET /WebSign/getSignData[cite: 11]
+   - 說明: 依據登入身分查詢員工代碼，並分頁回傳簽到紀錄清單，包含紀錄時間、工作狀態（上班/下班）、記錄IP及登入代號等資訊[cite: 11]
+
+2. 執行線上簽到退 API
+   - API: GET /WebSign/sign[cite: 11]
+   - 說明: 取得目前登入員工資料與遠端 IP，執行線上簽到/簽退處理並記錄相關日誌與狀態[cite: 11]
+   
+
+   
+   
+   
+   
+
+

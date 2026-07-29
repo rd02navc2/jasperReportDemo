@@ -1,0 +1,29 @@
+## Report 報表與檔案下載管理系統
+
+1. 產生出勤異常 Excel 報表 API
+   - API: GET /Report/genOffPunchExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生出勤異常 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+2. 產生上下班刷卡不成對 Excel 報表 API
+   - API: GET /Report/genUnpairExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生未配對刷卡 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+3. 產生加班異常 Excel 報表 API
+   - API: GET /Report/genOvertimeExcel[cite: 9]
+   - 說明: 查詢員工排班與打卡紀錄，處理並產生加班異常 Excel 檔案，記錄敏感下載日誌並回傳下載網址[cite: 9]
+
+4. 產生預算 Excel 報表 API
+   - API: GET /Report/genBudgetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，依據月份與條件產生預算報表 Excel 檔案並回傳下載網址[cite: 9]
+
+5. 產生資產盤點 Excel 報表 API
+   - API: GET /Report/genAssetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，依據盤點日期產生資產盤點報表 Excel 檔案並回傳下載網址[cite: 9]
+
+6. 產生個人資產設備 Excel 報表 API
+   - API: GET /Report/genStaffAssetExcel[cite: 9]
+   - 說明: 接收前端選取的資料，產生個人資產設備報表 Excel 檔案並回傳下載網址[cite: 9]
+
+7. 檔案下載 API
+   - API: GET /Report/download[cite: 9]
+   - 說明: 依據請求的檔案路徑讀取檔案，設定對應的 Content-Type 與 UTF-8 附檔名標頭，將檔案串流輸出供使用者下載[cite: 9]

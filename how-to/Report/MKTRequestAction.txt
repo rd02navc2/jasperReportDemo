@@ -1,0 +1,41 @@
+## MKTRequest 行銷需求管理系統
+
+1. 取得登入員工資訊 API
+   - API: GET /MKTRequest/getEmployeeByLoginID[cite: 12]
+   - 說明: 依據目前登入的使用者帳號查詢員工基本資料與兩層主管的詳細資訊與信箱[cite: 12]
+
+2. 儲存行銷需求單 API
+   - API: GET /MKTRequest/saveMKTRequest[cite: 12]
+   - 說明: 驗證並儲存行銷需求單內容，搬移暫存上傳檔案至正式目錄，並排程寄送確認通知信給主管[cite: 12]
+
+3. 查詢行銷需求單清單 API
+   - API: GET /MKTRequest/getMKTRequest[cite: 12]
+   - 說明: 根據分頁條件與請求參數查詢行銷需求單列表，並帶出各狀態的中英文字幕與附件資訊[cite: 12]
+
+4. 依需求單號查詢明細 API
+   - API: GET /MKTRequest/getMKTRequestByNo[cite: 12]
+   - 說明: 依據需求單號查詢完整的行銷需求明細、審核歷程及各階段對應的簽核信箱群組[cite: 12]
+
+5. 執行審核通過 API
+   - API: GET /MKTRequest/doApprove[cite: 12]
+   - 說明: 處理行銷需求單的各級主管審核通過流程，並根據單據狀態自動發送對應的通知信[cite: 12]
+
+6. 執行退回作業 API
+   - API: GET /MKTRequest/doReturn[cite: 12]
+   - 說明: 處理行銷需求單的主管或企劃設計退回作業，記錄退回原因並寄送退回通知信[cite: 12]
+
+7. 取得行銷審核信箱清單 API
+   - API: GET /MKTRequest/getMKTMail[cite: 12]
+   - 說明: 查詢並回傳各個行銷企劃與簽核層級（A/B/C方案、設計、主管、副總）的預設收件信箱[cite: 12]
+
+8. 儲存行銷審核信箱清單 API
+   - API: GET /MKTRequest/saveMKTMail[cite: 12]
+   - 說明: 更新並儲存各個行銷企劃與簽核層級的收件信箱設定[cite: 12]
+
+9. 上傳主圖片檔案 API
+   - API: GET /MKTRequest/uploadImage[cite: 12]
+   - 說明: 接收 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳新檔名[cite: 12]
+
+10. 上傳副圖片或附件檔案 API
+    - API: GET /MKTRequest/uploadImage1[cite: 12]
+    - 說明: 接收第二個 multipart 檔案上傳請求，將檔案儲存至暫存目錄並回傳新檔名[cite: 12]

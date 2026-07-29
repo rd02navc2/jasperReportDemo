@@ -1,0 +1,5 @@
+SyncYahooNonPayment ## Yahoo未付款資料同步系統
+
+1. API: 執行Yahoo未付款資料同步作業
+GET /syncYahooNonPayment
+執行Yahoo未付款資料同步作業，透過 `SyncYahooNonPaymentEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢未付款交易清單 (`QueryNonPayment`)，並將交易、訂單與產品明細資料寫入或更新至本地資料庫中[cite: 8]

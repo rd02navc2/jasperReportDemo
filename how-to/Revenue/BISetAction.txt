@@ -1,0 +1,13 @@
+## BISet 業務對比設定 API
+
+1. 取得所有對比日期資料 API
+   GET /BISet/getAllContrast
+   取得系統中所有的對比日期資料清單，並將報表日期回傳。
+
+2. 依年月取得對比日期資料 API
+   GET /BISet/getContrastByYM
+   接收查詢條件，取得指定年月的對比日期詳細資料，包含報表日期、星期、對比日期、對比星期、存取人員及存取時間。
+
+3. 儲存對比日期資料 API
+   GET /BISet/saveContrast
+   從 Request 取得登入資訊與 JSON 資料陣列，執行對比資料的儲存或更新作業，並回傳執行結果。

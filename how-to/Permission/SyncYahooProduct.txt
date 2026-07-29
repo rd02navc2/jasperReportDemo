@@ -1,0 +1,5 @@
+SyncYahooProduct ## Yahoo商品主檔同步系統
+
+1. API: 執行Yahoo商品主檔同步作業
+GET /syncYahooProduct
+執行Yahoo商品主檔同步作業，透過 `SyncYahooProductEntry` 呼叫 `doSync()`，串接 Yahoo 外部 API 查詢商品主檔、分類及規格等相關資料，並將資料寫入或更新至本地資料庫中[cite: 9]。

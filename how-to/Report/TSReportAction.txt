@@ -1,0 +1,17 @@
+## TSReport 台新報表與交易管理系統
+
+1. 產生台新電商記錄 Excel 報表 API
+   - API: GET /TSReport/genTSECLogExcel[cite: 11]
+   - 說明: 查詢電商交易紀錄，產生對應的 Excel 報表檔案與下載網址[cite: 11]
+
+2. 取得台新櫃位統計資料 API
+   - API: GET /TSReport/getTSCounter[cite: 11]
+   - 說明: 分頁查詢並回傳台新櫃位的總計、Beyond 與非 Beyond 等統計數據清單[cite: 11]
+
+3. 取得台新補點紀錄資料 API
+   - API: GET /TSReport/getTSAppend[cite: 11]
+   - 說明: 分頁查詢並回傳台新補點紀錄的日期、記錄筆數與點數總計[cite: 11]
+
+4. 取得台新補點明細查詢 API
+   - API: GET /TSReport/getTSAppendQry[cite: 11]
+   - 說明: 透過卡號及條件查詢並分頁回傳台新補點明細，包含發票號碼、金額、點數、操作人員及櫃位名稱等詳細資料[cite: 11]

@@ -1,0 +1,5 @@
+## LineReport Line 報表系統
+
+1. 取得 Line 櫃位統計 API
+   - API: GET /LineReport/getLineCounter[cite: 11]
+   - 說明: 根據請求參數與分頁資訊查詢 Line 交易記錄清單，並計算客單價與總筆數後回傳 JSON 格式結果[cite: 11]

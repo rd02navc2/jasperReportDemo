@@ -1,0 +1,5 @@
+## AppReport 應用程式報表系統
+
+1. 取得應用程式專櫃統計資料 API
+   - API: POST /AppReport/getAppCounter[cite: 1]
+   - 說明: 接收前端請求參數與分頁資訊（page、rows、sidx、sord），呼叫 ReportService 查詢應用程式專櫃統計清單與總筆數，並回傳分頁格式的 JSON 資料[cite: 1]

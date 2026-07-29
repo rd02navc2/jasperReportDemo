@@ -1,0 +1,61 @@
+## Budget 預算管理系統
+
+1. 取得預算參數設定 API
+   - API: GET /Budget/getBGParam[cite: 2]
+   - 說明: 取得預算申請與審核相關的電子郵件收件人與副本參數設定[cite: 2]
+
+2. 儲存預算參數設定 API
+   - API: POST /Budget/saveBGParam[cite: 2]
+   - 說明: 接收並儲存預算申請與審核的電子郵件收件人與副本設定[cite: 2]
+
+3. 取得預算表頭清單 API
+   - API: GET /Budget/getBudgetHeader[cite: 2]
+   - 說明: 查詢所有月份的預算表頭資訊、審核狀態、操作人員與時間、以及退回原因[cite: 2]
+
+4. 取得預算明細資料 API
+   - API: POST /Budget/getBudgetDetail[cite: 2]
+   - 說明: 根據指定的預算月份與排序條件查詢各樓層、部門與櫃位的每日預算明細資料[cite: 2]
+
+5. 上傳預算 Excel 檔案 API
+   - API: POST /Budget/uploadExcel[cite: 2]
+   - 說明: 驗證使用者登入狀態，上傳並解析預算 Excel 檔案，並回傳對應的每日預算明細清單[cite: 2]
+
+6. 儲存預算資料 API
+   - API: POST /Budget/save[cite: 2]
+   - 說明: 儲存指定月份的預算資料、檢查是否尚有櫃位預算為 0，若完整則發送預算審核通知信並更新狀態為審核中[cite: 2]
+
+7. 更新預算樓層資訊 API
+   - API: POST /Budget/updateFloor[cite: 2]
+   - 說明: 根據目前的櫃位清單更新指定月份預算資料中的樓層對應資訊[cite: 2]
+
+8. 提交或審核預算 API
+   - API: POST /Budget/submit[cite: 2]
+   - 說明: 針對指定月份的預算進行核准或退回動作，並寄送對應的通知信給申請人[cite: 2]
+
+9. 刪除單筆預算資料 API
+   - API: POST /Budget/delete[cite: 2]
+   - 說明: 刪除指定月份、部門與櫃位的單筆預算資料[cite: 2]
+
+10. 刪除全部預算為零的資料 API
+    - API: POST /Budget/delete0[cite: 2]
+    - 說明: 刪除指定月份中預算資料為全部為零的相關紀錄[cite: 2]
+
+11. 取得例外專櫃清單 API
+    - API: POST /Budget/getExceptCounter[cite: 2]
+    - 說明: 查詢預算計算或處理中的例外專櫃清單[cite: 2]
+
+12. 新增例外專櫃 API
+    - API: POST /Budget/addExceptCounter[cite: 2]
+    - 說明: 根據傳入的專櫃代號新增一筆例外專櫃資料[cite: 2]
+
+13. 刪除例外專櫃 API
+    - API: POST /Budget/delExceptCounter[cite: 2]
+    - 說明: 根據傳入的專櫃代號刪除對應的例外專櫃資料[cite: 2]
+
+14. 檢查預算完成狀態 API
+    - API: POST /Budget/isCompletion[cite: 2]
+    - 說明: 檢查指定月份的預算資料是否完整，若完整則自動送出審核[cite: 2]
+
+15. 重新計算預算 API
+    - API: POST /Budget/reCalc[cite: 2]
+    - 說明: 針對指定月份的預算執行重新計算與核准狀態更新處理[cite: 2]

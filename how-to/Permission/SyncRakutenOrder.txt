@@ -1,0 +1,5 @@
+## Rakuten樂天訂單同步 API
+
+1. API: 同步樂天市場(beyondplaza)訂單資料 
+GET /syncRakutenOrder
+同步樂天市場(beyondplaza)訂單資料，自動抓取近兩日訂單並寫入或更新至本地資料庫，同時處理未結案訂單狀態與物流費分攤

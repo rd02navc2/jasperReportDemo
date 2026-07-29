@@ -1,0 +1,13 @@
+## Coupon 優惠券管理系統
+
+1. 取得優惠券清單 API
+   - API: GET /Coupon/getCoupon[cite: 6]
+   - 說明: 根據前端請求參數與分頁資訊查詢優惠券明細清單或歷史記錄，並回傳 JSON 格式資料[cite: 6]
+
+2. 更新優惠券日期 API
+   - API: POST /Coupon/updateCouponDate[cite: 6]
+   - 說明: 接收前端傳入的優惠券區間並更新對應的日期，同時記錄登入者的操作歷程[cite: 6]
+
+3. 取得優惠券異動日誌 API
+   - API: GET /Coupon/getCouponLog[cite: 6]
+   - 說明: 依據分頁與請求參數查詢優惠券的操作日誌與交易明細清單[cite: 6]

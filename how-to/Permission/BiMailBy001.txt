@@ -1,0 +1,13 @@
+## BiMailBy001 同步系統
+
+1. 預同步作業 API
+   - API: GET /biMailBy001Pre
+   - 說明: 執行預同步作業，由 BiMailBy001PreEntry 進行處理
+
+2. 即時同步作業 API
+   - API: GET /biMailBy001Real
+   - 說明: 執行即時同步作業，由 BiMailBy001RealEntry 進行處理
+
+3. 備份同步作業 API
+   - API: GET /biMailBy001Backup
+   - 說明: 執行備份同步作業，由 BiMailBy001BackupEntry 進行處理

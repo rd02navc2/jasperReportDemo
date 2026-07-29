@@ -1,0 +1,156 @@
+報表管理系統
+
+https://inner.beyondplaza.com.tw/Report/login.html
+
+/Report/LoginServlet
+
+C:\Users\davidchung\Documents\開發用\Source_20240606\Report\src\tw\com\platform\action\ReportAction.java:
+   37  
+   38  @Controller
+   39: @RequestMapping("/Report")
+   40  public class ReportAction {
+   41  	private static final String CONTENT_TYPE = "text/html; charset=UTF-8";
+   
+
+http://localhost:8095/Report/LoginServlet
+
+https://inner.beyondplaza.com.tw/Report/demo1.html
+
+功能選項
+資產盤點作業
+
+/ITRequest
+getEmployeeByLoginID
+@RequestMapping("/getEmployeeByLoginID")
+
+
+ReportAction
+
+
+
+1. 產生出勤異常 Excel 報表 API
+
+    POST /Report/genOffPunchExcel
+
+    功能說明：根據查詢條件比對排班與刷卡紀錄，產出出勤異常 Excel 報表並回傳下載路徑與寫入下載 Log。
+
+2. 產生上下班刷卡不成對 Excel 報表 API
+
+    POST /Report/genUnpairExcel
+
+    功能說明：比對排班與刷卡紀錄以篩選出未成對的刷卡資料，匯出成 Excel 檔並回傳下載路徑與紀錄 Log。
+
+3. 產生加班異常 Excel 報表 API
+
+    POST /Report/genOvertimeExcel
+
+    功能說明：解析並比對加班異常資料，生成相對應的 Excel 報表檔並回傳下載路徑與紀錄 Log。
+
+4. 產生預算日明細 Excel 報表 API
+
+    POST /Report/genBudgetExcel
+
+    功能說明：將前端傳入的指定月份預算勾選資料，匯出為預算日明細 Excel 報表並回傳下載路徑。
+
+5. 產生資產盤點 Excel 報表 API
+
+    POST /Report/genAssetExcel
+
+    功能說明：接收指定的資產盤點資料與日期，產生資產盤點 Excel 報表並回傳下載路徑。
+
+6. 產生個人資產設備 Excel 報表 API
+
+    POST /Report/genStaffAssetExcel
+
+    功能說明：將傳入的員工個人資產資料，產出為個人資產設備 Excel 報表並回傳下載路徑。
+
+7. 報表檔案下載 API
+
+    POST /Report/download
+
+    功能說明：依據傳入的檔案路徑讀取伺服器端實體檔案，並透過 HTTP Response 串流提供前端下載。
+	
+	--
+	
+1. 產生出勤異常 Excel 報表 API
+
+    POST /Report/genOffPunchExcel
+
+    功能說明：根據查詢條件比對排班與刷卡紀錄，產出出勤異常 Excel 報表並回傳下載路徑與寫入下載 Log。
+
+2. 產生上下班刷卡不成對 Excel 報表 API
+
+    POST /Report/genUnpairExcel
+
+    功能說明：比對排班與刷卡紀錄以篩選出未成對的刷卡資料，匯出成 Excel 檔並回傳下載路徑與紀錄 Log。
+
+3. 產生加班異常 Excel 報表 API
+
+    POST /Report/genOvertimeExcel
+
+    功能說明：解析並比對加班異常資料，生成相對應的 Excel 報表檔並回傳下載路徑與紀錄 Log。
+
+4. 產生預算日明細 Excel 報表 API
+
+    POST /Report/genBudgetExcel
+
+    功能說明：將前端傳入的指定月份預算勾選資料，匯出為預算日明細 Excel 報表並回傳下載路徑。
+
+5. 產生資產盤點 Excel 報表 API
+
+    POST /Report/genAssetExcel
+
+    功能說明：接收指定的資產盤點資料與日期，產生資產盤點 Excel 報表並回傳下載路徑。
+
+6. 產生個人資產設備 Excel 報表 API
+
+    POST /Report/genStaffAssetExcel
+
+    功能說明：將傳入的員工個人資產資料，產出為個人資產設備 Excel 報表並回傳下載路徑。
+
+7. 報表檔案下載 API
+
+    POST /Report/download
+
+    功能說明：依據傳入的檔案路徑讀取伺服器端實體檔案，並透過 HTTP Response 串流提供前端下載。
+
+
+
+
+
+
+
+
+
+
+--
+
+
+# 建立目錄結構
+mkdir -p css/jquery-ui-1.10.3.custom/themes/smoothness
+mkdir -p css/easyui/themes/default
+mkdir -p jquery
+
+# 下載 JS 檔案
+curl -o jquery/jquery-1.9.1.min.js https://code.jquery.com/jquery-1.9.1.min.js
+curl -o jquery/jquery-ui-1.10.3.custom.js https://code.jquery.com/ui/1.10.3/jquery-ui.js
+curl -o jquery/jquery.easyui.min.js https://cdnjs.cloudflare.com/ajax/libs/jquery-easyui/1.9.15/jquery.easyui.min.js
+curl -o jquery/jquery.form.js https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js
+curl -o jquery/jquery.blockUI.js https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js
+curl -o jquery/jquery.cookie.js https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js
+
+# 下載 CSS 檔案
+curl -o css/jquery-ui-1.10.3.custom/themes/smoothness/jquery-ui.css https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css
+curl -o css/easyui/themes/default/easyui.css https://cdnjs.cloudflare.com/ajax/libs/jquery-easyui/1.9.15/themes/default/easyui.css
+curl -o css/easyui/themes/icon.css https://cdnjs.cloudflare.com/ajax/libs/jquery-easyui/1.9.15/themes/icon.css
+
+
+
+
+
+--
+總結
+
+    要直接切換/渲染 HTML 畫面 ➔ 用 @Controller 回傳 Thymeleaf 樣板名稱。
+
+    前端用 Ajax 呼叫、要拿 JSON 資料/狀態（如你的報表產出 API）➔ 用 @RestController。

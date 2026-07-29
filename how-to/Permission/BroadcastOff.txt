@@ -1,0 +1,5 @@
+## BroadcastOff 廣播系統
+
+1. 廣播下班作業 API
+   - API: GET /broadcastOff[cite: 16]
+   - 說明: 執行廣播下班作業，透過 BroadcastOffEntry 呼叫 doBroadcast() 進行處理[cite: 16]

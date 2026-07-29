@@ -1,0 +1,5 @@
+## SyncRakutenInv 樂天庫存資料同步系統
+
+1. 樂天庫存資料同步 API
+   - API: GET /syncRakutenInv[cite: 15]
+   - 說明: 執行樂天平台庫存資料同步作業，透過 `SyncRakutenOrderEntry` 呼叫 `doSync()`，串接樂天庫存查詢 API 取得指定 SKU 的數量，並將庫存資料更新至資料庫中[cite: 15]
