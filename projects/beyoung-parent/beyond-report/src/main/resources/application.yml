@@ -1,6 +1,15 @@
 server:
   port: 8095
-  address: 127.0.0.1 
+  address: 127.0.0.1
+  # ===== 新增：JSP 用的 Session 設定 =====
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        # 若已是 HTTPS 環境，建議額外打開：
+        # secure: true
+        # same-site: lax
 
 download:
   content:
@@ -19,9 +28,9 @@ OneOnAir_EC_Notify_URL: "http://localhost:8095/Surrounding/your-mock-path"
 nccc_payment_dir: C:/nccc/payment
 
 # 營業報表實體圖檔存放目錄
-Notify_Image_Dir: "C:/path/to/your/images" 
+Notify_Image_Dir: "C:/path/to/your/images"
 # 新增：推播圖檔所需的對外公開 HTTPS 基礎網址前綴 (請替換為你們的真實網址)
-Public_Image_Base_Url: "https://yourdomain.com/static/revenue/" 
+Public_Image_Base_Url: "https://yourdomain.com/static/revenue/"
 
 # AI 機器人與 LINE 相關的配置
 api-config:
@@ -31,27 +40,27 @@ api-config:
     model: "gpt-4o"
   line:
     reply-url: "https://api.line.me/v2/bot/message/reply"
-    push-url: "https://api.line.me/v2/bot/message/push" # 👈 新增：新版 LINE Messaging API 主動推播網址
+    push-url: "https://api.line.me/v2/bot/message/push" # 新版 LINE Messaging API 主動推播網址
     channel-access-token: "eyJhbGciOi..." # 替換成 LINE Developers 後台發行的 Channel Access Token
     it-robot-token: "YOUR_IT_ROBOT_CHANNEL_ACCESS_TOKEN"
     work-robot-token: "YOUR_WORK_ROBOT_CHANNEL_ACCESS_TOKEN"
-    # 👈 重構：配置 4 種報表類型各自對應的 LINE 接收端 ID (群組 ID 或使用者 User ID)
+    # 配置 4 種報表類型各自對應的 LINE 接收端 ID (群組 ID 或使用者 User ID)
     target-id:
       pre-revenue: "Uxxxxxxxxxxxxxxx_A"   # A: 永和營業報表預派 接收端 ID
       real-revenue: "Cxxxxxxxxxxxxxxx_BC" # B & C: 永和/影城營業報表 接收端 ID
       sales: "Uxxxxxxxxxxxxxxx_D"        # D: 每日打烊業績快報 接收端 ID
   one-on-air:
-      api-url: "https://api.example.com" # 填入真正的金流 API Base URL
-      merchant-id: "YOUR_MERCHANT_ID"
-      api-key: "YOUR_API_KEY"
-      return-url: "https://yourdomian.com/return"
-      cancel-url: "https://yourdomian.com/cancel"
-      confirm-url: "https://yourdomian.com/confirm"
-      notify-url: "https://yourdomian.com/notify"
-      result-url: "https://your-domain.com/result"
-      successUrl: "https://your-domain.com/success"
-      failUrl:    "https://your-domain.com/fail"
-      
+    api-url: "https://api.example.com" # 填入真正的金流 API Base URL
+    merchant-id: "YOUR_MERCHANT_ID"
+    api-key: "YOUR_API_KEY"
+    return-url: "https://yourdomian.com/return"
+    cancel-url: "https://yourdomian.com/cancel"
+    confirm-url: "https://yourdomian.com/confirm"
+    notify-url: "https://yourdomian.com/notify"
+    result-url: "https://your-domain.com/result"
+    successUrl: "https://your-domain.com/success"
+    failUrl:    "https://your-domain.com/fail"
+
 app:
   server:
     url: ${APP_SERVER_URL:http://localhost:8099/PrivilegeWebService}
@@ -83,7 +92,7 @@ taiwanpay:
   payment-target: https://api.taiwanpay.com.tw
   merchant-id: ${TAIWANPAY_MERCHANT_ID:unknown}
   terminal-id: ${TAIWANPAY_TERMINAL_ID:unknown}
-  key: ${TAIWANPAY_SECRET_KEY:unknown} 
+  key: ${TAIWANPAY_SECRET_KEY:unknown}
   content-type: application/json
 
 linepay:
@@ -104,10 +113,10 @@ pacepay:
 GIFT_WS_URL: ${GIFT_SERVICE_URL:http://localhost:8095/GiftWebService}
 
 parking:
-  url: http://api.parking-system.com 
+  url: http://api.parking-system.com
 
-APPServer: ${app.server.url}  
-      
+APPServer: ${app.server.url}
+
 spring:
   application:
     name: beyond-report
@@ -116,7 +125,12 @@ spring:
     virtual:
       enabled: true
 
-  # 修正：縮排對齊 (primary 與 secondary 在同一個層級)
+  # ===== 新增：JSP View Resolver =====
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+
   datasource:
     primary:
       url: jdbc:mysql://localhost:3306/reportdb?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
