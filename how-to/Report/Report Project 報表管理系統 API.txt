@@ -1428,64 +1428,435 @@ VALUES (
 2. 儲存預算參數設定 API
    - API: POST /Budget/saveBGParam[cite: 2]
    - 說明: 接收並儲存預算申請與審核的電子郵件收件人與副本設定[cite: 2]
+http://localhost:8095/Report/rest/Budget/saveBGParam
+
+{
+  "budget_apply": "user1@beyond.com\nuser2@beyond.com\nuser3@beyond.com",
+  "budget_approve_cc": "admin1@beyond.com\nadmin2@beyond.com"
+}
+
+INSERT INTO PermissionDB.email_address (
+    `function`, 
+    `from`, 
+    `from_name`, 
+    `to`, 
+    `cc`, 
+    `bcc`
+) VALUES 
+(
+    'BUDGET_APPLY', 
+    'user1@beyond.com;user2@beyond.com;user3@beyond.com', 
+    '系統通知員', 
+    '', 
+    'manager@beyond.com', 
+    'system@beyond.com'
+),
+(
+    'BUDGET_APPROVE', 
+    'boss@beyond.com', 
+    '系統審核員', 
+    'audit@beyond.com', 
+    'admin1@beyond.com;admin2@beyond.com', 
+    'system@beyond.com'
+)
+ON DUPLICATE KEY UPDATE 
+    `from` = VALUES(`from`),
+    `from_name` = VALUES(`from_name`),
+    `to` = VALUES(`to`),
+    `cc` = VALUES(`cc`),
+    `bcc` = VALUES(`bcc`);
+
 
 3. 取得預算表頭清單 API
    - API: GET /Budget/getBudgetHeader[cite: 2]
    - 說明: 查詢所有月份的預算表頭資訊、審核狀態、操作人員與時間、以及退回原因[cite: 2]
-
+http://localhost:8095/Report/rest/Budget/getBudgetHeader
+   
+   
+-- 假設資料表名稱為 budget_day_header
+INSERT INTO reportdb.budget_day_header (
+    `b_month`, 
+    `status`, 
+    `access_id`, 
+    `access_date`, 
+    `approve_id`, 
+    `approve_date`, 
+    `reject_id`, 
+    `reject_date`, 
+    `return_reason`
+) VALUES 
+(
+    '2026-07', 
+    '1',                     -- 狀態碼 (會經由 Constants.getStatusName 轉換成顯示名稱)
+    'user001', 
+    '2026-07-01 10:00:00', 
+    'boss001', 
+    '2026-07-02 14:30:00', 
+    NULL, 
+    NULL, 
+    ''
+),
+(
+    '2026-08', 
+    '2', 
+    'user002', 
+    '2026-07-15 09:15:00', 
+    NULL, 
+    NULL, 
+    'boss001', 
+    '2026-07-16 11:00:00', 
+    '預算超標退回'
+);
+   
 4. 取得預算明細資料 API
    - API: POST /Budget/getBudgetDetail[cite: 2]
    - 說明: 根據指定的預算月份與排序條件查詢各樓層、部門與櫃位的每日預算明細資料[cite: 2]
+http://localhost:8095/Report/rest/Budget/getBudgetDetail   
+
+{
+    "b_month": "2026-07",
+    "floor": "1F",
+    "dept_id": "D001",
+    "counter_id": "C001"
+}
+
+-- 假設資料表名稱為 budget_day_detail
+INSERT INTO budget_day_detail (
+    `b_month`, 
+    `floor`, 
+    `dept_id`, 
+    `dept_name`, 
+    `counter_id`, 
+    `counter_name`, 
+    `org_name`, 
+    `b_01`, `b_02`, `b_03`, `b_04`, `b_05`, `b_06`, `b_07`, `b_08`, `b_09`, `b_10`,
+    `b_11`, `b_12`, `b_13`, `b_14`, `b_15`, `b_16`, `b_17`, `b_18`, `b_19`, `b_20`,
+    `b_21`, `b_22`, `b_23`, `b_24`, `b_25`, `b_26`, `b_27`, `b_28`, `b_29`, `b_30`, `b_31`
+) VALUES (
+    '2026-07', 
+    '1F', 
+    'D001', 
+    '營運部', 
+    'C01', 
+    '專櫃 A', 
+    '總公司', 
+    1000, 1500, 1200, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+), (
+    '2026-07', 
+    '2F', 
+    'D002', 
+    '服飾部', 
+    'C02', 
+    '專櫃 B', 
+    '總公司', 
+    2000, 2500, 2200, 1800, 3000, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+);
+   
 
 5. 上傳預算 Excel 檔案 API
    - API: POST /Budget/uploadExcel[cite: 2]
    - 說明: 驗證使用者登入狀態，上傳並解析預算 Excel 檔案，並回傳對應的每日預算明細清單[cite: 2]
-
+http://localhost:8095/Report/rest/Budget/uploadExcel
+   
+   
 6. 儲存預算資料 API
    - API: POST /Budget/save[cite: 2]
    - 說明: 儲存指定月份的預算資料、檢查是否尚有櫃位預算為 0，若完整則發送預算審核通知信並更新狀態為審核中[cite: 2]
-
+http://localhost:8095/Report/rest/Budget/save   
+   
+   
+{
+  "b_month": "2026-07",
+  "budget_data": [
+    {
+      "floor": "1F",
+      "dept_id": "D001",
+      "dept_name": "女裝部",
+      "counter_id": "C001",
+      "counter_name": "品牌A",
+      "org_name": "營業一部",
+      "b_01": 1000.00,
+      "b_02": 1500.00,
+      "b_03": 2000.00,
+      "b_04": 1200.00,
+      "b_05": 1800.00,
+      "b_06": 2200.00,
+      "b_07": 1300.00,
+      "b_08": 1400.00,
+      "b_09": 1600.00,
+      "b_10": 1700.00,
+      "b_11": 1900.00,
+      "b_12": 2100.00,
+      "b_13": 2300.00,
+      "b_14": 2500.00,
+      "b_15": 2000.00,
+      "b_16": 1800.00,
+      "b_17": 1700.00,
+      "b_18": 1600.00,
+      "b_19": 1500.00,
+      "b_20": 1400.00,
+      "b_21": 1300.00,
+      "b_22": 1200.00,
+      "b_23": 1100.00,
+      "b_24": 1000.00,
+      "b_25": 1500.00,
+      "b_26": 2000.00,
+      "b_27": 2500.00,
+      "b_28": 3000.00,
+      "b_29": 3500.00,
+      "b_30": 4000.00,
+      "b_31": 4500.00
+    }
+  ]
+}
+   
 7. 更新預算樓層資訊 API
    - API: POST /Budget/updateFloor[cite: 2]
    - 說明: 根據目前的櫃位清單更新指定月份預算資料中的樓層對應資訊[cite: 2]
+http://localhost:8095/Report/rest/Budget/updateFloor
 
+{
+  "b_month": "2026-07"
+}
+  
 8. 提交或審核預算 API
    - API: POST /Budget/submit[cite: 2]
    - 說明: 針對指定月份的預算進行核准或退回動作，並寄送對應的通知信給申請人[cite: 2]
+http://localhost:8095/Report/rest/Budget/submit
+
+submit核准預算 (Action = "Yes")核准預算 (Action = "Yes")
+{
+  "b_month": "2026-07",
+  "action": "Yes"
+}
+
+UPDATE BUDGET_DAY_DETAIL
+SET 
+    b_01 = COALESCE(NULLIF(b_01, 0), 1000),
+    b_02 = COALESCE(NULLIF(b_02, 0), 1000),
+    b_03 = COALESCE(NULLIF(b_03, 0), 1000),
+    b_04 = COALESCE(NULLIF(b_04, 0), 1000),
+    b_05 = COALESCE(NULLIF(b_05, 0), 1000),
+    b_06 = COALESCE(NULLIF(b_06, 0), 1000),
+    b_07 = COALESCE(NULLIF(b_07, 0), 1000),
+    b_08 = COALESCE(NULLIF(b_08, 0), 1000),
+    b_09 = COALESCE(NULLIF(b_09, 0), 1000),
+    b_10 = COALESCE(NULLIF(b_10, 0), 1000),
+    b_11 = COALESCE(NULLIF(b_11, 0), 1000),
+    b_12 = COALESCE(NULLIF(b_12, 0), 1000),
+    b_13 = COALESCE(NULLIF(b_13, 0), 1000),
+    b_14 = COALESCE(NULLIF(b_14, 0), 1000),
+    b_15 = COALESCE(NULLIF(b_15, 0), 1000),
+    b_16 = COALESCE(NULLIF(b_16, 0), 1000),
+    b_17 = COALESCE(NULLIF(b_17, 0), 1000),
+    b_18 = COALESCE(NULLIF(b_18, 0), 1000),
+    b_19 = COALESCE(NULLIF(b_19, 0), 1000),
+    b_20 = COALESCE(NULLIF(b_20, 0), 1000),
+    b_21 = COALESCE(NULLIF(b_21, 0), 1000),
+    b_22 = COALESCE(NULLIF(b_22, 0), 1000),
+    b_23 = COALESCE(NULLIF(b_23, 0), 1000),
+    b_24 = COALESCE(NULLIF(b_24, 0), 1000),
+    b_25 = COALESCE(NULLIF(b_25, 0), 1000),
+    b_26 = COALESCE(NULLIF(b_26, 0), 1000),
+    b_27 = COALESCE(NULLIF(b_27, 0), 1000),
+    b_28 = COALESCE(NULLIF(b_28, 0), 1000),
+    b_29 = COALESCE(NULLIF(b_29, 0), 1000),
+    b_30 = COALESCE(NULLIF(b_30, 0), 1000),
+    b_31 = COALESCE(NULLIF(b_31, 0), 1000)
+WHERE b_month = '2026-07';
+   
+INSERT INTO email_address (
+    `function`, `FROM`, `FROM_NAME`, `TO`, `CC`, `BCC`
+) VALUES (
+    'BudgetApprove',                    -- 主鍵 function (必須跟 Service 呼叫時的 function 名稱一致)
+    'system@beyondplaza.com.tw',        -- 寄件者 Email
+    '預算審核系統',                      -- 寄件者名稱
+    'manager@beyondplaza.com.tw',       -- 收件者 (TO)
+    'admin@beyondplaza.com.tw',         -- 副本 (CC)
+    ''                                  -- 密件副本 (BCC)
+)
+ON DUPLICATE KEY UPDATE 
+    `TO` = VALUES(`TO`),
+    `CC` = VALUES(`CC`);
+
 
 9. 刪除單筆預算資料 API
    - API: POST /Budget/delete[cite: 2]
    - 說明: 刪除指定月份、部門與櫃位的單筆預算資料[cite: 2]
+http://localhost:8095/Report/rest/Budget/delete
+   
+   
+{
+  "b_month": "2026-07",
+  "dept_id": "DEPT01",
+  "counter_id": "COUNTER08"
+}
+
+INSERT INTO BUDGET_DAY_DETAIL (
+    b_month, dept_id, dept_name, counter_id, counter_name, floor,
+    b_01, b_02, b_03, b_04, b_05, b_06, b_07, b_08, b_09, b_10,
+    b_11, b_12, b_13, b_14, b_15, b_16, b_17, b_18, b_19, b_20,
+    b_21, b_22, b_23, b_24, b_25, b_26, b_27, b_28, b_29, b_30, b_31
+) VALUES (
+    '2026-07', 'DEPT01', '測試部門', 'COUNTER08', '測試櫃位', '1F',
+    '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000',
+    '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000',
+    '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000', '1000'
+);
+
 
 10. 刪除全部預算為零的資料 API
     - API: POST /Budget/delete0[cite: 2]
     - 說明: 刪除指定月份中預算資料為全部為零的相關紀錄[cite: 2]
+http://localhost:8095/Report/rest/Budget/delete0	
+	
+	
+{
+  "b_month": "2026-07"
+}
+
+-- 測試資料 1：預算全為 0 的資料 (執行 /delete0 後【會被刪除】)
+INSERT INTO BUDGET_DAY_DETAIL (
+    b_month, dept_id, counter_id, floor,
+    b_01, b_02, b_03, b_04, b_05, b_06, b_07, b_08, b_09, b_10,
+    b_11, b_12, b_13, b_14, b_15, b_16, b_17, b_18, b_19, b_20,
+    b_21, b_22, b_23, b_24, b_25, b_26, b_27, b_28, b_29, b_30, b_31
+) VALUES (
+    '2026-07', 'DEPT01', 'COUNTER_ZERO', '1F',
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+);
+
+-- 測試資料 2：有預算金額的資料 (執行 /delete0 後【不會被刪除】)
+INSERT INTO BUDGET_DAY_DETAIL (
+    b_month, dept_id, counter_id, floor,
+    b_01, b_02, b_03, b_04, b_05, b_06, b_07, b_08, b_09, b_10,
+    b_11, b_12, b_13, b_14, b_15, b_16, b_17, b_18, b_19, b_20,
+    b_21, b_22, b_23, b_24, b_25, b_26, b_27, b_28, b_29, b_30, b_31
+) VALUES (
+    '2026-07', 'DEPT01', 'COUNTER_VALID', '1F',
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000
+);
 
 11. 取得例外專櫃清單 API
     - API: POST /Budget/getExceptCounter[cite: 2]
     - 說明: 查詢預算計算或處理中的例外專櫃清單[cite: 2]
+http://localhost:8095/Report/rest/Budget/getExceptCounter
+	
+	
+{
+  "b_month": "2026-07"
+}	
+	
+-- 新增例外櫃位測試資料
+INSERT INTO BUDGET_COUNTER_EXCEPT (counter_id, counter_name) 
+VALUES 
+    ('EX_CTR01', '例外專櫃 - 品牌 A'),
+    ('EX_CTR02', '例外專櫃 - 品牌 B');
 
 12. 新增例外專櫃 API
     - API: POST /Budget/addExceptCounter[cite: 2]
     - 說明: 根據傳入的專櫃代號新增一筆例外專櫃資料[cite: 2]
+http://localhost:8095/Report/rest/Budget/addExceptCounter
+	
+{
+  "counter_id": "CTR_TEST01"
+}	
+
+--dc- tqa_file 在 @Qualifier("ORACLE_ERP_SF") private SessionFactory OERPSF; 
+{
+    "ErrorMessage": "JDBC exception executing SQL [SELECT lntplant, lnt06, lnt09, lnt30, tqa02\nFROM lnt_file t1, tqa_file t2\nWHERE t1.lnt30 = t2.tqa01\nAND lnt26 = 'Y'\nAND lnt06 = ?\n] [Table 'reportdb.tqa_file' doesn't exist] [n/a]; SQL [n/a]",
+    "Success": "N"
+}
+	
+-- 假設正確的欄位名稱叫 LNT01
+INSERT INTO LNT_FILE (LNT01, TQA02) VALUES ('CTR_TEST01', '測試專櫃 A');	
+
 
 13. 刪除例外專櫃 API
     - API: POST /Budget/delExceptCounter[cite: 2]
     - 說明: 根據傳入的專櫃代號刪除對應的例外專櫃資料[cite: 2]
+http://localhost:8095/Report/rest/Budget/delExceptCounter	
+	
+{
+  "counter_id": "CTR_TEST01"
+}	
+	
+INSERT INTO BUDGET_COUNTER_EXCEPT (counter_id, counter_name) 
+VALUES ('CTR_TEST01', '測試專櫃');
 
 14. 檢查預算完成狀態 API
     - API: POST /Budget/isCompletion[cite: 2]
     - 說明: 檢查指定月份的預算資料是否完整，若完整則自動送出審核[cite: 2]
+http://localhost:8095/Report/rest/Budget/isCompletion	
+	
+{
+  "b_month": "202607"
+}
+
+
+INSERT INTO BUDGET_DAY_HEADER (b_month, status) 
+VALUES ('202607', 'draft')
+ON DUPLICATE KEY UPDATE status = 'draft';
+
+--測試「驗證失敗」（預算全部為 0）
+執行這條 SQL 建立一筆每日預算皆為 0 的專櫃資料：
+
+INSERT INTO BUDGET_DAY_DETAIL (
+    b_month, floor, dept_id, counter_id, counter_name, 
+    b_01, b_02, b_03, b_04, b_05, b_06, b_07, b_08, b_09, b_10,
+    b_11, b_12, b_13, b_14, b_15, b_16, b_17, b_18, b_19, b_20,
+    b_21, b_22, b_23, b_24, b_25, b_26, b_27, b_28, b_29, b_30, b_31
+) VALUES (
+    '202607', '1F', 'D01', 'CTR001', '測試專櫃 A',
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+);
 
 15. 重新計算預算 API
     - API: POST /Budget/reCalc[cite: 2]
     - 說明: 針對指定月份的預算執行重新計算與核准狀態更新處理[cite: 2]
+http://localhost:8095/Report/rest/Budget/reCalc	
+	
+{
+  "b_month": "202607"
+}
+
+INSERT INTO BUDGET_DAY_HEADER (b_month, status) 
+VALUES ('202607', 'approving')
+ON DUPLICATE KEY UPDATE status = 'approving';
+
+INSERT INTO BUDGET_DAY_DETAIL (
+    b_month, floor, dept_id, counter_id, counter_name, 
+    b_01, b_02, b_03, b_04, b_05, b_06, b_07, b_08, b_09, b_10,
+    b_11, b_12, b_13, b_14, b_15, b_16, b_17, b_18, b_19, b_20,
+    b_21, b_22, b_23, b_24, b_25, b_26, b_27, b_28, b_29, b_30, b_31
+) VALUES (
+    '202607', '1F', 'D01', 'CTR001', '測試專櫃 A',
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000
+) ON DUPLICATE KEY UPDATE b_01 = 1000;
+
+--dc- 07-30-2026
 	
 ## Campaign 活動管理系統
 
 1. 取得活動設定清單 API
    - API: GET /Campaign/getCampaignSet[cite: 3]
    - 說明: 查詢並回傳活動設定的清單與相關參數內容[cite: 3]
+   
+   
+   
+
 
 2. 依編號取得活動設定 API
    - API: GET /Campaign/getCampaignSetBySN[cite: 3]
