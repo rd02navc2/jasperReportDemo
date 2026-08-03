@@ -1853,26 +1853,211 @@ INSERT INTO BUDGET_DAY_DETAIL (
 1. 取得活動設定清單 API
    - API: GET /Campaign/getCampaignSet[cite: 3]
    - 說明: 查詢並回傳活動設定的清單與相關參數內容[cite: 3]
+http://localhost:8095/Report/rest/Campaign/getCampaignSet
+
+{
+    "total": 1,
+    "records": 2,
+    "page": 1,
+    "rows": [
+        {
+            "sno": "CAMP001",
+            "campaign_name": "2026 暑期狂歡活動",
+            "is_active": "Y",
+            "is_unlimited_date": "N",
+            "start_date": "2026-07-01",
+            "end_date": "2026-08-31",
+            "w_1": "Y",
+            "w_2": "Y",
+            "w_3": "Y",
+            "w_4": "Y",
+            "w_5": "Y",
+            "w_6": "N",
+            "w_7": "N",
+            "point_bet": 100,
+            "is_unlimited_point": "N",
+            "week_point_max": 5000,
+            "is_unlimited_price": "N",
+            "reach_price": 1000.0,
+            "sort_order": 1,
+            "is_unlimited_unit_today": null,
+            "today_unit_max": null,
+            "is_unlimited_unit": null,
+            "month_unit_max": null,
+            "access_date": "2026-08-03T13:47:42.000+00:00",
+            "access_id": "ADMIN01"
+        },
+        {
+            "sno": "CAMP002",
+            "campaign_name": "會員每日簽到回饋",
+            "is_active": "Y",
+            "is_unlimited_date": "Y",
+            "start_date": null,
+            "end_date": null,
+            "w_1": "Y",
+            "w_2": "Y",
+            "w_3": "Y",
+            "w_4": "Y",
+            "w_5": "Y",
+            "w_6": "Y",
+            "w_7": "Y",
+            "point_bet": 10,
+            "is_unlimited_point": "Y",
+            "week_point_max": 0,
+            "is_unlimited_price": "Y",
+            "reach_price": 0.0,
+            "sort_order": 2,
+            "is_unlimited_unit_today": null,
+            "today_unit_max": null,
+            "is_unlimited_unit": null,
+            "month_unit_max": null,
+            "access_date": "2026-08-03T13:47:42.000+00:00",
+            "access_id": "ADMIN01"
+        }
+    ],
+    "Success": "Y"
+}  
    
-   
-   
+INSERT INTO CAMPAIGN_SET (
+    sno, campaign_name, is_active, is_unlimited_date, start_date, end_date,
+    w_1, w_2, w_3, w_4, w_5, w_6, w_7,
+    point_bet, is_unlimited_point, week_point_max, is_unlimited_price, reach_price,
+    sort_order, access_date, access_id
+) VALUES 
+('CAMP001', '2026 暑期狂歡活動', 'Y', 'N', '2026-07-01', '2026-08-31',
+ 'Y', 'Y', 'Y', 'Y', 'Y', 'N', 'N',
+ 100, 'N', 5000, 'N', 1000.00,
+ 1, NOW(), 'ADMIN01'),
+
+('CAMP002', '會員每日簽到回饋', 'Y', 'Y', NULL, NULL,
+ 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y',
+ 10, 'Y', 0, 'Y', 0.00,
+ 2, NOW(), 'ADMIN01');
 
 
 2. 依編號取得活動設定 API
    - API: GET /Campaign/getCampaignSetBySN[cite: 3]
    - 說明: 根據指定的活動編號（sno）查詢該筆活動設定的詳細內容與星期限制[cite: 3]
+http://localhost:8095/Report/rest/Campaign/getCampaignSetBySN?sno=TEST2026001
+
+{
+    "campaign_name": "測試促銷活動",
+    "is_active": "Y",
+    "sno": "TEST2026001",
+    "Success": "Y"
+}
+
+INSERT INTO CAMPAIGN_SET (
+    sno, campaign_name, is_active, is_unlimited_date,
+    start_date, end_date,
+    w_1, w_2, w_3, w_4, w_5, w_6, w_7,
+    point_bet, is_unlimited_point, week_point_max,
+    is_unlimited_price, reach_price, sort_order,
+    is_unlimited_unit_today, today_unit_max,
+    is_unlimited_unit, month_unit_max,
+    access_date, access_id
+) VALUES (
+    'TEST2026001', '2026 夏季限時折扣', 'Y', 'N',
+    '2026-08-01', '2026-08-31',
+    'Y', 'Y', 'Y', 'Y', 'Y', 'N', 'N',
+    10, 'N', 100,
+    'N', 500.0, 1,
+    'N', 50,
+    'N', 500,
+    NOW(), 'test_admin'
+);
+
+-- 驗證資料是否已寫入
+SELECT * FROM CAMPAIGN_SET WHERE sno = 'TEST2026001';
 
 3. 儲存活動設定 API
    - API: POST /Campaign/saveCampaignSet[cite: 3]
    - 說明: 接收前端傳入的資料並儲存活動設定，同時記錄登入者的操作代號[cite: 3]
+http://localhost:8095/Report/rest/Campaign/saveCampaignSet
 
+
+{
+  "status": "I",
+  "sno": "CAMP2026001",
+  "campaign_name": "2026 夏季限時大促銷",
+  "is_active": "Y",
+  "w_1": "Y",
+  "w_2": "Y",
+  "w_3": "Y",
+  "w_4": "Y",
+  "w_5": "Y",
+  "w_6": "N",
+  "w_7": "N",
+  "is_unlimited_unit_today": "N",
+  "today_unit_max": "100",
+  "is_unlimited_unit": "N",
+  "month_unit_max": "3000"
+}
+   
+{
+    "Success": "Y"
+}
+   
 4. 取得活動設定下拉選單 API
    - API: GET /Campaign/getCampaignSetCombo[cite: 3]
    - 說明: 取得符合當日星期條件且有效的活動清單，並組成下拉選單選項供前端使用[cite: 3]
+http://localhost:8095/Report/rest/Campaign/getCampaignSetCombo
+[
+    {
+        "value": "",
+        "text": "- 請選擇 -"
+    },
+    {
+        "value": "CAMP001",
+        "text": "2026 暑期狂歡活動"
+    },
+    {
+        "value": "CAMP002",
+        "text": "會員每日簽到回饋"
+    },
+    {
+        "value": "CAMP2026001",
+        "text": "2026 夏季限時大促銷"
+    },
+    {
+        "value": "CAMP2026003",
+        "text": "2026 全年常態優惠"
+    },
+    {
+        "value": "TEST2026001",
+        "text": "測試促銷活動"
+    }
+]
 
+   
+INSERT INTO CAMPAIGN_SET (
+    sno, campaign_name, is_active, is_unlimited_date,
+    start_date, end_date,
+    w_1, w_2, w_3, w_4, w_5, w_6, w_7,
+    point_bet, is_unlimited_point, week_point_max,
+    is_unlimited_price, reach_price, sort_order,
+    is_unlimited_unit_today, today_unit_max,
+    is_unlimited_unit, month_unit_max,
+    access_date, access_id
+) VALUES (
+    'CAMP2026003', '2026 全年常態優惠', 'Y', 'Y',
+    '2026-01-01', '2026-12-31',
+    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y',
+    10, 'Y', 0,
+    'Y', 0.0, 1,
+    'Y', 0,
+    'Y', 0,
+    NOW(), 'TEST_USER'
+);
+
+--dc- 0803-2026
 5. 取得活動兌換記錄 API
    - API: GET /Campaign/getCampaign[cite: 3]
    - 說明: 根據分頁與請求參數查詢活動兌換記錄明細，並回傳分頁格式的 JSON 資料[cite: 3]
+   
+
+   
+
 
 6. 儲存活動兌換記錄 API
    - API: POST /Campaign/saveCampaign[cite: 3]
