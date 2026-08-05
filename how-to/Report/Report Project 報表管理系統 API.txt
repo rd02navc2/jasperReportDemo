@@ -2050,23 +2050,181 @@ INSERT INTO CAMPAIGN_SET (
     NOW(), 'TEST_USER'
 );
 
---dc- 0803-2026
+--dc- 0804-2026
 5. 取得活動兌換記錄 API
    - API: GET /Campaign/getCampaign[cite: 3]
    - 說明: 根據分頁與請求參數查詢活動兌換記錄明細，並回傳分頁格式的 JSON 資料[cite: 3]
-   
+http://localhost:8095/Report/rest/Campaign/getCampaign
 
-   
+{
+  "user_id": "USER001",
+  "sno": "CAMP2026001"
+} 
+
+-- 切換資料庫
+CREATE DATABASE IF NOT EXISTS PermissionDB;
+USE PermissionDB;
+
+-- 1. 建立 CAMPAIGN_SET 主表
+CREATE TABLE IF NOT EXISTS CAMPAIGN_SET (
+    sno VARCHAR(50) PRIMARY KEY,
+    campaign_name VARCHAR(100) NOT NULL
+);
+
+-- 2. 建立 CAMPAIGN_REDEEM 兌換紀錄表
+CREATE TABLE IF NOT EXISTS CAMPAIGN_REDEEM (
+    sno VARCHAR(50) NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
+    transaction_date DATETIME NOT NULL,
+    unit INT DEFAULT 0,
+    access_id VARCHAR(50),
+    PRIMARY KEY (sno, user_id, transaction_date)
+);
+
+--
+
+-- 1. 建立 / 寫入活動設定表 (CAMPAIGN_SET)
+INSERT INTO PermissionDB.CAMPAIGN_SET (sno, campaign_name) 
+VALUES 
+('CAMP2026001', '2026 夏季限時大促銷'),
+('CAMP2026002', '會員每日簽到回饋')
+ON DUPLICATE KEY UPDATE campaign_name=VALUES(campaign_name);
+
+-- 2. 寫入活動兌換紀錄 (CAMPAIGN_REDEEM)
+INSERT INTO PermissionDB.CAMPAIGN_REDEEM (
+    transaction_date, 
+    sno, 
+    unit, 
+    access_id, 
+    user_id
+) VALUES 
+(NOW(), 'CAMP2026001', 10, 'ACC_1001', 'USER001'),
+(DATE_SUB(NOW(), INTERVAL 1 HOUR), 'CAMP2026001', 5, 'ACC_1002', 'USER001'),
+(DATE_SUB(NOW(), INTERVAL 1 DAY), 'CAMP2026001', 20, 'ACC_1003', 'USER001'),
+(DATE_SUB(NOW(), INTERVAL 2 DAY), 'CAMP2026002', 15, 'ACC_1004', 'USER001');
+
+-- 1. 建立 CAMPAIGN_SET (活動主檔)
+CREATE TABLE IF NOT EXISTS CAMPAIGN_SET (
+    sno VARCHAR(50) PRIMARY KEY COMMENT '活動編號',
+    campaign_name VARCHAR(100) NOT NULL COMMENT '活動名稱'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 2. 建立 CAMPAIGN_REDEEM (活動兌換紀錄檔)
+CREATE TABLE IF NOT EXISTS CAMPAIGN_REDEEM (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_date DATETIME NOT NULL COMMENT '交易時間',
+    sno VARCHAR(50) NOT NULL COMMENT '活動編號',
+    unit INT DEFAULT 1 COMMENT '單位/數量',
+    access_id VARCHAR(50) COMMENT '存取ID',
+    user_id VARCHAR(50) NOT NULL COMMENT '使用者ID',
+    center VARCHAR(50) COMMENT '區域中心',
+    FOREIGN KEY (sno) REFERENCES CAMPAIGN_SET(sno)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------------------------------
+-- 3. 新增測試資料 - CAMPAIGN_SET
+-- ----------------------------------------------------
+INSERT INTO CAMPAIGN_SET (sno, campaign_name) VALUES
+('CAMP202601', '2026 新春滿額贈紅利活動'),
+('CAMP202602', '夏日酷暑抽獎大放送');
+
+-- ----------------------------------------------------
+-- 4. 新增測試資料 - CAMPAIGN_REDEEM
+-- ----------------------------------------------------
+INSERT INTO CAMPAIGN_REDEEM (transaction_date, sno, unit, access_id, user_id, center) VALUES
+('2026-08-01 10:15:30', 'CAMP202601', 1, 'ACC_A01', 'U001', 'NORTH'),
+('2026-08-02 11:20:00', 'CAMP202601', 2, 'ACC_A02', 'U001', 'NORTH'),
+('2026-08-03 14:05:12', 'CAMP202602', 1, 'ACC_B01', 'U002', 'SOUTH'),
+('2026-08-04 09:30:45', 'CAMP202601', 5, 'ACC_A03', 'U003', 'CENTRAL');
+
 
 
 6. 儲存活動兌換記錄 API
    - API: POST /Campaign/saveCampaign[cite: 3]
    - 說明: 驗證會員資格、當日星期限制以及每日與每月兌換上限後，儲存活動兌換記錄[cite: 3]
+http://localhost:8095/Report/rest/Campaign/saveCampaign
+   
+   
+{
+  "center": "TC01",
+  "user_id": "M00001",
+  "name": "張三",        
+  "card_id": "CARD12345",
+  "sno": "CAMP202601",
+  "vip_level": "V1",
+  "card_level": "GOLD",
+  "unit": 1
+}  
+   
+
+-- 刪除舊資料
+DELETE FROM CAMPAIGN_SET WHERE sno = 'CAMP202601';
+
+-- 重新插入
+INSERT INTO CAMPAIGN_SET (sno, campaign_name, w_1, w_2, w_3, w_4, w_5, w_6, w_7, is_unlimited_unit_today, today_unit_max, is_unlimited_unit, month_unit_max) 
+VALUES ('CAMP202601', '2026 新春滿額贈紅利活動', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'N', 3, 'N', 10);
+
+UPDATE campaign_set 
+SET w_1='Y', w_2='Y', w_3='Y', w_4='Y', w_5='Y', w_6='Y', w_7='Y' 
+WHERE sno = 'CAMP202601';
 
 7. 取得活動統計資料 API
    - API: GET /Campaign/getStatistics[cite: 3]
    - 說明: 查詢各活動的兌換次數與加總統計數據，並以列表及圖表陣列格式回傳[cite: 3]
-   
+http://localhost:8095/Report/rest/Campaign/getStatistics
+
+{
+  "center": "TC01",
+  "user_id": "M00001",
+  "name": "張三",
+  "card_id": "CARD12345",
+  "sno": "CAMP202601",
+  "vip_level": "V1",
+  "card_level": "GOLD",
+  "unit": 1,
+  "sale_s_date": "2026-01-01",
+  "sale_e_date": "2026-08-05"
+}
+
+-- --------------------------------------------------------
+-- 清除舊資料 (可選)
+-- --------------------------------------------------------
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE CAMPAIGN_REDEEM;
+TRUNCATE TABLE CAMPAIGN_SET;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- --------------------------------------------------------
+-- A. 新增活動設定檔 (CAMPAIGN_SET) 測試資料
+-- --------------------------------------------------------
+INSERT INTO CAMPAIGN_SET (sno, campaign_name, is_active, w_1, w_2, w_3, w_4, w_5, w_6, w_7) VALUES
+('CAMP202601', '2026 新春滿額贈禮活動', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y'),
+('CAMP202602', '平日 VIP 尊榮專屬禮', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'N', 'N'),
+('CAMP202603', '週末週年慶加碼抽', 'Y', 'N', 'N', 'N', 'N', 'N', 'Y', 'Y'),
+('CAMP202604', '已過期/停用活動', 'N', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'Y');
+
+-- --------------------------------------------------------
+-- B. 新增兌換紀錄 (CAMPAIGN_REDEEM) 測試資料
+-- --------------------------------------------------------
+INSERT INTO CAMPAIGN_REDEEM 
+(center, sno, user_id, user_name, card_no, vip_level, card_level, unit, transaction_date, access_id) 
+VALUES
+-- CAMP202601 兌換紀錄 (不同日期與門市)
+('TC01', 'CAMP202601', 'M001', '張小明', 'CARD88801', 'V1', 'GOLD',   1, '2026-08-01 10:15:00', 'ADMIN'),
+('TC01', 'CAMP202601', 'M002', '李美麗', 'CARD88802', 'V2', 'SILVER', 2, '2026-08-01 14:30:22', 'ADMIN'),
+('TC02', 'CAMP202601', 'M003', '王大同', 'CARD88803', 'V1', 'GOLD',   1, '2026-08-02 11:05:40', 'SYSTEM'),
+('TC01', 'CAMP202601', 'M004', '陳嘉豪', 'CARD88804', 'V3', 'PLAT',   3, '2026-08-03 09:20:15', 'ADMIN'),
+('TC03', 'CAMP202601', 'M005', '林雅婷', 'CARD88805', 'V1', 'SILVER', 1, '2026-08-05 16:45:00', 'SYSTEM'),
+
+-- CAMP202602 兌換紀錄
+('TC01', 'CAMP202602', 'M001', '張小明', 'CARD88801', 'V1', 'GOLD',   1, '2026-08-03 15:10:00', 'ADMIN'),
+('TC02', 'CAMP202602', 'M006', '蔡志強', 'CARD88806', 'V2', 'PLAT',   2, '2026-08-04 18:00:00', 'ADMIN'),
+
+-- CAMP202603 兌換紀錄
+('TC02', 'CAMP202603', 'M007', '許家瑋', 'CARD88807', 'V1', 'GOLD',   1, '2026-08-02 13:20:00', 'SYSTEM');
+
+
+
 ## Card 卡片點數設定系統
 
 1. 取得卡片點數設定清單 API
